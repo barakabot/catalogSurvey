@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          String           @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  imageUrl    String?
+  category    String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  links       CompetitorLink[]
+}
+
+model CompetitorLink {
+  id            String         @id @default(cuid())
+  productId     String
+  name          String
+  url           String
+  linkType      String         @default("WEBSITE") // API or WEBSITE
+  priceSelector String?        // CSS selector for website, JSON path for API (e.g. "data.price")
+  lastPrice     Float?
+  lastFetchedAt DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  product       Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  priceHistory  PriceHistory[]
+}
+
+model PriceHistory {
+  id               String         @id @default(cuid())
+  competitorLinkId String
+  price            Float
+  fetchedAt        DateTime       @default(now())
+  link             CompetitorLink @relation(fields: [competitorLinkId], references: [id], onDelete: Cascade)
+}
