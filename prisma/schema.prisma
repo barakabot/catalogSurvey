@@ -31,6 +31,7 @@ model Product {
   targetMarket          String?              // بازار هدف
   competitiveAdvantage  String?              // مزیت رقابتی
   promotionDescription  String?              // توضیحات پروموشن
+  margin                Float?               // مارجین (درصد یا مبلغ)
   groupId               String?
   createdAt             DateTime             @default(now())
   updatedAt             DateTime             @updatedAt

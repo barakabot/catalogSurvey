@@ -127,6 +127,7 @@ interface Product {
   targetMarket: string | null;
   competitiveAdvantage: string | null;
   promotionDescription: string | null;
+  margin: number | null;
   groupId: string | null;
   group?: ProductGroup & { parent?: { id: string; name: string } | null } | null;
   createdAt: string;
@@ -210,7 +211,7 @@ export default function CatalogPage() {
     notFound: string[];
     skipped: string[];
     errors: string[];
-    detectedColumns: { id: string | null; name: string | null; price: string | null; description: string | null; targetMarket: string | null; competitiveAdvantage: string | null; promotionDescription: string | null };
+    detectedColumns: { id: string | null; name: string | null; price: string | null; description: string | null; targetMarket: string | null; competitiveAdvantage: string | null; promotionDescription: string | null; margin: string | null };
   } | null>(null);
 
   // Baraka images
@@ -228,6 +229,7 @@ export default function CatalogPage() {
     targetMarket: "",
     competitiveAdvantage: "",
     promotionDescription: "",
+    margin: "",
   });
 
   // ─── Fetch Data ────────────────────────────────────────────────
@@ -319,7 +321,7 @@ export default function CatalogPage() {
   const handleSaveProduct = async () => {
     try {
       const url = editingProduct ? `/api/products/${editingProduct.id}` : "/api/products";
-      const res = await fetch(url, { method: editingProduct ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: productForm.name, description: productForm.description || null, price: parseFloat(productForm.price), imageUrl: productForm.imageUrl || null, groupId: productForm.groupId || null, targetMarket: productForm.targetMarket || null, competitiveAdvantage: productForm.competitiveAdvantage || null, promotionDescription: productForm.promotionDescription || null }) });
+      const res = await fetch(url, { method: editingProduct ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: productForm.name, description: productForm.description || null, price: parseFloat(productForm.price), imageUrl: productForm.imageUrl || null, groupId: productForm.groupId || null, targetMarket: productForm.targetMarket || null, competitiveAdvantage: productForm.competitiveAdvantage || null, promotionDescription: productForm.promotionDescription || null, margin: productForm.margin ? parseFloat(productForm.margin) : null }) });
       if (!res.ok) throw new Error();
       toast({ title: editingProduct ? "محصول بروزرسانی شد" : "محصول اضافه شد" });
       setProductDialogOpen(false);
@@ -410,19 +412,19 @@ export default function CatalogPage() {
   const handleDownloadTemplate = () => {
     // Create Excel with actual products data including description
     const wsData: (string | number)[][] = [
-      ["id", "name", "price", "description", "targetMarket", "competitiveAdvantage", "promotionDescription"],
+      ["id", "name", "price", "description", "targetMarket", "competitiveAdvantage", "promotionDescription", "margin"],
     ];
     // Add all current products with their IDs, names, prices, and descriptions
     for (const p of products) {
-      wsData.push([p.id, p.name, Math.round(p.price), p.description || "", p.targetMarket || "", p.competitiveAdvantage || "", p.promotionDescription || ""]);
+      wsData.push([p.id, p.name, Math.round(p.price), p.description || "", p.targetMarket || "", p.competitiveAdvantage || "", p.promotionDescription || "", p.margin !== null && p.margin !== undefined ? p.margin : ""]);
     }
     // If no products yet, add an example row
     if (products.length === 0) {
-      wsData.push(["clx_example123", "نمونه محصول", 150000, "توضیحات محصول", "بازار مصرف‌کننده", "قیمت مناسب‌تر", "تخفیف ویژه"]);
+      wsData.push(["clx_example123", "نمونه محصول", 150000, "توضیحات محصول", "بازار مصرف‌کننده", "قیمت مناسب‌تر", "تخفیف ویژه", 25]);
     }
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     // Set column widths
-    ws["!cols"] = [{ wch: 25 }, { wch: 30 }, { wch: 15 }, { wch: 40 }, { wch: 25 }, { wch: 25 }, { wch: 30 }];
+    ws["!cols"] = [{ wch: 25 }, { wch: 30 }, { wch: 15 }, { wch: 40 }, { wch: 25 }, { wch: 25 }, { wch: 30 }, { wch: 10 }];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "قیمت‌ها");
     XLSX.writeFile(wb, "catalog-prices.xlsx");
@@ -640,11 +642,11 @@ export default function CatalogPage() {
   };
 
   // ─── Form helpers ──────────────────────────────────────────────
-  const resetProductForm = () => setProductForm({ name: "", description: "", price: "", imageUrl: "", groupId: "", targetMarket: "", competitiveAdvantage: "", promotionDescription: "" });
+  const resetProductForm = () => setProductForm({ name: "", description: "", price: "", imageUrl: "", groupId: "", targetMarket: "", competitiveAdvantage: "", promotionDescription: "", margin: "" });
 
   const openEditProduct = (product: Product) => {
     setEditingProduct(product);
-    setProductForm({ name: product.name, description: product.description || "", price: String(product.price), imageUrl: product.imageUrl || "", groupId: product.groupId || "", targetMarket: product.targetMarket || "", competitiveAdvantage: product.competitiveAdvantage || "", promotionDescription: product.promotionDescription || "" });
+    setProductForm({ name: product.name, description: product.description || "", price: String(product.price), imageUrl: product.imageUrl || "", groupId: product.groupId || "", targetMarket: product.targetMarket || "", competitiveAdvantage: product.competitiveAdvantage || "", promotionDescription: product.promotionDescription || "", margin: product.margin !== null && product.margin !== undefined ? String(product.margin) : "" });
     setProductDialogOpen(true);
   };
 
@@ -791,6 +793,21 @@ export default function CatalogPage() {
                           <span className="text-xs text-muted-foreground">قیمت شما:</span>
                           <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{formatPrice(product.price, currencyUnit)}</p>
                         </div>
+                        {(product.margin !== null && product.margin !== undefined) && (
+                          <div className="mt-1 flex items-center gap-1">
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-rose-600 border-rose-200 dark:text-rose-400 dark:border-rose-800">
+                              مارجین: {product.margin}٪
+                            </Badge>
+                          </div>
+                        )}
+                        {product.promotionDescription && (
+                          <div className="mt-1.5 flex items-center gap-1">
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-purple-600 border-purple-200 dark:text-purple-400 dark:border-purple-800">
+                              <Package className="w-2.5 h-2.5 ml-0.5" />
+                              پروموشن
+                            </Badge>
+                          </div>
+                        )}
                         <div className="mt-3 flex items-center justify-center gap-1 text-xs text-muted-foreground/60">
                           <Eye className="w-3 h-3" />
                           <span>برای مشاهده رقبا کلیک کنید</span>
@@ -834,6 +851,12 @@ export default function CatalogPage() {
                     {detailProduct.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{detailProduct.description}</p>}
                     {(() => { const gn = getGroupName(detailProduct); return gn ? <Badge className="mt-2" variant="secondary"><FolderTree className="w-3 h-3 ml-1" />{gn}</Badge> : null; })()}
                   </div>
+                  {(detailProduct.margin !== null && detailProduct.margin !== undefined) && (
+                    <div className="shrink-0 text-center p-2 rounded-lg bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 min-w-[70px]">
+                      <p className="text-xs text-rose-600 dark:text-rose-400 font-medium">مارجین</p>
+                      <p className="text-xl font-bold text-rose-700 dark:text-rose-300">{detailProduct.margin}٪</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* New Info Fields */}
@@ -1136,6 +1159,7 @@ export default function CatalogPage() {
             <div className="space-y-2"><Label className="flex items-center gap-2"><Globe className="w-4 h-4 text-blue-500" /> بازار هدف</Label><Textarea value={productForm.targetMarket} onChange={(e) => setProductForm((f) => ({ ...f, targetMarket: e.target.value }))} placeholder="مثلاً: بازار مصرف‌کننده نهایی، بازار سازمانی..." rows={2} /></div>
             <div className="space-y-2"><Label className="flex items-center gap-2"><Tag className="w-4 h-4 text-amber-500" /> مزیت رقابتی</Label><Textarea value={productForm.competitiveAdvantage} onChange={(e) => setProductForm((f) => ({ ...f, competitiveAdvantage: e.target.value }))} placeholder="مثلاً: قیمت مناسب‌تر، کیفیت بالاتر..." rows={2} /></div>
             <div className="space-y-2"><Label className="flex items-center gap-2"><Package className="w-4 h-4 text-purple-500" /> توضیحات پروموشن</Label><Textarea value={productForm.promotionDescription} onChange={(e) => setProductForm((f) => ({ ...f, promotionDescription: e.target.value }))} placeholder="مثلاً: تخفیف ویژه تابستانه، هدیه رایگان..." rows={2} /></div>
+            <div className="space-y-2"><Label className="flex items-center gap-2"><Tag className="w-4 h-4 text-rose-500" /> مارجین (٪)</Label><Input type="number" step="0.1" value={productForm.margin} onChange={(e) => setProductForm((f) => ({ ...f, margin: e.target.value }))} placeholder="مثلاً: 25" dir="ltr" /><p className="text-xs text-muted-foreground">درصد حاشیه سود (اختیاری)</p></div>
             <Separator />
             <div className="space-y-2"><Label>گروه / دسته‌بندی</Label><Select value={productForm.groupId || "__none__"} onValueChange={(v) => setProductForm((f) => ({ ...f, groupId: v === "__none__" ? "" : v }))}><SelectTrigger><SelectValue placeholder="بدون گروه" /></SelectTrigger><SelectContent><SelectItem value="__none__">بدون گروه</SelectItem>{groups.map((g) => <React.Fragment key={g.id}><SelectItem value={g.id}><span className="font-medium">{g.name}</span></SelectItem>{g.children.map((sub) => <SelectItem key={sub.id} value={sub.id}><span className="text-muted-foreground">└ {sub.name}</span></SelectItem>)}</React.Fragment>)}</SelectContent></Select></div>
             <Button onClick={handleSaveProduct} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white" disabled={!productForm.name || !productForm.price}>{editingProduct ? "بروزرسانی" : "افزودن محصول"}</Button>
@@ -1273,6 +1297,7 @@ export default function CatalogPage() {
                 <li>ستون <Badge variant="secondary" className="text-xs mx-1">targetMarket</Badge> یا <Badge variant="secondary" className="text-xs mx-1">بازار هدف</Badge> — بازار هدف</li>
                 <li>ستون <Badge variant="secondary" className="text-xs mx-1">competitiveAdvantage</Badge> یا <Badge variant="secondary" className="text-xs mx-1">مزیت رقابتی</Badge> — مزیت رقابتی</li>
                 <li>ستون <Badge variant="secondary" className="text-xs mx-1">promotionDescription</Badge> یا <Badge variant="secondary" className="text-xs mx-1">پروموشن</Badge> — توضیحات پروموشن</li>
+                <li>ستون <Badge variant="secondary" className="text-xs mx-1">margin</Badge> یا <Badge variant="secondary" className="text-xs mx-1">مارجین</Badge> — درصد حاشیه سود</li>
               </ul>
               <p className="text-muted-foreground text-xs">اگر ستون id باشد، تطبیق دقیق‌تر است. هر ستونی که در فایل نباشد، تغییر نمی‌کند.</p>
             </div>
@@ -1338,6 +1363,7 @@ export default function CatalogPage() {
                     {importResult.detectedColumns.targetMarket && <Badge variant="outline" className="text-xs">بازار هدف: {importResult.detectedColumns.targetMarket}</Badge>}
                     {importResult.detectedColumns.competitiveAdvantage && <Badge variant="outline" className="text-xs">مزیت: {importResult.detectedColumns.competitiveAdvantage}</Badge>}
                     {importResult.detectedColumns.promotionDescription && <Badge variant="outline" className="text-xs">پروموشن: {importResult.detectedColumns.promotionDescription}</Badge>}
+                    {importResult.detectedColumns.margin && <Badge variant="outline" className="text-xs">مارجین: {importResult.detectedColumns.margin}</Badge>}
                   </p>
                 )}
                 {importResult.notFound.length > 0 && (

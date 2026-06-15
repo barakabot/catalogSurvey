@@ -45,7 +45,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { name, description, price, imageUrl, groupId, targetMarket, competitiveAdvantage, promotionDescription } = body;
+    const { name, description, price, imageUrl, groupId, targetMarket, competitiveAdvantage, promotionDescription, margin } = body;
 
     const product = await db.product.update({
       where: { id },
@@ -58,6 +58,7 @@ export async function PUT(
         ...(targetMarket !== undefined && { targetMarket: targetMarket || null }),
         ...(competitiveAdvantage !== undefined && { competitiveAdvantage: competitiveAdvantage || null }),
         ...(promotionDescription !== undefined && { promotionDescription: promotionDescription || null }),
+        ...(margin !== undefined && { margin: margin !== null && margin !== '' ? parseFloat(String(margin)) : null }),
       },
       include: {
         competitorProducts: true,

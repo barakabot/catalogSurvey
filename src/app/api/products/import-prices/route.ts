@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
     let targetMarketCol: string | null = null;
     let competitiveAdvantageCol: string | null = null;
     let promotionDescCol: string | null = null;
+    let marginCol: string | null = null;
 
     for (const col of columns) {
       const n = normalize(col);
@@ -59,13 +60,15 @@ export async function POST(req: NextRequest) {
         competitiveAdvantageCol = col;
       } else if (n === "promotiondescription" || n === "پروموشن" || n === "توضیحاتپروموشن" || n === "promotion" || n === "پروموت") {
         promotionDescCol = col;
+      } else if (n === "margin" || n === "مارجین" || n === "حاشیهسود" || n === "حاشیه" || n === "درصدسود") {
+        marginCol = col;
       }
     }
 
     // If price column not found, try to find a numeric column that's not id
     if (!priceCol) {
       for (const col of columns) {
-        if (col === idCol || col === nameCol || col === descCol || col === targetMarketCol || col === competitiveAdvantageCol || col === promotionDescCol) continue;
+        if (col === idCol || col === nameCol || col === descCol || col === targetMarketCol || col === competitiveAdvantageCol || col === promotionDescCol || col === marginCol) continue;
         const val = firstRow[col];
         if (typeof val === "number" || (!isNaN(Number(val)) && val !== "")) {
           priceCol = col;
@@ -75,7 +78,7 @@ export async function POST(req: NextRequest) {
     }
 
     // At least one updatable field must be present
-    if (!priceCol && !descCol && !targetMarketCol && !competitiveAdvantageCol && !promotionDescCol) {
+    if (!priceCol && !descCol && !targetMarketCol && !competitiveAdvantageCol && !promotionDescCol && !marginCol) {
       return NextResponse.json(
         { error: `هیچ ستون قابل بروزرسانی یافت نشد. ستون‌های موجود: ${columns.join(", ")}` },
         { status: 400 }
@@ -116,6 +119,7 @@ export async function POST(req: NextRequest) {
         const targetMarket = targetMarketCol ? String(row[targetMarketCol] ?? "").trim() : null;
         const competitiveAdvantage = competitiveAdvantageCol ? String(row[competitiveAdvantageCol] ?? "").trim() : null;
         const promotionDescription = promotionDescCol ? String(row[promotionDescCol] ?? "").trim() : null;
+        const margin = marginCol ? (() => { const v = Number(row[marginCol]); return isNaN(v) ? null : v; })() : null;
 
         let product;
 
@@ -148,6 +152,7 @@ export async function POST(req: NextRequest) {
         if (targetMarketCol) updateData.targetMarket = targetMarket || null;
         if (competitiveAdvantageCol) updateData.competitiveAdvantage = competitiveAdvantage || null;
         if (promotionDescCol) updateData.promotionDescription = promotionDescription || null;
+        if (marginCol) updateData.margin = margin !== null ? margin : null;
 
         await db.product.update({
           where: { id: product.id },
@@ -167,7 +172,7 @@ export async function POST(req: NextRequest) {
       notFound: results.notFound,
       skipped: results.skipped,
       errors: results.errors,
-      detectedColumns: { id: idCol, name: nameCol, price: priceCol, description: descCol, targetMarket: targetMarketCol, competitiveAdvantage: competitiveAdvantageCol, promotionDescription: promotionDescCol },
+      detectedColumns: { id: idCol, name: nameCol, price: priceCol, description: descCol, targetMarket: targetMarketCol, competitiveAdvantage: competitiveAdvantageCol, promotionDescription: promotionDescCol, margin: marginCol },
     });
   } catch (error) {
     console.error("Excel import error:", error);
