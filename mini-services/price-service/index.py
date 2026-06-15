@@ -68,17 +68,47 @@ def row_to_dict(row):
 
 
 # ─── Smart Fetch (handles CDN cookie protection like Digikala) ────
-async def smart_fetch(url: str, timeout: int = 15) -> httpx.Response:
+async def smart_fetch(url: str, timeout: int = 20) -> httpx.Response:
     """Fetch URL with manual redirect handling for CDN cookie protection."""
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept": "application/json, text/plain, */*",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        "Accept": "application/json, text/html, */*",
         "Accept-Language": "fa-IR,fa;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Referer": "https://www.digikala.com/",
+        "Origin": "https://www.digikala.com",
+        "Sec-Ch-Ua": '"Chromium";v="131", "Google Chrome";v="131"',
+        "Sec-Ch-Ua-Mobile": "?0",
+        "Sec-Ch-Ua-Platform": '"Windows"',
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-site",
+    }
+    
+    async with httpx.AsyncClient(
+        follow_redirects=True,
+        timeout=timeout,
+        headers=headers,
+        http2=True,
+    ) as client:
+        response = await client.get(url)
+        return response
+
+
+async def smart_fetch_manual(url: str, timeout: int = 20) -> httpx.Response:
+    """Fetch URL with manual redirect + cookie handling (fallback for CDN protection)."""
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        "Accept": "application/json, text/html, */*",
+        "Accept-Language": "fa-IR,fa;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Referer": "https://www.digikala.com/",
     }
     async with httpx.AsyncClient(
         follow_redirects=False,
         timeout=timeout,
         headers=headers,
+        http2=True,
     ) as client:
         response = await client.get(url)
         
@@ -111,12 +141,37 @@ async def scrape_digikala(product_id: str) -> dict:
     url = f"https://api.digikala.com/v2/product/{product_id}"
     
     try:
+        # Try with auto-redirect first
         response = await smart_fetch(url)
         
+        # If that fails, try manual cookie-based redirect
+        if response.status_code in (403, 404, 503):
+            print(f"[Digikala] Auto-redirect got {response.status_code}, trying manual cookie approach...")
+            response = await smart_fetch_manual(url)
+        
         if response.status_code != 200:
+            # Try one more time with a different approach - simple request
+            try:
+                async with httpx.AsyncClient(timeout=20, follow_redirects=True) as client:
+                    simple_resp = await client.get(url, headers={
+                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+                        "Accept": "*/*",
+                    })
+                    if simple_resp.status_code == 200:
+                        response = simple_resp
+            except Exception:
+                pass
+        
+        if response.status_code != 200:
+            # Get response body for debugging
+            body_preview = ""
+            try:
+                body_preview = response.text[:500]
+            except Exception:
+                pass
             return {
                 "success": False,
-                "error": f"خطای HTTP: {response.status_code}",
+                "error": f"خطای HTTP: {response.status_code} — آیدی محصول درست است؟ (پاسخ: {body_preview[:200]})",
                 "data": None
             }
         
@@ -217,12 +272,26 @@ async def scrape_snappshop(product_id: str) -> dict:
     url = f"https://apix.snappshop.ir/products/v2/{product_id}"
     
     try:
-        response = await smart_fetch(url)
+        # SnappShop needs specific headers
+        snapp_headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+            "Accept": "application/json",
+            "Accept-Language": "fa-IR,fa;q=0.9",
+            "Referer": "https://snappshop.com/",
+            "Origin": "https://snappshop.com",
+        }
+        async with httpx.AsyncClient(follow_redirects=True, timeout=20, headers=snapp_headers, http2=True) as client:
+            response = await client.get(url)
         
         if response.status_code != 200:
+            body_preview = ""
+            try:
+                body_preview = response.text[:500]
+            except Exception:
+                pass
             return {
                 "success": False,
-                "error": f"خطای HTTP: {response.status_code}",
+                "error": f"خطای HTTP اسنپ‌شاپ: {response.status_code} — آیدی محصول درست است؟ (پاسخ: {body_preview[:200]})",
                 "data": None
             }
         
@@ -406,6 +475,56 @@ async def save_competitor_product(product_data: dict, catalog_product_id: str = 
 @app.get("/api/health")
 async def health():
     return {"status": "ok", "service": "price-service", "version": "2.0", "port": PORT}
+
+
+@app.get("/api/test-scrape")
+async def test_scrape(source: str = Query(...), sourceId: str = Query(...)):
+    """Test scrape endpoint — returns raw API response for debugging."""
+    source_upper = source.upper()
+    if source_upper not in ("DIGIKALA", "SNAPPSHOP"):
+        raise HTTPException(status_code=400, detail="منبع باید DIGIKALA یا SNAPPSHOP باشد")
+    
+    if source_upper == "DIGIKALA":
+        url = f"https://api.digikala.com/v2/product/{sourceId}"
+    else:
+        url = f"https://apix.snappshop.ir/products/v2/{sourceId}"
+    
+    # Try 3 methods and return all results
+    results = {}
+    
+    # Method 1: auto-redirect with full headers
+    try:
+        resp = await smart_fetch(url)
+        results["method1_auto_redirect"] = {
+            "status": resp.status_code,
+            "headers": dict(resp.headers)[:20] if resp.headers else {},
+            "body_preview": resp.text[:300] if resp.text else "",
+        }
+    except Exception as e:
+        results["method1_auto_redirect"] = {"error": str(e)}
+    
+    # Method 2: manual cookie redirect
+    try:
+        resp = await smart_fetch_manual(url)
+        results["method2_manual_cookie"] = {
+            "status": resp.status_code,
+            "body_preview": resp.text[:300] if resp.text else "",
+        }
+    except Exception as e:
+        results["method2_manual_cookie"] = {"error": str(e)}
+    
+    # Method 3: simple request
+    try:
+        async with httpx.AsyncClient(timeout=20, follow_redirects=True) as client:
+            resp = await client.get(url, headers={"User-Agent": "Mozilla/5.0", "Accept": "*/*"})
+            results["method3_simple"] = {
+                "status": resp.status_code,
+                "body_preview": resp.text[:300] if resp.text else "",
+            }
+    except Exception as e:
+        results["method3_simple"] = {"error": str(e)}
+    
+    return {"url": url, "results": results}
 
 
 @app.post("/api/competitors/scrape")

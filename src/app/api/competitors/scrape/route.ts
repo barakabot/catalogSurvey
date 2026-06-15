@@ -2,20 +2,46 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
 // ─── Smart Fetch with CDN cookie protection ─────────────────────
-async function smartFetch(url: string, timeout = 15000): Promise<Response> {
+async function smartFetch(url: string, timeout = 20000): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
 
   try {
     const headers: Record<string, string> = {
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      Accept: "application/json, text/plain, */*",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+      Accept: "application/json, text/html, */*",
       "Accept-Language": "fa-IR,fa;q=0.9,en-US;q=0.8,en;q=0.7",
+      "Accept-Encoding": "gzip, deflate, br",
+      "Sec-Ch-Ua": '"Chromium";v="131", "Google Chrome";v="131"',
+      "Sec-Ch-Ua-Mobile": "?0",
+      "Sec-Ch-Ua-Platform": '"Windows"',
+      "Sec-Fetch-Dest": "empty",
+      "Sec-Fetch-Mode": "cors",
+      "Sec-Fetch-Site": "same-site",
+    };
+
+    // First try: auto-redirect (follow redirects normally)
+    try {
+      const response = await fetch(url, {
+        headers,
+        redirect: "follow",
+        signal: controller.signal,
+      });
+      if (response.ok) return response;
+    } catch {
+      // ignore, try manual approach
+    }
+
+    // Second try: manual redirect with cookie handling
+    const manualHeaders: Record<string, string> = {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+      Accept: "application/json, text/html, */*",
+      "Accept-Language": "fa-IR,fa;q=0.9,en-US;q=0.8,en;q=0.7",
+      Referer: url.includes("digikala") ? "https://www.digikala.com/" : "https://snappshop.com/",
     };
 
     let response = await fetch(url, {
-      headers,
+      headers: manualHeaders,
       redirect: "manual",
       signal: controller.signal,
     });
@@ -36,7 +62,7 @@ async function smartFetch(url: string, timeout = 15000): Promise<Response> {
       });
 
       const redirectHeaders: Record<string, string> = {
-        ...headers,
+        ...manualHeaders,
         ...(cookies.length > 0 ? { Cookie: cookies.join("; ") } : {}),
       };
 
@@ -65,7 +91,9 @@ async function scrapeDigikala(productId: string): Promise<{
     const response = await smartFetch(url);
 
     if (response.status !== 200) {
-      return { success: false, error: `خطای HTTP: ${response.status}` };
+      let bodyPreview = "";
+      try { bodyPreview = await response.text(); bodyPreview = bodyPreview.slice(0, 200); } catch {}
+      return { success: false, error: `خطای HTTP دیجیکالا: ${response.status} — آیدی محصول درست است؟ (پاسخ: ${bodyPreview})` };
     }
 
     const result = await response.json();
@@ -166,7 +194,9 @@ async function scrapeSnappshop(productId: string): Promise<{
     const response = await smartFetch(url);
 
     if (response.status !== 200) {
-      return { success: false, error: `خطای HTTP: ${response.status}` };
+      let bodyPreview = "";
+      try { bodyPreview = await response.text(); bodyPreview = bodyPreview.slice(0, 200); } catch {}
+      return { success: false, error: `خطای HTTP اسنپ‌شاپ: ${response.status} — آیدی محصول درست است؟ (پاسخ: ${bodyPreview})` };
     }
 
     const result = await response.json();
