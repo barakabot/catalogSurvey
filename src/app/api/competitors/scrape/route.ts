@@ -109,14 +109,23 @@ async function scrapeDigikala(productId: string): Promise<{
     let imageUrl: string | null = null;
     const images = product.images;
     if (images?.main?.url) {
-      imageUrl = images.main.url;
+      imageUrl = typeof images.main.url === "string" ? images.main.url : String(images.main.url);
     } else if (images?.list?.[0]?.url) {
-      imageUrl = images.list[0].url;
+      imageUrl = typeof images.list[0].url === "string" ? images.list[0].url : String(images.list[0].url);
     }
-    if (imageUrl && !imageUrl.startsWith("http")) {
+    // Also try first index of images array directly
+    if (!imageUrl && Array.isArray(images) && images[0]) {
+      const firstImg = images[0];
+      imageUrl = typeof firstImg === "string" ? firstImg : (firstImg?.url ? String(firstImg.url) : null);
+    }
+    if (imageUrl && typeof imageUrl === "string" && !imageUrl.startsWith("http")) {
       imageUrl = imageUrl.startsWith("//")
         ? `https:${imageUrl}`
         : `https://digikala.com${imageUrl}`;
+    }
+    // Safety: ensure imageUrl is always string or null
+    if (imageUrl && typeof imageUrl !== "string") {
+      imageUrl = String(imageUrl);
     }
 
     // Extract price from default_variant
@@ -211,7 +220,8 @@ async function scrapeSnappshop(productId: string): Promise<{
     // Extract image
     let imageUrl: string | null = null;
     if (data.images?.[0]?.src) {
-      imageUrl = data.images[0].src;
+      const src = data.images[0].src;
+      imageUrl = typeof src === "string" ? src : String(src);
     }
 
     // Extract price from variants

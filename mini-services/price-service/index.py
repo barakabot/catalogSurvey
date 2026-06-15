@@ -192,13 +192,26 @@ async def scrape_digikala(product_id: str) -> dict:
         main_image = images.get("main", {})
         image_url = None
         if isinstance(main_image, dict):
-            image_url = main_image.get("url", None)
+            raw_url = main_image.get("url", None)
+            image_url = str(raw_url) if raw_url else None
             if not image_url:
                 # Try first image from list
                 image_list = images.get("list", [])
                 if image_list and isinstance(image_list, list):
-                    image_url = image_list[0].get("url", None)
-        if image_url and not image_url.startswith("http"):
+                    raw_url = image_list[0].get("url", None) if isinstance(image_list[0], dict) else None
+                    image_url = str(raw_url) if raw_url else None
+        # Also try if images is an array
+        if not image_url and isinstance(images, list) and images:
+            first = images[0]
+            if isinstance(first, dict):
+                raw_url = first.get("url", None)
+                image_url = str(raw_url) if raw_url else None
+            elif isinstance(first, str):
+                image_url = first
+        # Convert to string if needed and fix URL
+        if image_url and not isinstance(image_url, str):
+            image_url = str(image_url)
+        if image_url and isinstance(image_url, str) and not image_url.startswith("http"):
             image_url = f"https://{image_url}" if image_url.startswith("//") else f"https://digikala.com{image_url}"
         
         # Extract price info from default_variant
@@ -312,7 +325,8 @@ async def scrape_snappshop(product_id: str) -> dict:
         images = data.get("images", [])
         image_url = None
         if images and isinstance(images, list):
-            image_url = images[0].get("src", None) if isinstance(images[0], dict) else None
+            raw_src = images[0].get("src", None) if isinstance(images[0], dict) else None
+            image_url = str(raw_src) if raw_src else None
         
         # Extract price info from variants
         variants = data.get("variants", [])
