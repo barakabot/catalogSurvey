@@ -2,6 +2,6 @@
   "name": "price-service",
   "version": "2.0.0",
   "scripts": {
-    "dev": "python3 index.py"
+    "dev": "python index.py"
   }
 }
