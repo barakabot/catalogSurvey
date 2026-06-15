@@ -207,7 +207,7 @@ export default function CatalogPage() {
     notFound: string[];
     skipped: string[];
     errors: string[];
-    detectedColumns: { id: string | null; name: string | null; price: string | null };
+    detectedColumns: { id: string | null; name: string | null; price: string | null; description: string | null };
   } | null>(null);
 
   // Form states
@@ -350,21 +350,21 @@ export default function CatalogPage() {
   };
 
   const handleDownloadTemplate = () => {
-    // Create Excel with actual products data
+    // Create Excel with actual products data including description
     const wsData: (string | number)[][] = [
-      ["id", "name", "price"],
+      ["id", "name", "price", "description"],
     ];
-    // Add all current products with their IDs, names, and current prices
+    // Add all current products with their IDs, names, prices, and descriptions
     for (const p of products) {
-      wsData.push([p.id, p.name, Math.round(p.price)]);
+      wsData.push([p.id, p.name, Math.round(p.price), p.description || ""]);
     }
     // If no products yet, add an example row
     if (products.length === 0) {
-      wsData.push(["clx_example123", "نمونه محصول", 150000]);
+      wsData.push(["clx_example123", "نمونه محصول", 150000, "توضیحات محصول"]);
     }
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     // Set column widths
-    ws["!cols"] = [{ wch: 25 }, { wch: 30 }, { wch: 15 }];
+    ws["!cols"] = [{ wch: 25 }, { wch: 30 }, { wch: 15 }, { wch: 40 }];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "قیمت‌ها");
     XLSX.writeFile(wb, "catalog-prices.xlsx");
@@ -1111,8 +1111,9 @@ export default function CatalogPage() {
                 <li>ستون <Badge variant="secondary" className="text-xs mx-1">id</Badge> یا <Badge variant="secondary" className="text-xs mx-1">شناسه</Badge> — شناسه محصول کاتالوگ</li>
                 <li>ستون <Badge variant="secondary" className="text-xs mx-1">name</Badge> یا <Badge variant="secondary" className="text-xs mx-1">نام</Badge> — نام محصول (اگر id ندارید)</li>
                 <li>ستون <Badge variant="secondary" className="text-xs mx-1">price</Badge> یا <Badge variant="secondary" className="text-xs mx-1">قیمت</Badge> — قیمت جدید (ریال)</li>
+                <li>ستون <Badge variant="secondary" className="text-xs mx-1">description</Badge> یا <Badge variant="secondary" className="text-xs mx-1">توضیحات</Badge> — توضیحات محصول (اختیاری)</li>
               </ul>
-              <p className="text-muted-foreground text-xs">اگر ستون id باشد، تطبیق دقیق‌تر است. بدون id، تطبیق با نام محصول انجام می‌شود.</p>
+              <p className="text-muted-foreground text-xs">اگر ستون id باشد، تطبیق دقیق‌تر است. هر ستونی که در فایل نباشد، تغییر نمی‌کند.</p>
             </div>
 
             {/* Download Template */}
@@ -1172,6 +1173,7 @@ export default function CatalogPage() {
                     {importResult.detectedColumns.id && <Badge variant="outline" className="mx-1 text-xs">id: {importResult.detectedColumns.id}</Badge>}
                     {importResult.detectedColumns.name && <Badge variant="outline" className="mx-1 text-xs">نام: {importResult.detectedColumns.name}</Badge>}
                     {importResult.detectedColumns.price && <Badge variant="outline" className="mx-1 text-xs">قیمت: {importResult.detectedColumns.price}</Badge>}
+                    {importResult.detectedColumns.description && <Badge variant="outline" className="mx-1 text-xs">توضیحات: {importResult.detectedColumns.description}</Badge>}
                   </p>
                 )}
                 {importResult.notFound.length > 0 && (

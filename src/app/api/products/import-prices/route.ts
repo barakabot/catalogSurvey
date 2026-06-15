@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import * as XLSX from "xlsx";
 
-// POST /api/products/import-prices — Upload Excel file to update product prices
+// POST /api/products/import-prices — Upload Excel file to update product prices & descriptions
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
     let idCol: string | null = null;
     let nameCol: string | null = null;
     let priceCol: string | null = null;
+    let descCol: string | null = null;
 
     for (const col of columns) {
       const n = normalize(col);
@@ -47,13 +48,15 @@ export async function POST(req: NextRequest) {
         nameCol = col;
       } else if (n === "price" || n === "قیمت" || n === "بها" || n === "قیمتواحد" || n === "مبلغ") {
         priceCol = col;
+      } else if (n === "description" || n === "توضیحات" || n === "مشخصات" || n === "توضیح" || n === "desc" || n === "مشخصاتمحصول") {
+        descCol = col;
       }
     }
 
     // If price column not found, try to find a numeric column that's not id
     if (!priceCol) {
       for (const col of columns) {
-        if (col === idCol || col === nameCol) continue;
+        if (col === idCol || col === nameCol || col === descCol) continue;
         const val = firstRow[col];
         if (typeof val === "number" || (!isNaN(Number(val)) && val !== "")) {
           priceCol = col;
@@ -62,9 +65,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (!priceCol) {
+    // At least price or description must be present
+    if (!priceCol && !descCol) {
       return NextResponse.json(
-        { error: `ستون قیمت یافت نشد. ستون‌های موجود: ${columns.join(", ")}` },
+        { error: `ستون قیمت (price) یا توضیحات (description) یافت نشد. ستون‌های موجود: ${columns.join(", ")}` },
         { status: 400 }
       );
     }
@@ -87,11 +91,21 @@ export async function POST(req: NextRequest) {
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       try {
-        const priceVal = row[priceCol!];
-        const price = Number(priceVal);
-        if (isNaN(price) || price < 0) {
-          results.skipped.push(`ردیف ${i + 2}: قیمت نامعتبر "${priceVal}"`);
-          continue;
+        // Parse price if column exists
+        let price: number | null = null;
+        if (priceCol) {
+          const priceVal = row[priceCol];
+          price = Number(priceVal);
+          if (isNaN(price) || price < 0) {
+            results.skipped.push(`ردیف ${i + 2}: قیمت نامعتبر "${priceVal}"`);
+            continue;
+          }
+        }
+
+        // Parse description if column exists
+        let description: string | null = null;
+        if (descCol) {
+          description = String(row[descCol] ?? "").trim();
         }
 
         let product;
@@ -118,10 +132,14 @@ export async function POST(req: NextRequest) {
           continue;
         }
 
-        // Update price
+        // Build update data — only update fields that exist in the Excel
+        const updateData: { price?: number; description?: string | null } = {};
+        if (price !== null) updateData.price = price;
+        if (descCol) updateData.description = description || null;
+
         await db.product.update({
           where: { id: product.id },
-          data: { price },
+          data: updateData,
         });
 
         results.updated++;
@@ -137,7 +155,7 @@ export async function POST(req: NextRequest) {
       notFound: results.notFound,
       skipped: results.skipped,
       errors: results.errors,
-      detectedColumns: { id: idCol, name: nameCol, price: priceCol },
+      detectedColumns: { id: idCol, name: nameCol, price: priceCol, description: descCol },
     });
   } catch (error) {
     console.error("Excel import error:", error);
