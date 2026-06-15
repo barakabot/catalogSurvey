@@ -1,0 +1,695 @@
+     1→"""
+     2→Price Service — Python mini-service for competitor product scraping.
+     3→Port: 3002
+     4→Scrapes product data from Digikala and SnappShop APIs.
+     5→Reads/writes the same SQLite database used by the Next.js app.
+     6→"""
+     7→
+     8→import os
+     9→import re
+    10→import json
+    11→import asyncio
+    12→from datetime import datetime, timezone
+    13→from typing import Optional
+    14→
+    15→import aiosqlite
+    16→import httpx
+    17→from fastapi import FastAPI, HTTPException, Query
+    18→from fastapi.middleware.cors import CORSMiddleware
+    19→from pydantic import BaseModel
+    20→
+    21→# ─── Config ───────────────────────────────────────────────────────
+    22→DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "db", "custom.db"))
+    23→PORT = 3002
+    24→
+    25→app = FastAPI(title="Price Service", version="2.0.0")
+    26→
+    27→app.add_middleware(
+    28→    CORSMiddleware,
+    29→    allow_origins=["*"],
+    30→    allow_credentials=True,
+    31→    allow_methods=["*"],
+    32→    allow_headers=["*"],
+    33→)
+    34→
+    35→# ─── Pydantic Models ──────────────────────────────────────────────
+    36→class AddCompetitorRequest(BaseModel):
+    37→    source: str  # "DIGIKALA" or "SNAPPSHOP"
+    38→    sourceId: str  # Product ID from the source platform
+    39→
+    40→class LinkToCatalogRequest(BaseModel):
+    41→    catalogProductId: str  # ID of the catalog product to link
+    42→
+    43→class BulkAddRequest(BaseModel):
+    44→    items: list[AddCompetitorRequest]
+    45→
+    46→
+    47→# ─── Database helpers ─────────────────────────────────────────────
+    48→async def get_db():
+    49→    db = await aiosqlite.connect(DB_PATH)
+    50→    db.row_factory = aiosqlite.Row
+    51→    await db.execute("PRAGMA journal_mode=WAL")
+    52→    return db
+    53→
+    54→
+    55→def row_to_dict(row):
+    56→    if row is None:
+    57→        return None
+    58→    d = dict(row)
+    59→    # Convert datetime strings to proper format if needed
+    60→    for key, value in d.items():
+    61→        if isinstance(value, str) and key.endswith("At"):
+    62→            try:
+    63→                dt = datetime.fromisoformat(value)
+    64→                d[key] = dt.isoformat()
+    65→            except (ValueError, TypeError):
+    66→                pass
+    67→    return d
+    68→
+    69→
+    70→# ─── Smart Fetch (handles CDN cookie protection like Digikala) ────
+    71→async def smart_fetch(url: str, timeout: int = 15) -> httpx.Response:
+    72→    """Fetch URL with manual redirect handling for CDN cookie protection."""
+    73→    headers = {
+    74→        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    75→        "Accept": "application/json, text/plain, */*",
+    76→        "Accept-Language": "fa-IR,fa;q=0.9,en-US;q=0.8,en;q=0.7",
+    77→    }
+    78→    async with httpx.AsyncClient(
+    79→        follow_redirects=False,
+    80→        timeout=timeout,
+    81→        headers=headers,
+    82→    ) as client:
+    83→        response = await client.get(url)
+    84→        
+    85→        # Handle redirect with Set-Cookie (CDN protection)
+    86→        max_redirects = 5
+    87→        redirect_count = 0
+    88→        while response.status_code in (301, 302, 303, 307, 308) and redirect_count < max_redirects:
+    89→            location = response.headers.get("location", "")
+    90→            if not location:
+    91→                break
+    92→            
+    93→            # Build cookies from Set-Cookie headers
+    94→            cookies = {}
+    95→            for cookie_header in response.headers.get_list("set-cookie"):
+    96→                parts = cookie_header.split(";")[0]
+    97→                if "=" in parts:
+    98→                    key, value = parts.split("=", 1)
+    99→                    cookies[key.strip()] = value.strip()
+   100→            
+   101→            # Follow redirect with cookies
+   102→            response = await client.get(location, cookies=cookies)
+   103→            redirect_count += 1
+   104→        
+   105→        return response
+   106→
+   107→
+   108→# ─── Digikala Scraper ─────────────────────────────────────────────
+   109→async def scrape_digikala(product_id: str) -> dict:
+   110→    """Scrape product data from Digikala API."""
+   111→    url = f"https://api.digikala.com/v2/product/{product_id}"
+   112→    
+   113→    try:
+   114→        response = await smart_fetch(url)
+   115→        
+   116→        if response.status_code != 200:
+   117→            return {
+   118→                "success": False,
+   119→                "error": f"خطای HTTP: {response.status_code}",
+   120→                "data": None
+   121→            }
+   122→        
+   123→        try:
+   124→            result = response.json()
+   125→        except Exception:
+   126→            return {"success": False, "error": "پاسخ API معتبر نیست", "data": None}
+   127→        
+   128→        product = result.get("data", {}).get("product", {})
+   129→        if not product:
+   130→            return {"success": False, "error": "محصولی یافت نشد", "data": None}
+   131→        
+   132→        # Extract product info
+   133→        name = product.get("title", "")
+   134→        
+   135→        # Extract image
+   136→        images = product.get("images", {})
+   137→        main_image = images.get("main", {})
+   138→        image_url = None
+   139→        if isinstance(main_image, dict):
+   140→            image_url = main_image.get("url", None)
+   141→            if not image_url:
+   142→                # Try first image from list
+   143→                image_list = images.get("list", [])
+   144→                if image_list and isinstance(image_list, list):
+   145→                    image_url = image_list[0].get("url", None)
+   146→        if image_url and not image_url.startswith("http"):
+   147→            image_url = f"https://{image_url}" if image_url.startswith("//") else f"https://digikala.com{image_url}"
+   148→        
+   149→        # Extract price info from default_variant
+   150→        default_variant = product.get("default_variant", {})
+   151→        price_info = default_variant.get("price", {}) if default_variant else {}
+   152→        
+   153→        selling_price = price_info.get("selling_price", 0) or 0
+   154→        rrp_price = price_info.get("rrp_price", 0) or 0
+   155→        discount_percent = price_info.get("discount_percent", 0) or 0
+   156→        
+   157→        # If no default_variant, try variants
+   158→        if not selling_price:
+   159→            variants = product.get("variants", [])
+   160→            if variants:
+   161→                for v in variants:
+   162→                    vp = v.get("price", {})
+   163→                    sp = vp.get("selling_price", 0)
+   164→                    if sp:
+   165→                        selling_price = sp
+   166→                        rrp_price = vp.get("rrp_price", 0) or 0
+   167→                        discount_percent = vp.get("discount_percent", 0) or 0
+   168→                        break
+   169→        
+   170→        # Extract weight/volume from specifications
+   171→        weight = None
+   172→        volume = None
+   173→        specs = product.get("specifications", [])
+   174→        for spec_group in specs:
+   175→            if isinstance(spec_group, dict):
+   176→                attributes = spec_group.get("attributes", [])
+   177→                for attr in attributes:
+   178→                    if isinstance(attr, dict):
+   179→                        title = attr.get("title", "").lower()
+   180→                        values = attr.get("values", [])
+   181→                        value_str = ", ".join(str(v) for v in values) if values else ""
+   182→                        if "وزن" in title:
+   183→                            weight = value_str
+   184→                        elif "حجم" in title or "ظرفیت" in title:
+   185→                            volume = value_str
+   186→        
+   187→        # Extract brand
+   188→        brand_data = product.get("brand", {})
+   189→        brand = brand_data.get("title_fa", None) or brand_data.get("title_en", None) if isinstance(brand_data, dict) else None
+   190→        
+   191→        return {
+   192→            "success": True,
+   193→            "error": None,
+   194→            "data": {
+   195→                "source": "DIGIKALA",
+   196→                "sourceId": product_id,
+   197→                "name": name,
+   198→                "imageUrl": image_url,
+   199→                "weight": weight,
+   200→                "volume": volume,
+   201→                "price": selling_price,  # in Rial
+   202→                "originalPrice": rrp_price if rrp_price > selling_price else None,
+   203→                "discountPercent": discount_percent,
+   204→                "brand": brand,
+   205→            }
+   206→        }
+   207→    
+   208→    except httpx.TimeoutException:
+   209→        return {"success": False, "error": "زمان اتصال به دیجیکالا به پایان رسید", "data": None}
+   210→    except Exception as e:
+   211→        return {"success": False, "error": f"خطا: {str(e)}", "data": None}
+   212→
+   213→
+   214→# ─── SnappShop Scraper ────────────────────────────────────────────
+   215→async def scrape_snappshop(product_id: str) -> dict:
+   216→    """Scrape product data from SnappShop API."""
+   217→    url = f"https://apix.snappshop.ir/products/v2/{product_id}"
+   218→    
+   219→    try:
+   220→        response = await smart_fetch(url)
+   221→        
+   222→        if response.status_code != 200:
+   223→            return {
+   224→                "success": False,
+   225→                "error": f"خطای HTTP: {response.status_code}",
+   226→                "data": None
+   227→            }
+   228→        
+   229→        try:
+   230→            result = response.json()
+   231→        except Exception:
+   232→            return {"success": False, "error": "پاسخ API معتبر نیست", "data": None}
+   233→        
+   234→        data = result.get("data", {})
+   235→        if not data:
+   236→            return {"success": False, "error": "محصولی یافت نشد", "data": None}
+   237→        
+   238→        # Extract product info
+   239→        content = data.get("content", {})
+   240→        name = content.get("title_fa", "")
+   241→        
+   242→        # Extract image
+   243→        images = data.get("images", [])
+   244→        image_url = None
+   245→        if images and isinstance(images, list):
+   246→            image_url = images[0].get("src", None) if isinstance(images[0], dict) else None
+   247→        
+   248→        # Extract price info from variants
+   249→        variants = data.get("variants", [])
+   250→        price = 0
+   251→        original_price = None
+   252→        discount_percent = 0
+   253→        
+   254→        if variants and isinstance(variants, list):
+   255→            variant = variants[0] if variants else {}
+   256→            vendors = variant.get("vendor", [])
+   257→            if vendors and isinstance(vendors, list):
+   258→                vendor = vendors[0] if vendors else {}
+   259→                price = vendor.get("price", 0) or 0
+   260→                special_price = vendor.get("special_price", 0) or 0
+   261→                discount_percent = vendor.get("special_price_percent_discount", 0) or 0
+   262→                
+   263→                if special_price > 0 and special_price < price:
+   264→                    original_price = price
+   265→                    price = special_price
+   266→                    if discount_percent == 0:
+   267→                        discount_percent = round((1 - special_price / price) * 100) if price > 0 else 0
+   268→                elif discount_percent > 0:
+   269→                    original_price = price
+   270→                    price = round(price * (1 - discount_percent / 100))
+   271→        
+   272→        # Extract weight/volume from attributes
+   273→        weight = None
+   274→        volume = None
+   275→        attributes = data.get("attributes", [])
+   276→        if isinstance(attributes, list):
+   277→            for attr in attributes:
+   278→                if isinstance(attr, dict):
+   279→                    title = attr.get("title", "")
+   280→                    value = attr.get("value", "")
+   281→                    if "وزن" in title:
+   282→                        weight = str(value)
+   283→                    elif "حجم" in title or "ظرفیت" in title:
+   284→                        volume = str(value)
+   285→        
+   286→        # Extract brand
+   287→        brand_data = data.get("brand", {})
+   288→        brand = brand_data.get("title_fa", None) if isinstance(brand_data, dict) else None
+   289→        
+   290→        return {
+   291→            "success": True,
+   292→            "error": None,
+   293→            "data": {
+   294→                "source": "SNAPPSHOP",
+   295→                "sourceId": product_id,
+   296→                "name": name,
+   297→                "imageUrl": image_url,
+   298→                "weight": weight,
+   299→                "volume": volume,
+   300→                "price": price,  # in Rial
+   301→                "originalPrice": original_price,
+   302→                "discountPercent": discount_percent,
+   303→                "brand": brand,
+   304→            }
+   305→        }
+   306→    
+   307→    except httpx.TimeoutException:
+   308→        return {"success": False, "error": "زمان اتصال به اسنپ‌شاپ به پایان رسید", "data": None}
+   309→    except Exception as e:
+   310→        return {"success": False, "error": f"خطا: {str(e)}", "data": None}
+   311→
+   312→
+   313→# ─── Save competitor product to DB ────────────────────────────────
+   314→async def save_competitor_product(product_data: dict, catalog_product_id: str = None) -> dict:
+   315→    """Save or update a competitor product in the database."""
+   316→    db = await get_db()
+   317→    try:
+   318→        now = datetime.now(timezone.utc).isoformat()
+   319→        source = product_data["source"]
+   320→        source_id = product_data["sourceId"]
+   321→        
+   322→        # Check if product already exists (same source + sourceId)
+   323→        cursor = await db.execute(
+   324→            "SELECT id, price FROM CompetitorProduct WHERE source = ? AND sourceId = ?",
+   325→            (source, source_id)
+   326→        )
+   327→        existing = await cursor.fetchone()
+   328→        
+   329→        if existing:
+   330→            # Update existing product
+   331→            existing_id = existing["id"]
+   332→            old_price = existing["price"]
+   333→            
+   334→            await db.execute(
+   335→                """UPDATE CompetitorProduct 
+   336→                   SET name = ?, imageUrl = ?, weight = ?, volume = ?, price = ?,
+   337→                       originalPrice = ?, discountPercent = ?, brand = ?, fetchedAt = ?,
+   338→                       catalogProductId = COALESCE(?, catalogProductId), updatedAt = ?
+   339→                   WHERE id = ?""",
+   340→                (
+   341→                    product_data["name"], product_data.get("imageUrl"),
+   342→                    product_data.get("weight"), product_data.get("volume"),
+   343→                    product_data["price"], product_data.get("originalPrice"),
+   344→                    product_data.get("discountPercent", 0), product_data.get("brand"),
+   345→                    now, catalog_product_id, now, existing_id
+   346→                )
+   347→            )
+   348→            
+   349→            # Save price history if price changed
+   350→            if old_price != product_data["price"]:
+   351→                history_id = f"cph_{int(datetime.now().timestamp()*1000)}"
+   352→                await db.execute(
+   353→                    """INSERT INTO CompetitorPriceHistory (id, competitorProductId, price, originalPrice, discountPercent, fetchedAt)
+   354→                       VALUES (?, ?, ?, ?, ?, ?)""",
+   355→                    (
+   356→                        history_id, existing_id, product_data["price"],
+   357→                        product_data.get("originalPrice"), product_data.get("discountPercent", 0), now
+   358→                    )
+   359→                )
+   360→            
+   361→            await db.commit()
+   362→            return {"success": True, "id": existing_id, "action": "updated"}
+   363→        
+   364→        else:
+   365→            # Create new product
+   366→            import uuid
+   367→            new_id = f"cp_{uuid.uuid4().hex[:20]}"
+   368→            
+   369→            await db.execute(
+   370→                """INSERT INTO CompetitorProduct 
+   371→                   (id, source, sourceId, name, imageUrl, weight, volume, price, originalPrice,
+   372→                    discountPercent, brand, fetchedAt, catalogProductId, createdAt, updatedAt)
+   373→                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+   374→                (
+   375→                    new_id, source, source_id, product_data["name"],
+   376→                    product_data.get("imageUrl"), product_data.get("weight"),
+   377→                    product_data.get("volume"), product_data["price"],
+   378→                    product_data.get("originalPrice"), product_data.get("discountPercent", 0),
+   379→                    product_data.get("brand"), now, catalog_product_id, now, now
+   380→                )
+   381→            )
+   382→            
+   383→            # Save initial price history
+   384→            history_id = f"cph_{int(datetime.now().timestamp()*1000)}"
+   385→            await db.execute(
+   386→                """INSERT INTO CompetitorPriceHistory (id, competitorProductId, price, originalPrice, discountPercent, fetchedAt)
+   387→                   VALUES (?, ?, ?, ?, ?, ?)""",
+   388→                (
+   389→                    history_id, new_id, product_data["price"],
+   390→                    product_data.get("originalPrice"), product_data.get("discountPercent", 0), now
+   391→                )
+   392→            )
+   393→            
+   394→            await db.commit()
+   395→            return {"success": True, "id": new_id, "action": "created"}
+   396→    
+   397→    except Exception as e:
+   398→        await db.rollback()
+   399→        raise e
+   400→    finally:
+   401→        await db.close()
+   402→
+   403→
+   404→# ─── API Endpoints ────────────────────────────────────────────────
+   405→
+   406→@app.get("/api/health")
+   407→async def health():
+   408→    return {"status": "ok", "service": "price-service", "version": "2.0", "port": PORT}
+   409→
+   410→
+   411→@app.post("/api/competitors/scrape")
+   412→async def scrape_and_add(req: AddCompetitorRequest):
+   413→    """Scrape a product from Digikala or SnappShop and save to database."""
+   414→    source = req.source.upper()
+   415→    if source not in ("DIGIKALA", "SNAPPSHOP"):
+   416→        raise HTTPException(status_code=400, detail="منبع باید DIGIKALA یا SNAPPSHOP باشد")
+   417→    
+   418→    if not req.sourceId:
+   419→        raise HTTPException(status_code=400, detail="شناسه محصول الزامی است")
+   420→    
+   421→    if source == "DIGIKALA":
+   422→        result = await scrape_digikala(req.sourceId)
+   423→    else:
+   424→        result = await scrape_snappshop(req.sourceId)
+   425→    
+   426→    if not result["success"]:
+   427→        raise HTTPException(status_code=422, detail=result["error"])
+   428→    
+   429→    save_result = await save_competitor_product(result["data"])
+   430→    
+   431→    return {
+   432→        "message": "محصول رقیب با موفقیت ذخیره شد" if save_result["action"] == "created" else "محصول رقیب بروزرسانی شد",
+   433→        "id": save_result["id"],
+   434→        "action": save_result["action"],
+   435→        "data": result["data"],
+   436→    }
+   437→
+   438→
+   439→@app.post("/api/competitors/scrape-preview")
+   440→async def scrape_preview(req: AddCompetitorRequest):
+   441→    """Preview what would be scraped without saving."""
+   442→    source = req.source.upper()
+   443→    if source not in ("DIGIKALA", "SNAPPSHOP"):
+   444→        raise HTTPException(status_code=400, detail="منبع باید DIGIKALA یا SNAPPSHOP باشد")
+   445→    
+   446→    if not req.sourceId:
+   447→        raise HTTPException(status_code=400, detail="شناسه محصول الزامی است")
+   448→    
+   449→    if source == "DIGIKALA":
+   450→        result = await scrape_digikala(req.sourceId)
+   451→    else:
+   452→        result = await scrape_snappshop(req.sourceId)
+   453→    
+   454→    if not result["success"]:
+   455→        raise HTTPException(status_code=422, detail=result["error"])
+   456→    
+   457→    return {"data": result["data"]}
+   458→
+   459→
+   460→@app.get("/api/competitors")
+   461→async def list_competitors(
+   462→    catalogProductId: Optional[str] = Query(None),
+   463→    source: Optional[str] = Query(None),
+   464→    unlinked: Optional[bool] = Query(False),
+   465→):
+   466→    """List competitor products, optionally filtered."""
+   467→    db = await get_db()
+   468→    try:
+   469→        conditions = []
+   470→        params = []
+   471→        
+   472→        if catalogProductId:
+   473→            conditions.append("catalogProductId = ?")
+   474→            params.append(catalogProductId)
+   475→        
+   476→        if source:
+   477→            conditions.append("source = ?")
+   478→            params.append(source.upper())
+   479→        
+   480→        if unlinked:
+   481→            conditions.append("catalogProductId IS NULL")
+   482→        
+   483→        where = f" WHERE {' AND '.join(conditions)}" if conditions else ""
+   484→        
+   485→        cursor = await db.execute(
+   486→            f"SELECT * FROM CompetitorProduct{where} ORDER BY fetchedAt DESC",
+   487→            params
+   488→        )
+   489→        competitors = [row_to_dict(row) for row in await cursor.fetchall()]
+   490→        
+   491→        return {"competitors": competitors, "count": len(competitors)}
+   492→    finally:
+   493→        await db.close()
+   494→
+   495→
+   496→@app.get("/api/competitors/{competitor_id}")
+   497→async def get_competitor(competitor_id: str):
+   498→    """Get a single competitor product with price history."""
+   499→    db = await get_db()
+   500→    try:
+   501→        cursor = await db.execute(
+   502→            "SELECT * FROM CompetitorProduct WHERE id = ?",
+   503→            (competitor_id,)
+   504→        )
+   505→        competitor = await cursor.fetchone()
+   506→        if not competitor:
+   507→            raise HTTPException(status_code=404, detail="محصول رقیب یافت نشد")
+   508→        
+   509→        result = row_to_dict(competitor)
+   510→        
+   511→        # Get price history
+   512→        cursor = await db.execute(
+   513→            "SELECT * FROM CompetitorPriceHistory WHERE competitorProductId = ? ORDER BY fetchedAt DESC LIMIT 20",
+   514→            (competitor_id,)
+   515→        )
+   516→        result["priceHistory"] = [row_to_dict(row) for row in await cursor.fetchall()]
+   517→        
+   518→        return result
+   519→    finally:
+   520→        await db.close()
+   521→
+   522→
+   523→@app.put("/api/competitors/{competitor_id}/link")
+   524→async def link_to_catalog(competitor_id: str, req: LinkToCatalogRequest):
+   525→    """Link a competitor product to a catalog product."""
+   526→    db = await get_db()
+   527→    try:
+   528→        # Check competitor exists
+   529→        cursor = await db.execute("SELECT id FROM CompetitorProduct WHERE id = ?", (competitor_id,))
+   530→        if not await cursor.fetchone():
+   531→            raise HTTPException(status_code=404, detail="محصول رقیب یافت نشد")
+   532→        
+   533→        # Check catalog product exists
+   534→        cursor = await db.execute("SELECT id FROM Product WHERE id = ?", (req.catalogProductId,))
+   535→        if not await cursor.fetchone():
+   536→            raise HTTPException(status_code=404, detail="محصول کاتالوگ یافت نشد")
+   537→        
+   538→        now = datetime.now(timezone.utc).isoformat()
+   539→        await db.execute(
+   540→            "UPDATE CompetitorProduct SET catalogProductId = ?, updatedAt = ? WHERE id = ?",
+   541→            (req.catalogProductId, now, competitor_id)
+   542→        )
+   543→        await db.commit()
+   544→        
+   545→        return {"message": "محصول رقیب به محصول کاتالوگ متصل شد"}
+   546→    finally:
+   547→        await db.close()
+   548→
+   549→
+   550→@app.put("/api/competitors/{competitor_id}/unlink")
+   551→async def unlink_from_catalog(competitor_id: str):
+   552→    """Unlink a competitor product from its catalog product."""
+   553→    db = await get_db()
+   554→    try:
+   555→        cursor = await db.execute("SELECT id FROM CompetitorProduct WHERE id = ?", (competitor_id,))
+   556→        if not await cursor.fetchone():
+   557→            raise HTTPException(status_code=404, detail="محصول رقیب یافت نشد")
+   558→        
+   559→        now = datetime.now(timezone.utc).isoformat()
+   560→        await db.execute(
+   561→            "UPDATE CompetitorProduct SET catalogProductId = NULL, updatedAt = ? WHERE id = ?",
+   562→            (now, competitor_id)
+   563→        )
+   564→        await db.commit()
+   565→        
+   566→        return {"message": "اتصال محصول رقیب لغو شد"}
+   567→    finally:
+   568→        await db.close()
+   569→
+   570→
+   571→@app.post("/api/competitors/{competitor_id}/refresh")
+   572→async def refresh_competitor(competitor_id: str):
+   573→    """Re-scrape and update a competitor product's price."""
+   574→    db = await get_db()
+   575→    try:
+   576→        cursor = await db.execute("SELECT source, sourceId FROM CompetitorProduct WHERE id = ?", (competitor_id,))
+   577→        row = await cursor.fetchone()
+   578→        if not row:
+   579→            raise HTTPException(status_code=404, detail="محصول رقیب یافت نشد")
+   580→        
+   581→        source = row["source"]
+   582→        source_id = row["sourceId"]
+   583→    finally:
+   584→        await db.close()
+   585→    
+   586→    if source == "DIGIKALA":
+   587→        result = await scrape_digikala(source_id)
+   588→    else:
+   589→        result = await scrape_snappshop(source_id)
+   590→    
+   591→    if not result["success"]:
+   592→        raise HTTPException(status_code=422, detail=result["error"])
+   593→    
+   594→    save_result = await save_competitor_product(result["data"])
+   595→    
+   596→    return {
+   597→        "message": "قیمت بروزرسانی شد",
+   598→        "data": result["data"],
+   599→        "action": save_result["action"],
+   600→    }
+   601→
+   602→
+   603→@app.post("/api/competitors/refresh-all")
+   604→async def refresh_all_competitors():
+   605→    """Re-scrape all competitor products."""
+   606→    db = await get_db()
+   607→    try:
+   608→        cursor = await db.execute("SELECT id, source, sourceId FROM CompetitorProduct")
+   609→        competitors = [row_to_dict(row) for row in await cursor.fetchall()]
+   610→    finally:
+   611→        await db.close()
+   612→    
+   613→    results = {"success": 0, "failed": 0, "details": []}
+   614→    
+   615→    for comp in competitors:
+   616→        try:
+   617→            if comp["source"] == "DIGIKALA":
+   618→                result = await scrape_digikala(comp["sourceId"])
+   619→            else:
+   620→                result = await scrape_snappshop(comp["sourceId"])
+   621→            
+   622→            if result["success"]:
+   623→                await save_competitor_product(result["data"])
+   624→                results["success"] += 1
+   625→                results["details"].append({"id": comp["id"], "name": result["data"]["name"], "status": "success"})
+   626→            else:
+   627→                results["failed"] += 1
+   628→                results["details"].append({"id": comp["id"], "error": result["error"], "status": "failed"})
+   629→        except Exception as e:
+   630→            results["failed"] += 1
+   631→            results["details"].append({"id": comp["id"], "error": str(e), "status": "failed"})
+   632→    
+   633→    return results
+   634→
+   635→
+   636→@app.delete("/api/competitors/{competitor_id}")
+   637→async def delete_competitor(competitor_id: str):
+   638→    """Delete a competitor product and its price history."""
+   639→    db = await get_db()
+   640→    try:
+   641→        cursor = await db.execute("SELECT id FROM CompetitorProduct WHERE id = ?", (competitor_id,))
+   642→        if not await cursor.fetchone():
+   643→            raise HTTPException(status_code=404, detail="محصول رقیب یافت نشد")
+   644→        
+   645→        await db.execute("DELETE FROM CompetitorPriceHistory WHERE competitorProductId = ?", (competitor_id,))
+   646→        await db.execute("DELETE FROM CompetitorProduct WHERE id = ?", (competitor_id,))
+   647→        await db.commit()
+   648→        
+   649→        return {"message": "محصول رقیب حذف شد"}
+   650→    finally:
+   651→        await db.close()
+   652→
+   653→
+   654→@app.get("/api/products/{product_id}/competitors")
+   655→async def get_product_competitors(product_id: str):
+   656→    """Get all competitor products linked to a catalog product."""
+   657→    db = await get_db()
+   658→    try:
+   659→        # Check product exists
+   660→        cursor = await db.execute(
+   661→            "SELECT id, name, price, imageUrl FROM Product WHERE id = ?",
+   662→            (product_id,)
+   663→        )
+   664→        product = await cursor.fetchone()
+   665→        if not product:
+   666→            raise HTTPException(status_code=404, detail="محصول کاتالوگ یافت نشد")
+   667→        
+   668→        # Get competitor products
+   669→        cursor = await db.execute(
+   670→            "SELECT * FROM CompetitorProduct WHERE catalogProductId = ? ORDER BY fetchedAt DESC",
+   671→            (product_id,)
+   672→        )
+   673→        competitors = [row_to_dict(row) for row in await cursor.fetchall()]
+   674→        
+   675→        # Get price history for each competitor
+   676→        for comp in competitors:
+   677→            cursor = await db.execute(
+   678→                "SELECT * FROM CompetitorPriceHistory WHERE competitorProductId = ? ORDER BY fetchedAt DESC LIMIT 10",
+   679→                (comp["id"],)
+   680→            )
+   681→            comp["priceHistory"] = [row_to_dict(row) for row in await cursor.fetchall()]
+   682→        
+   683→        return {
+   684→            "product": row_to_dict(product),
+   685→            "competitors": competitors,
+   686→        }
+   687→    finally:
+   688→        await db.close()
+   689→
+   690→
+   691→# ─── Run ───────────────────────────────────────────────────────────
+   692→if __name__ == "__main__":
+   693→    import uvicorn
+   694→    uvicorn.run(app, host="0.0.0.0", port=PORT)
+   695→
