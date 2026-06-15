@@ -425,10 +425,17 @@ export default function CatalogPage() {
       const successCount = data.results.filter((r: { success: boolean }) => r.success).length;
       const failCount = data.results.filter((r: { success: boolean }) => !r.success).length;
 
+      // Show error details for failed extractions
+      const failedDetails = data.results
+        .filter((r: { success: boolean }) => !r.success)
+        .map((r: { linkName: string; error?: string }) => `${r.linkName}: ${r.error || "نامشخص"}`)
+        .join("\n");
+
       toast({
         title: "استخراج قیمت‌ها انجام شد",
-        description: `${successCount} موفق${failCount > 0 ? `، ${failCount} ناموفق` : ""}`,
+        description: `${successCount} موفق${failCount > 0 ? `، ${failCount} ناموفق` : ""}${failedDetails ? "\n" + failedDetails : ""}`,
         variant: failCount > 0 && successCount === 0 ? "destructive" : "default",
+        duration: failCount > 0 ? 8000 : 4000,
       });
 
       fetchProducts();

@@ -30,12 +30,8 @@ function extractFromJsonPath(data: unknown, path: string): number | null {
  * This uses regex-based matching since we don't have a DOM parser on the server
  */
 function extractFromCssSelector(html: string, selector: string): number | null {
-  // Simple CSS selector to regex converter for common patterns
-  // Supports: .class, #id, tag, tag.class, tag#id
   const selectorParts = selector.trim();
 
-  // Try to find content in elements matching the selector
-  // This is a simplified approach - for production, consider using cheerio
   const classMatch = selectorParts.match(/^\.([\w-]+)/);
   const idMatch = selectorParts.match(/^#([\w-]+)/);
   const tagClassMatch = selectorParts.match(/^(\w+)\.([\w-]+)/);
@@ -71,14 +67,13 @@ async function extractWithLLM(html: string, productName: string): Promise<number
   try {
     const zai = await ZAI.create();
 
-    // Strip excessive HTML to reduce token usage
     const cleanText = html
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
       .replace(/<[^>]*>/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
-      .slice(0, 3000); // Limit text length
+      .slice(0, 3000);
 
     const completion = await zai.chat.completions.create({
       messages: [
@@ -115,18 +110,79 @@ export interface PriceExtractionResult {
 }
 
 /**
+ * Smart fetch with CDN cookie handling.
+ * Some APIs (like Digikala) use CDN protection that:
+ * 1. First request returns 307 with a Set-Cookie header
+ * 2. Second request (with cookie) returns the actual data
+ */
+async function smartFetch(url: string, options?: RequestInit): Promise<Response> {
+  const defaultHeaders: Record<string, string> = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+    'Accept': 'application/json, text/html, */*',
+    'Accept-Language': 'fa-IR,fa;q=0.9,en;q=0.8',
+  };
+
+  const mergedOptions: RequestInit = {
+    ...options,
+    headers: {
+      ...defaultHeaders,
+      ...(options?.headers as Record<string, string> || {}),
+    },
+    redirect: 'manual', // Don't auto-follow redirects so we can capture cookies
+    signal: options?.signal || AbortSignal.timeout(20000),
+  };
+
+  // First request
+  let response = await fetch(url, mergedOptions);
+
+  // If redirect (307/302/301), capture cookies and follow manually
+  if (response.status >= 300 && response.status < 400) {
+    const location = response.headers.get('location');
+    const setCookies = response.headers.getSetCookie?.() || [];
+
+    if (location) {
+      // Build cookie string from Set-Cookie headers
+      const cookies = setCookies
+        .map((c: string) => c.split(';')[0])
+        .join('; ');
+
+      const redirectOptions: RequestInit = {
+        ...mergedOptions,
+        headers: {
+          ...(mergedOptions.headers as Record<string, string>),
+          ...(cookies ? { 'Cookie': cookies } : {}),
+        },
+        redirect: 'follow', // Allow auto-follow for subsequent requests
+      };
+
+      response = await fetch(location, redirectOptions);
+    }
+  }
+
+  // If still not OK, try once more with redirect: follow (some CDNs need multiple rounds)
+  if (response.status >= 300 && response.status < 400) {
+    const location = response.headers.get('location');
+    if (location) {
+      response = await fetch(location, {
+        ...mergedOptions,
+        redirect: 'follow',
+      });
+    }
+  }
+
+  return response;
+}
+
+/**
  * Extract price from an API endpoint
+ * Handles CDN cookie protection (e.g., Digikala)
  */
 export async function extractPriceFromAPI(
   url: string,
   jsonPath: string,
-  headers?: Record<string, string>
 ): Promise<PriceExtractionResult> {
   try {
-    const response = await fetch(url, {
-      headers: headers || {},
-      signal: AbortSignal.timeout(15000),
-    });
+    const response = await smartFetch(url);
 
     if (!response.ok) {
       return {
@@ -137,18 +193,46 @@ export async function extractPriceFromAPI(
       };
     }
 
-    const data = await response.json();
+    const contentType = response.headers.get('content-type') || '';
+
+    // Check if response is actually JSON
+    if (!contentType.includes('json') && !contentType.includes('text/')) {
+      return {
+        success: false,
+        price: null,
+        method: 'API',
+        error: `پاسخ API از نوع JSON نیست (${contentType}). ممکن است نیاز به احراز هویت یا دور زدن حفاظت CDN باشد.`,
+      };
+    }
+
+    let data: unknown;
+    try {
+      const text = await response.text();
+      data = JSON.parse(text);
+    } catch {
+      return {
+        success: false,
+        price: null,
+        method: 'API',
+        error: 'پاسخ API قابل پردازش به عنوان JSON نیست. ممکن است صفحه HTML بازگردانده شده باشد.',
+      };
+    }
+
     const price = extractFromJsonPath(data, jsonPath);
 
     if (price !== null) {
       return { success: true, price, method: 'API' };
     }
 
+    // Try to give a helpful error about what fields are available
+    const dataObj = data as Record<string, unknown>;
+    const availablePaths = findNumberPaths(dataObj, '', 3);
+
     return {
       success: false,
       price: null,
       method: 'API',
-      error: 'Could not extract price from JSON path',
+      error: `مسیر JSON "${jsonPath}" پیدا نشد. مسیرهای عددی موجود: ${availablePaths.slice(0, 5).join('، ') || 'یافت نشد'}`,
     };
   } catch (error) {
     return {
@@ -158,6 +242,28 @@ export async function extractPriceFromAPI(
       error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
+}
+
+/**
+ * Find paths to number values in a JSON object (for helpful error messages)
+ */
+function findNumberPaths(obj: unknown, prefix: string, maxDepth: number, depth = 0): string[] {
+  if (depth > maxDepth || !obj || typeof obj !== 'object') return [];
+
+  const paths: string[] = [];
+  const entries = Object.entries(obj as Record<string, unknown>);
+
+  for (const [key, value] of entries) {
+    const path = prefix ? `${prefix}.${key}` : key;
+    if (typeof value === 'number' && value > 100) {
+      // Likely a price if > 100
+      paths.push(path);
+    } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      paths.push(...findNumberPaths(value, path, maxDepth, depth + 1));
+    }
+  }
+
+  return paths;
 }
 
 /**

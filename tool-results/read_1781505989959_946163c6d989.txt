@@ -1,0 +1,1488 @@
+     1→"use client";
+     2→
+     3→import React, { useState, useCallback } from "react";
+     4→import {
+     5→  Plus,
+     6→  RefreshCw,
+     7→  ExternalLink,
+     8→  Trash2,
+     9→  Edit3,
+    10→  Link2,
+    11→  Tag,
+    12→  TrendingDown,
+    13→  TrendingUp,
+    14→  Minus,
+    15→  Package,
+    16→  Globe,
+    17→  Code2,
+    18→  Search,
+    19→  X,
+    20→  Loader2,
+    21→  ChevronDown,
+    22→  ChevronUp,
+    23→  Settings2,
+    24→  LogIn,
+    25→  LogOut,
+    26→  Shield,
+    27→  FolderTree,
+    28→  FolderOpen,
+    29→  FolderPlus,
+    30→  Calculator,
+    31→  Info,
+    32→} from "lucide-react";
+    33→import { Button } from "@/components/ui/button";
+    34→import {
+    35→  Card,
+    36→  CardContent,
+    37→  CardFooter,
+    38→  CardHeader,
+    39→} from "@/components/ui/card";
+    40→import {
+    41→  Dialog,
+    42→  DialogContent,
+    43→  DialogHeader,
+    44→  DialogTitle,
+    45→  DialogTrigger,
+    46→} from "@/components/ui/dialog";
+    47→import {
+    48→  AlertDialog,
+    49→  AlertDialogAction,
+    50→  AlertDialogCancel,
+    51→  AlertDialogContent,
+    52→  AlertDialogDescription,
+    53→  AlertDialogFooter,
+    54→  AlertDialogHeader,
+    55→  AlertDialogTitle,
+    56→} from "@/components/ui/alert-dialog";
+    57→import { Input } from "@/components/ui/input";
+    58→import { Label } from "@/components/ui/label";
+    59→import { Textarea } from "@/components/ui/textarea";
+    60→import { Badge } from "@/components/ui/badge";
+    61→import { Separator } from "@/components/ui/separator";
+    62→import {
+    63→  Select,
+    64→  SelectContent,
+    65→  SelectItem,
+    66→  SelectTrigger,
+    67→  SelectValue,
+    68→} from "@/components/ui/select";
+    69→import {
+    70→  Accordion,
+    71→  AccordionContent,
+    72→  AccordionItem,
+    73→  AccordionTrigger,
+    74→} from "@/components/ui/accordion";
+    75→import {
+    76→  HoverCard,
+    77→  HoverCardContent,
+    78→  HoverCardTrigger,
+    79→} from "@/components/ui/hover-card";
+    80→import { useToast } from "@/hooks/use-toast";
+    81→import { motion, AnimatePresence } from "framer-motion";
+    82→
+    83→// ─── Types ────────────────────────────────────────────────────────
+    84→interface PriceHistory {
+    85→  id: string;
+    86→  price: number;
+    87→  adjustedPrice: number;
+    88→  fetchedAt: string;
+    89→}
+    90→
+    91→interface CompetitorLink {
+    92→  id: string;
+    93→  productId: string;
+    94→  name: string;
+    95→  url: string;
+    96→  linkType: string;
+    97→  priceSelector: string | null;
+    98→  priceMultiplier: number;
+    99→  lastPrice: number | null;
+   100→  lastAdjustedPrice: number | null;
+   101→  lastFetchedAt: string | null;
+   102→  priceHistory?: PriceHistory[];
+   103→}
+   104→
+   105→interface ProductGroupParent {
+   106→  id: string;
+   107→  name: string;
+   108→  parentId: string | null;
+   109→  order: number;
+   110→  children: ProductGroup[];
+   111→  productCount?: number;
+   112→}
+   113→
+   114→interface ProductGroup {
+   115→  id: string;
+   116→  name: string;
+   117→  parentId: string | null;
+   118→  order: number;
+   119→  parent?: { id: string; name: string } | null;
+   120→}
+   121→
+   122→interface Product {
+   123→  id: string;
+   124→  name: string;
+   125→  description: string | null;
+   126→  price: number;
+   127→  imageUrl: string | null;
+   128→  groupId: string | null;
+   129→  group?: ProductGroup & { parent?: { id: string; name: string } | null } | null;
+   130→  createdAt: string;
+   131→  updatedAt: string;
+   132→  links: CompetitorLink[];
+   133→}
+   134→
+   135→// ─── Helpers ──────────────────────────────────────────────────────
+   136→function formatPrice(price: number, currencyUnit: string): string {
+   137→  return new Intl.NumberFormat("fa-IR").format(Math.round(price)) + " " + currencyUnit;
+   138→}
+   139→
+   140→function getPriceTrend(history?: PriceHistory[]) {
+   141→  if (!history || history.length < 2) return null;
+   142→  const latest = history[0].adjustedPrice;
+   143→  const previous = history[1].adjustedPrice;
+   144→  if (latest < previous) return <TrendingDown className="w-4 h-4 text-emerald-500" />;
+   145→  if (latest > previous) return <TrendingUp className="w-4 h-4 text-red-500" />;
+   146→  return <Minus className="w-4 h-4 text-muted-foreground" />;
+   147→}
+   148→
+   149→// ─── Main Component ───────────────────────────────────────────────
+   150→export default function CatalogPage() {
+   151→  const { toast } = useToast();
+   152→  const [products, setProducts] = useState<Product[]>([]);
+   153→  const [groups, setGroups] = useState<ProductGroupParent[]>([]);
+   154→  const [currencyUnit, setCurrencyUnit] = useState("تومان");
+   155→  const [loading, setLoading] = useState(true);
+   156→  const [searchQuery, setSearchQuery] = useState("");
+   157→  const [selectedGroup, setSelectedGroup] = useState<string>("all");
+   158→  const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
+   159→  const [fetchingPrices, setFetchingPrices] = useState<Set<string>>(new Set());
+   160→
+   161→  // Auth state
+   162→  const [isAdmin, setIsAdmin] = useState(false);
+   163→  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
+   164→  const [loginPassword, setLoginPassword] = useState("");
+   165→
+   166→  // Dialog states
+   167→  const [productDialogOpen, setProductDialogOpen] = useState(false);
+   168→  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+   169→  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+   170→  const [linkProductId, setLinkProductId] = useState<string>("");
+   171→  const [editingLink, setEditingLink] = useState<CompetitorLink | null>(null);
+   172→  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+   173→  const [deleteTarget, setDeleteTarget] = useState<{
+   174→    type: "product" | "link" | "group";
+   175→    id: string;
+   176→    parentId?: string;
+   177→    name?: string;
+   178→  } | null>(null);
+   179→
+   180→  // Settings dialog
+   181→  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+   182→  const [settingsForm, setSettingsForm] = useState({
+   183→    currencyUnit: "تومان",
+   184→    adminPassword: "",
+   185→    currentPassword: "",
+   186→  });
+   187→
+   188→  // Group dialog
+   189→  const [groupDialogOpen, setGroupDialogOpen] = useState(false);
+   190→  const [groupForm, setGroupForm] = useState({
+   191→    name: "",
+   192→    parentId: "",
+   193→  });
+   194→  const [editingGroup, setEditingGroup] = useState<ProductGroupParent | null>(null);
+   195→
+   196→  // Form states
+   197→  const [productForm, setProductForm] = useState({
+   198→    name: "",
+   199→    description: "",
+   200→    price: "",
+   201→    imageUrl: "",
+   202→    groupId: "",
+   203→  });
+   204→  const [linkForm, setLinkForm] = useState({
+   205→    name: "",
+   206→    url: "",
+   207→    linkType: "WEBSITE",
+   208→    priceSelector: "",
+   209→    priceMultiplier: "1",
+   210→  });
+   211→
+   212→  // ─── Fetch Data ────────────────────────────────────────────────
+   213→  const fetchProducts = useCallback(async () => {
+   214→    try {
+   215→      setLoading(true);
+   216→      const res = await fetch("/api/products");
+   217→      if (!res.ok) throw new Error("Failed to fetch");
+   218→      const data = await res.json();
+   219→      setProducts(data);
+   220→    } catch {
+   221→      toast({ title: "خطا", description: "دریافت محصولات ناموفق بود", variant: "destructive" });
+   222→    } finally {
+   223→      setLoading(false);
+   224→    }
+   225→  }, [toast]);
+   226→
+   227→  const fetchGroups = useCallback(async () => {
+   228→    try {
+   229→      const res = await fetch("/api/groups");
+   230→      if (!res.ok) throw new Error("Failed to fetch");
+   231→      const data = await res.json();
+   232→      setGroups(data);
+   233→    } catch {
+   234→      toast({ title: "خطا", description: "دریافت گروه‌ها ناموفق بود", variant: "destructive" });
+   235→    }
+   236→  }, [toast]);
+   237→
+   238→  const fetchSettings = useCallback(async () => {
+   239→    try {
+   240→      const res = await fetch("/api/settings");
+   241→      if (!res.ok) return;
+   242→      const data = await res.json();
+   243→      setCurrencyUnit(data.currencyUnit || "تومان");
+   244→      setSettingsForm((f) => ({ ...f, currencyUnit: data.currencyUnit || "تومان" }));
+   245→    } catch {
+   246→      // silently fail
+   247→    }
+   248→  }, []);
+   249→
+   250→  const checkAuth = useCallback(async () => {
+   251→    try {
+   252→      const res = await fetch("/api/auth");
+   253→      if (!res.ok) return;
+   254→      const data = await res.json();
+   255→      setIsAdmin(data.authenticated);
+   256→    } catch {
+   257→      // not authenticated
+   258→    }
+   259→  }, []);
+   260→
+   261→  React.useEffect(() => {
+   262→    fetchProducts();
+   263→    fetchGroups();
+   264→    fetchSettings();
+   265→    checkAuth();
+   266→  }, [fetchProducts, fetchGroups, fetchSettings, checkAuth]);
+   267→
+   268→  // ─── Build group filter options (flat list of main + sub) ──────
+   269→  const groupFilterOptions = React.useMemo(() => {
+   270→    const options: { id: string; name: string; depth: number; parentName?: string }[] = [];
+   271→    groups.forEach((g) => {
+   272→      options.push({ id: g.id, name: g.name, depth: 0 });
+   273→      g.children.forEach((sub) => {
+   274→        options.push({ id: sub.id, name: sub.name, depth: 1, parentName: g.name });
+   275→      });
+   276→    });
+   277→    return options;
+   278→  }, [groups]);
+   279→
+   280→  // ─── Filter products ───────────────────────────────────────────
+   281→  const filteredProducts = React.useMemo(() => {
+   282→    return products.filter((p) => {
+   283→      const matchesSearch =
+   284→        !searchQuery ||
+   285→        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+   286→        (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()));
+   287→      const matchesGroup =
+   288→        selectedGroup === "all" || p.groupId === selectedGroup;
+   289→      return matchesSearch && matchesGroup;
+   290→    });
+   291→  }, [products, searchQuery, selectedGroup]);
+   292→
+   293→  // ─── Auth handlers ─────────────────────────────────────────────
+   294→  const handleLogin = async () => {
+   295→    try {
+   296→      const res = await fetch("/api/auth", {
+   297→        method: "POST",
+   298→        headers: { "Content-Type": "application/json" },
+   299→        body: JSON.stringify({ password: loginPassword }),
+   300→      });
+   301→      const data = await res.json();
+   302→      if (!res.ok) {
+   303→        toast({ title: "خطا", description: data.error || "ورود ناموفق بود", variant: "destructive" });
+   304→        return;
+   305→      }
+   306→      setIsAdmin(true);
+   307→      setLoginDialogOpen(false);
+   308→      setLoginPassword("");
+   309→      toast({ title: "ورود موفق", description: "به عنوان مدیر وارد شدید" });
+   310→    } catch {
+   311→      toast({ title: "خطا", description: "ورود ناموفق بود", variant: "destructive" });
+   312→    }
+   313→  };
+   314→
+   315→  const handleLogout = async () => {
+   316→    try {
+   317→      await fetch("/api/auth", { method: "DELETE" });
+   318→      setIsAdmin(false);
+   319→      toast({ title: "خروج", description: "از حساب مدیر خارج شدید" });
+   320→    } catch {
+   321→      // ignore
+   322→    }
+   323→  };
+   324→
+   325→  // ─── Product CRUD ──────────────────────────────────────────────
+   326→  const handleSaveProduct = async () => {
+   327→    try {
+   328→      const url = editingProduct ? `/api/products/${editingProduct.id}` : "/api/products";
+   329→      const method = editingProduct ? "PUT" : "POST";
+   330→
+   331→      const res = await fetch(url, {
+   332→        method,
+   333→        headers: { "Content-Type": "application/json" },
+   334→        body: JSON.stringify({
+   335→          name: productForm.name,
+   336→          description: productForm.description || null,
+   337→          price: parseFloat(productForm.price),
+   338→          imageUrl: productForm.imageUrl || null,
+   339→          groupId: productForm.groupId || null,
+   340→        }),
+   341→      });
+   342→
+   343→      if (!res.ok) throw new Error("Failed to save");
+   344→
+   345→      toast({
+   346→        title: editingProduct ? "محصول بروزرسانی شد" : "محصول اضافه شد",
+   347→        description: productForm.name,
+   348→      });
+   349→
+   350→      setProductDialogOpen(false);
+   351→      setEditingProduct(null);
+   352→      resetProductForm();
+   353→      fetchProducts();
+   354→    } catch {
+   355→      toast({ title: "خطا", description: "ذخیره محصول ناموفق بود", variant: "destructive" });
+   356→    }
+   357→  };
+   358→
+   359→  const handleDeleteProduct = async (id: string) => {
+   360→    try {
+   361→      const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
+   362→      if (!res.ok) throw new Error();
+   363→      toast({ title: "محصول حذف شد" });
+   364→      fetchProducts();
+   365→    } catch {
+   366→      toast({ title: "خطا", description: "حذف محصول ناموفق بود", variant: "destructive" });
+   367→    }
+   368→  };
+   369→
+   370→  // ─── Link CRUD ─────────────────────────────────────────────────
+   371→  const handleSaveLink = async () => {
+   372→    try {
+   373→      const url = editingLink
+   374→        ? `/api/products/${linkProductId}/links/${editingLink.id}`
+   375→        : `/api/products/${linkProductId}/links`;
+   376→      const method = editingLink ? "PUT" : "POST";
+   377→
+   378→      const res = await fetch(url, {
+   379→        method,
+   380→        headers: { "Content-Type": "application/json" },
+   381→        body: JSON.stringify({
+   382→          name: linkForm.name,
+   383→          url: linkForm.url,
+   384→          linkType: linkForm.linkType,
+   385→          priceSelector: linkForm.priceSelector || null,
+   386→          priceMultiplier: parseFloat(linkForm.priceMultiplier) || 1.0,
+   387→        }),
+   388→      });
+   389→
+   390→      if (!res.ok) throw new Error();
+   391→
+   392→      toast({
+   393→        title: editingLink ? "لینک بروزرسانی شد" : "لینک رقیب اضافه شد",
+   394→        description: linkForm.name,
+   395→      });
+   396→
+   397→      setLinkDialogOpen(false);
+   398→      setEditingLink(null);
+   399→      resetLinkForm();
+   400→      fetchProducts();
+   401→    } catch {
+   402→      toast({ title: "خطا", description: "ذخیره لینک ناموفق بود", variant: "destructive" });
+   403→    }
+   404→  };
+   405→
+   406→  const handleDeleteLink = async (productId: string, linkId: string) => {
+   407→    try {
+   408→      const res = await fetch(`/api/products/${productId}/links/${linkId}`, { method: "DELETE" });
+   409→      if (!res.ok) throw new Error();
+   410→      toast({ title: "لینک حذف شد" });
+   411→      fetchProducts();
+   412→    } catch {
+   413→      toast({ title: "خطا", description: "حذف لینک ناموفق بود", variant: "destructive" });
+   414→    }
+   415→  };
+   416→
+   417→  // ─── Fetch Prices ──────────────────────────────────────────────
+   418→  const handleFetchPrices = async (productId: string) => {
+   419→    setFetchingPrices((prev) => new Set(prev).add(productId));
+   420→    try {
+   421→      const res = await fetch(`/api/products/${productId}/fetch-prices`, { method: "POST" });
+   422→      if (!res.ok) throw new Error();
+   423→
+   424→      const data = await res.json();
+   425→      const successCount = data.results.filter((r: { success: boolean }) => r.success).length;
+   426→      const failCount = data.results.filter((r: { success: boolean }) => !r.success).length;
+   427→
+   428→      // Show error details for failed extractions
+   429→      const failedDetails = data.results
+   430→        .filter((r: { success: boolean }) => !r.success)
+   431→        .map((r: { linkName: string; error?: string }) => `${r.linkName}: ${r.error || "نامشخص"}`)
+   432→        .join("\n");
+   433→
+   434→      toast({
+   435→        title: "استخراج قیمت‌ها انجام شد",
+   436→        description: `${successCount} موفق${failCount > 0 ? `، ${failCount} ناموفق` : ""}${failedDetails ? "\n" + failedDetails : ""}`,
+   437→        variant: failCount > 0 && successCount === 0 ? "destructive" : "default",
+   438→        duration: failCount > 0 ? 8000 : 4000,
+   439→      });
+   440→
+   441→      fetchProducts();
+   442→    } catch {
+   443→      toast({ title: "خطا", description: "استخراج قیمت‌ها ناموفق بود", variant: "destructive" });
+   444→    } finally {
+   445→      setFetchingPrices((prev) => {
+   446→        const next = new Set(prev);
+   447→        next.delete(productId);
+   448→        return next;
+   449→      });
+   450→    }
+   451→  };
+   452→
+   453→  // ─── Group CRUD ────────────────────────────────────────────────
+   454→  const handleSaveGroup = async () => {
+   455→    try {
+   456→      const url = editingGroup ? `/api/groups/${editingGroup.id}` : "/api/groups";
+   457→      const method = editingGroup ? "PUT" : "POST";
+   458→
+   459→      const body: { name: string; parentId?: string | null; order?: number } = {
+   460→        name: groupForm.name,
+   461→      };
+   462→      if (!editingGroup) {
+   463→        body.parentId = groupForm.parentId || null;
+   464→      }
+   465→
+   466→      const res = await fetch(url, {
+   467→        method,
+   468→        headers: { "Content-Type": "application/json" },
+   469→        body: JSON.stringify(body),
+   470→      });
+   471→
+   472→      if (!res.ok) throw new Error();
+   473→
+   474→      toast({
+   475→        title: editingGroup ? "گروه بروزرسانی شد" : "گروه اضافه شد",
+   476→        description: groupForm.name,
+   477→      });
+   478→
+   479→      setGroupDialogOpen(false);
+   480→      setEditingGroup(null);
+   481→      setGroupForm({ name: "", parentId: "" });
+   482→      fetchGroups();
+   483→      fetchProducts(); // refresh group relations
+   484→    } catch {
+   485→      toast({ title: "خطا", description: "ذخیره گروه ناموفق بود", variant: "destructive" });
+   486→    }
+   487→  };
+   488→
+   489→  const handleDeleteGroup = async (groupId: string) => {
+   490→    try {
+   491→      const res = await fetch(`/api/groups/${groupId}`, { method: "DELETE" });
+   492→      if (!res.ok) throw new Error();
+   493→      toast({ title: "گروه حذف شد" });
+   494→      fetchGroups();
+   495→      fetchProducts();
+   496→    } catch {
+   497→      toast({ title: "خطا", description: "حذف گروه ناموفق بود", variant: "destructive" });
+   498→    }
+   499→  };
+   500→
+   501→  // ─── Settings ──────────────────────────────────────────────────
+   502→  const handleSaveSettings = async () => {
+   503→    try {
+   504→      const body: { currencyUnit?: string; adminPassword?: string; currentPassword?: string } = {
+   505→        currencyUnit: settingsForm.currencyUnit,
+   506→      };
+   507→      if (settingsForm.adminPassword) {
+   508→        body.adminPassword = settingsForm.adminPassword;
+   509→        body.currentPassword = settingsForm.currentPassword;
+   510→      }
+   511→
+   512→      const res = await fetch("/api/settings", {
+   513→        method: "PUT",
+   514→        headers: { "Content-Type": "application/json" },
+   515→        body: JSON.stringify(body),
+   516→      });
+   517→
+   518→      const data = await res.json();
+   519→      if (!res.ok) {
+   520→        toast({ title: "خطا", description: data.error || "ذخیره تنظیمات ناموفق بود", variant: "destructive" });
+   521→        return;
+   522→      }
+   523→
+   524→      setCurrencyUnit(data.currencyUnit);
+   525→      setSettingsDialogOpen(false);
+   526→      setSettingsForm((f) => ({ ...f, adminPassword: "", currentPassword: "" }));
+   527→      toast({ title: "تنظیمات ذخیره شد" });
+   528→    } catch {
+   529→      toast({ title: "خطا", description: "ذخیره تنظیمات ناموفق بود", variant: "destructive" });
+   530→    }
+   531→  };
+   532→
+   533→  // ─── Form helpers ──────────────────────────────────────────────
+   534→  const resetProductForm = () => {
+   535→    setProductForm({ name: "", description: "", price: "", imageUrl: "", groupId: "" });
+   536→  };
+   537→  const resetLinkForm = () => {
+   538→    setLinkForm({ name: "", url: "", linkType: "WEBSITE", priceSelector: "", priceMultiplier: "1" });
+   539→  };
+   540→
+   541→  const openEditProduct = (product: Product) => {
+   542→    setEditingProduct(product);
+   543→    setProductForm({
+   544→      name: product.name,
+   545→      description: product.description || "",
+   546→      price: String(product.price),
+   547→      imageUrl: product.imageUrl || "",
+   548→      groupId: product.groupId || "",
+   549→    });
+   550→    setProductDialogOpen(true);
+   551→  };
+   552→
+   553→  const openAddLink = (productId: string) => {
+   554→    setLinkProductId(productId);
+   555→    setEditingLink(null);
+   556→    resetLinkForm();
+   557→    setLinkDialogOpen(true);
+   558→  };
+   559→
+   560→  const openEditLink = (productId: string, link: CompetitorLink) => {
+   561→    setLinkProductId(productId);
+   562→    setEditingLink(link);
+   563→    setLinkForm({
+   564→      name: link.name,
+   565→      url: link.url,
+   566→      linkType: link.linkType,
+   567→      priceSelector: link.priceSelector || "",
+   568→      priceMultiplier: String(parseFloat(link.priceMultiplier.toFixed(4))),
+   569→    });
+   570→    setLinkDialogOpen(true);
+   571→  };
+   572→
+   573→  // ─── Computed ──────────────────────────────────────────────────
+   574→  const getBestCompetitorPrice = (product: Product) => {
+   575→    const prices = product.links
+   576→      .filter((l) => l.lastAdjustedPrice !== null)
+   577→      .map((l) => l.lastAdjustedPrice as number);
+   578→    if (prices.length === 0) return null;
+   579→    return Math.min(...prices);
+   580→  };
+   581→
+   582→  const getGroupName = (product: Product) => {
+   583→    if (!product.group) return null;
+   584→    const parentName = product.group.parent?.name;
+   585→    if (parentName) return `${parentName} › ${product.group.name}`;
+   586→    return product.group.name;
+   587→  };
+   588→
+   589→  // ─── Render ────────────────────────────────────────────────────
+   590→  return (
+   591→    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+   592→      {/* Header */}
+   593→      <header className="sticky top-0 z-50 backdrop-blur-lg bg-white/80 dark:bg-slate-900/80 border-b border-border">
+   594→        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+   595→          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+   596→            <div className="flex items-center gap-3">
+   597→              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+   598→                <Package className="w-5 h-5 text-white" />
+   599→              </div>
+   600→              <div>
+   601→                <h1 className="text-xl font-bold text-foreground">کاتالوگ دیجیتال</h1>
+   602→                <p className="text-xs text-muted-foreground">
+   603→                  مقایسه قیمت محصولات با رقبا
+   604→                </p>
+   605→              </div>
+   606→            </div>
+   607→
+   608→            <div className="flex items-center gap-2 flex-wrap">
+   609→              {/* Admin buttons */}
+   610→              {isAdmin && (
+   611→                <>
+   612→                  <Button
+   613→                    variant="outline"
+   614→                    size="sm"
+   615→                    className="gap-2"
+   616→                    onClick={() => {
+   617→                      setEditingGroup(null);
+   618→                      setGroupForm({ name: "", parentId: "" });
+   619→                      setGroupDialogOpen(true);
+   620→                    }}
+   621→                  >
+   622→                    <FolderPlus className="w-4 h-4" />
+   623→                    گروه‌بندی
+   624→                  </Button>
+   625→                  <Button
+   626→                    variant="outline"
+   627→                    size="sm"
+   628→                    className="gap-2"
+   629→                    onClick={() => {
+   630→                      setSettingsForm((f) => ({ ...f, currencyUnit, adminPassword: "", currentPassword: "" }));
+   631→                      setSettingsDialogOpen(true);
+   632→                    }}
+   633→                  >
+   634→                    <Settings2 className="w-4 h-4" />
+   635→                    تنظیمات
+   636→                  </Button>
+   637→                  <Button
+   638→                    variant="default"
+   639→                    size="sm"
+   640→                    className="gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/20"
+   641→                    onClick={() => {
+   642→                      setEditingProduct(null);
+   643→                      resetProductForm();
+   644→                      setProductDialogOpen(true);
+   645→                    }}
+   646→                  >
+   647→                    <Plus className="w-4 h-4" />
+   648→                    افزودن محصول
+   649→                  </Button>
+   650→                </>
+   651→              )}
+   652→
+   653→              {/* Auth button */}
+   654→              {isAdmin ? (
+   655→                <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground" onClick={handleLogout}>
+   656→                  <LogOut className="w-4 h-4" />
+   657→                  خروج مدیر
+   658→                </Button>
+   659→              ) : (
+   660→                <Button variant="outline" size="sm" className="gap-2" onClick={() => setLoginDialogOpen(true)}>
+   661→                  <LogIn className="w-4 h-4" />
+   662→                  ورود مدیر
+   663→                </Button>
+   664→              )}
+   665→            </div>
+   666→          </div>
+   667→
+   668→          {/* Search & Filters */}
+   669→          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-4">
+   670→            <div className="relative flex-1">
+   671→              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+   672→              <Input
+   673→                value={searchQuery}
+   674→                onChange={(e) => setSearchQuery(e.target.value)}
+   675→                placeholder="جستجوی محصول..."
+   676→                className="pr-10"
+   677→              />
+   678→              {searchQuery && (
+   679→                <button onClick={() => setSearchQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2">
+   680→                  <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+   681→                </button>
+   682→              )}
+   683→            </div>
+   684→            {groupFilterOptions.length > 0 && (
+   685→              <Select value={selectedGroup} onValueChange={setSelectedGroup}>
+   686→                <SelectTrigger className="w-full sm:w-56">
+   687→                  <SelectValue placeholder="دسته‌بندی" />
+   688→                </SelectTrigger>
+   689→                <SelectContent>
+   690→                  <SelectItem value="all">همه دسته‌ها</SelectItem>
+   691→                  {groupFilterOptions.map((g) => (
+   692→                    <SelectItem key={g.id} value={g.id}>
+   693→                      {g.depth === 0 ? g.name : `└ ${g.name}`}
+   694→                    </SelectItem>
+   695→                  ))}
+   696→                </SelectContent>
+   697→              </Select>
+   698→            )}
+   699→          </div>
+   700→        </div>
+   701→      </header>
+   702→
+   703→      {/* Main Content */}
+   704→      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-8">
+   705→        {loading ? (
+   706→          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+   707→            {[1, 2, 3].map((i) => (
+   708→              <Card key={i} className="animate-pulse">
+   709→                <div className="h-48 bg-muted rounded-t-lg" />
+   710→                <CardContent className="p-6">
+   711→                  <div className="h-4 bg-muted rounded w-3/4 mb-3" />
+   712→                  <div className="h-4 bg-muted rounded w-1/2" />
+   713→                </CardContent>
+   714→              </Card>
+   715→            ))}
+   716→          </div>
+   717→        ) : filteredProducts.length === 0 ? (
+   718→          <div className="flex flex-col items-center justify-center py-24 text-center">
+   719→            <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mb-6">
+   720→              <Package className="w-12 h-12 text-muted-foreground" />
+   721→            </div>
+   722→            <h3 className="text-lg font-semibold text-foreground mb-2">
+   723→              {products.length === 0 ? "هنوز محصولی اضافه نشده" : "محصولی یافت نشد"}
+   724→            </h3>
+   725→            <p className="text-muted-foreground mb-6 max-w-md">
+   726→              {products.length === 0
+   727→                ? "برای شروع، ابتدا به عنوان مدیر وارد شوید و سپس گروه‌ها و محصولات خود را اضافه کنید."
+   728→                : "فیلترهای خود را تغییر دهید یا عبارت جستجوی دیگری امتحان کنید."}
+   729→            </p>
+   730→            {products.length === 0 && !isAdmin && (
+   731→              <Button variant="outline" className="gap-2" onClick={() => setLoginDialogOpen(true)}>
+   732→                <LogIn className="w-4 h-4" />
+   733→                ورود مدیر
+   734→              </Button>
+   735→            )}
+   736→          </div>
+   737→        ) : (
+   738→          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+   739→            <AnimatePresence mode="popLayout">
+   740→              {filteredProducts.map((product) => {
+   741→                const isExpanded = expandedProduct === product.id;
+   742→                const bestPrice = getBestCompetitorPrice(product);
+   743→                const isFetching = fetchingPrices.has(product.id);
+   744→                const hasLinks = product.links.length > 0;
+   745→                const groupName = getGroupName(product);
+   746→
+   747→                return (
+   748→                  <motion.div
+   749→                    key={product.id}
+   750→                    layout
+   751→                    initial={{ opacity: 0, y: 20 }}
+   752→                    animate={{ opacity: 1, y: 0 }}
+   753→                    exit={{ opacity: 0, y: -20 }}
+   754→                    className={isExpanded ? "sm:col-span-2 lg:col-span-3" : ""}
+   755→                  >
+   756→                    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-border/50 group">
+   757→                      {/* Product Image */}
+   758→                      {product.imageUrl && (
+   759→                        <div className="relative h-48 overflow-hidden bg-muted">
+   760→                          <img
+   761→                            src={product.imageUrl}
+   762→                            alt={product.name}
+   763→                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+   764→                            onError={(e) => {
+   765→                              (e.target as HTMLImageElement).style.display = "none";
+   766→                            }}
+   767→                          />
+   768→                          {groupName && (
+   769→                            <Badge className="absolute top-3 right-3 bg-white/90 dark:bg-slate-800/90 text-foreground backdrop-blur-sm">
+   770→                              <FolderTree className="w-3 h-3 ml-1" />
+   771→                              {groupName}
+   772→                            </Badge>
+   773→                          )}
+   774→                        </div>
+   775→                      )}
+   776→
+   777→                      <CardHeader className="pb-2">
+   778→                        <div className="flex items-start justify-between">
+   779→                          <div className="flex-1 min-w-0">
+   780→                            <h3 className="font-bold text-lg text-foreground truncate">
+   781→                              {product.name}
+   782→                            </h3>
+   783→                            {product.description && (
+   784→                              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+   785→                                {product.description}
+   786→                              </p>
+   787→                            )}
+   788→                            {!product.imageUrl && groupName && (
+   789→                              <Badge className="mt-2" variant="secondary">
+   790→                                <FolderTree className="w-3 h-3 ml-1" />
+   791→                                {groupName}
+   792→                              </Badge>
+   793→                            )}
+   794→                          </div>
+   795→                          {isAdmin && (
+   796→                            <div className="flex gap-1 mr-2">
+   797→                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditProduct(product)}>
+   798→                                <Edit3 className="w-4 h-4" />
+   799→                              </Button>
+   800→                              <Button
+   801→                                variant="ghost"
+   802→                                size="icon"
+   803→                                className="h-8 w-8 text-destructive hover:text-destructive"
+   804→                                onClick={() => setDeleteTarget({ type: "product", id: product.id, name: product.name })}
+   805→                              >
+   806→                                <Trash2 className="w-4 h-4" />
+   807→                              </Button>
+   808→                            </div>
+   809→                          )}
+   810→                        </div>
+   811→                      </CardHeader>
+   812→
+   813→                      <CardContent className="pb-2">
+   814→                        <div className="flex items-center justify-between">
+   815→                          <div>
+   816→                            <span className="text-xs text-muted-foreground">قیمت شما:</span>
+   817→                            <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
+   818→                              {formatPrice(product.price, currencyUnit)}
+   819→                            </p>
+   820→                          </div>
+   821→                          {bestPrice !== null && (
+   822→                            <div className="text-left">
+   823→                              <span className="text-xs text-muted-foreground">ارزان‌ترین رقیب:</span>
+   824→                              <p className="text-lg font-semibold text-foreground">
+   825→                                {formatPrice(bestPrice, currencyUnit)}
+   826→                              </p>
+   827→                              {bestPrice > product.price ? (
+   828→                                <Badge variant="default" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-xs">
+   829→                                  شما ارزان‌تر!
+   830→                                </Badge>
+   831→                              ) : (
+   832→                                <Badge variant="destructive" className="text-xs">
+   833→                                  رقیب ارزان‌تر
+   834→                                </Badge>
+   835→                              )}
+   836→                            </div>
+   837→                          )}
+   838→                        </div>
+   839→
+   840→                        {hasLinks && (
+   841→                          <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+   842→                            <Link2 className="w-4 h-4" />
+   843→                            <span>{product.links.length} لینک رقیب</span>
+   844→                            <span className="text-xs">
+   845→                              ({product.links.filter((l) => l.lastAdjustedPrice !== null).length} قیمت استخراج شده)
+   846→                            </span>
+   847→                          </div>
+   848→                        )}
+   849→                      </CardContent>
+   850→
+   851→                      <CardFooter className="flex flex-col items-stretch gap-3 pt-2">
+   852→                        <div className="flex gap-2">
+   853→                          {isAdmin && (
+   854→                            <Button variant="outline" size="sm" className="gap-2" onClick={() => openAddLink(product.id)}>
+   855→                              <Plus className="w-3 h-3" />
+   856→                              لینک رقیب
+   857→                            </Button>
+   858→                          )}
+   859→                          {hasLinks && (
+   860→                            <>
+   861→                              <Button
+   862→                                variant="outline"
+   863→                                size="sm"
+   864→                                className="gap-2"
+   865→                                onClick={() => handleFetchPrices(product.id)}
+   866→                                disabled={isFetching}
+   867→                              >
+   868→                                {isFetching ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+   869→                                استخراج قیمت
+   870→                              </Button>
+   871→                              <Button
+   872→                                variant="ghost"
+   873→                                size="sm"
+   874→                                className="gap-1"
+   875→                                onClick={() => setExpandedProduct(isExpanded ? null : product.id)}
+   876→                              >
+   877→                                {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+   878→                              </Button>
+   879→                            </>
+   880→                          )}
+   881→                        </div>
+   882→
+   883→                        {/* Expanded Competitor Prices */}
+   884→                        <AnimatePresence>
+   885→                          {isExpanded && (
+   886→                            <motion.div
+   887→                              initial={{ height: 0, opacity: 0 }}
+   888→                              animate={{ height: "auto", opacity: 1 }}
+   889→                              exit={{ height: 0, opacity: 0 }}
+   890→                              transition={{ duration: 0.3 }}
+   891→                              className="overflow-hidden"
+   892→                            >
+   893→                              <Separator className="mb-3" />
+   894→                              <div className="space-y-3 max-h-96 overflow-y-auto custom-scrollbar">
+   895→                                {product.links.map((link) => (
+   896→                                  <div
+   897→                                    key={link.id}
+   898→                                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+   899→                                  >
+   900→                                    <div className="flex items-center gap-3 min-w-0 flex-1">
+   901→                                      <div
+   902→                                        className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+   903→                                          link.linkType === "API"
+   904→                                            ? "bg-amber-100 dark:bg-amber-900/30"
+   905→                                            : "bg-sky-100 dark:bg-sky-900/30"
+   906→                                        }`}
+   907→                                      >
+   908→                                        {link.linkType === "API" ? (
+   909→                                          <Code2 className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+   910→                                        ) : (
+   911→                                          <Globe className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+   912→                                        )}
+   913→                                      </div>
+   914→                                      <div className="min-w-0">
+   915→                                        <p className="text-sm font-medium truncate">{link.name}</p>
+   916→                                        <a
+   917→                                          href={link.url}
+   918→                                          target="_blank"
+   919→                                          rel="noopener noreferrer"
+   920→                                          className="text-xs text-muted-foreground hover:text-primary truncate block max-w-48"
+   921→                                        >
+   922→                                          {link.url}
+   923→                                          <ExternalLink className="w-2.5 h-2.5 inline mr-1" />
+   924→                                        </a>
+   925→                                      </div>
+   926→                                    </div>
+   927→                                    <div className="flex items-center gap-2">
+   928→                                      <div className="text-left">
+   929→                                        {link.lastAdjustedPrice !== null ? (
+   930→                                          <>
+   931→                                            <p className="text-sm font-bold">
+   932→                                              {formatPrice(link.lastAdjustedPrice, currencyUnit)}
+   933→                                            </p>
+   934→                                            {link.priceMultiplier !== 1 && link.lastPrice !== null && (
+   935→                                              <HoverCard>
+   936→                                                <HoverCardTrigger asChild>
+   937→                                                  <p className="text-[10px] text-muted-foreground cursor-help flex items-center gap-0.5">
+   938→                                                    <Calculator className="w-2.5 h-2.5" />
+   939→                                                    {formatPrice(link.lastPrice, currencyUnit)} × {parseFloat(link.priceMultiplier.toFixed(4))}
+   940→                                                  </p>
+   941→                                                </HoverCardTrigger>
+   942→                                                <HoverCardContent side="left" className="w-64 text-xs" dir="rtl">
+   943→                                                  <div className="space-y-1">
+   944→                                                    <p className="font-semibold">محاسبه قیمت با ضریب</p>
+   945→                                                    <p>قیمت استخراج‌شده: {formatPrice(link.lastPrice, currencyUnit)}</p>
+   946→                                                    <p>ضریب: {parseFloat(link.priceMultiplier.toFixed(4))}</p>
+   947→                                                    <Separator />
+   948→                                                    <p className="font-semibold">قیمت نهایی: {formatPrice(link.lastAdjustedPrice, currencyUnit)}</p>
+   949→                                                  </div>
+   950→                                                </HoverCardContent>
+   951→                                              </HoverCard>
+   952→                                            )}
+   953→                                            {link.lastFetchedAt && (
+   954→                                              <p className="text-[10px] text-muted-foreground">
+   955→                                                {new Date(link.lastFetchedAt).toLocaleDateString("fa-IR")}
+   956→                                              </p>
+   957→                                            )}
+   958→                                          </>
+   959→                                        ) : (
+   960→                                          <p className="text-xs text-muted-foreground">قیمت استخراج نشده</p>
+   961→                                        )}
+   962→                                      </div>
+   963→                                      {getPriceTrend(link.priceHistory)}
+   964→                                      {isAdmin && (
+   965→                                        <div className="flex gap-1">
+   966→                                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditLink(product.id, link)}>
+   967→                                            <Edit3 className="w-3 h-3" />
+   968→                                          </Button>
+   969→                                          <Button
+   970→                                            variant="ghost"
+   971→                                            size="icon"
+   972→                                            className="h-7 w-7 text-destructive hover:text-destructive"
+   973→                                            onClick={() => setDeleteTarget({ type: "link", id: link.id, parentId: product.id })}
+   974→                                          >
+   975→                                            <Trash2 className="w-3 h-3" />
+   976→                                          </Button>
+   977→                                        </div>
+   978→                                      )}
+   979→                                    </div>
+   980→                                  </div>
+   981→                                ))}
+   982→                              </div>
+   983→                            </motion.div>
+   984→                          )}
+   985→                        </AnimatePresence>
+   986→                      </CardFooter>
+   987→                    </Card>
+   988→                  </motion.div>
+   989→                );
+   990→              })}
+   991→            </AnimatePresence>
+   992→          </div>
+   993→        )}
+   994→      </main>
+   995→
+   996→      {/* Footer */}
+   997→      <footer className="mt-auto border-t border-border bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+   998→        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 text-center">
+   999→          <p className="text-sm text-muted-foreground">
+  1000→            کاتالوگ دیجیتال — مقایسه هوشمند قیمت با رقبا
+  1001→          </p>
+  1002→          <p className="text-xs text-muted-foreground mt-1">
+  1003→            {products.length} محصول • {products.reduce((sum, p) => sum + p.links.length, 0)} لینک رقیب
+  1004→            {isAdmin && <span className="text-emerald-600"> • مدیر</span>}
+  1005→          </p>
+  1006→        </div>
+  1007→      </footer>
+  1008→
+  1009→      {/* ═══ Dialogs ═══ */}
+  1010→
+  1011→      {/* Login Dialog */}
+  1012→      <Dialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen}>
+  1013→        <DialogContent className="sm:max-w-sm" dir="rtl">
+  1014→          <DialogHeader>
+  1015→            <DialogTitle className="flex items-center gap-2">
+  1016→              <Shield className="w-5 h-5 text-emerald-600" />
+  1017→              ورود مدیر سیستم
+  1018→            </DialogTitle>
+  1019→          </DialogHeader>
+  1020→          <div className="space-y-4 mt-4">
+  1021→            <div className="space-y-2">
+  1022→              <Label htmlFor="password">رمز عبور</Label>
+  1023→              <Input
+  1024→                id="password"
+  1025→                type="password"
+  1026→                value={loginPassword}
+  1027→                onChange={(e) => setLoginPassword(e.target.value)}
+  1028→                placeholder="رمز عبور مدیر را وارد کنید"
+  1029→                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+  1030→              />
+  1031→              <p className="text-xs text-muted-foreground">
+  1032→                رمز عبور پیش‌فرض: admin123
+  1033→              </p>
+  1034→            </div>
+  1035→            <Button
+  1036→              onClick={handleLogin}
+  1037→              className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white"
+  1038→              disabled={!loginPassword}
+  1039→            >
+  1040→              ورود
+  1041→            </Button>
+  1042→          </div>
+  1043→        </DialogContent>
+  1044→      </Dialog>
+  1045→
+  1046→      {/* Product Dialog */}
+  1047→      <Dialog
+  1048→        open={productDialogOpen}
+  1049→        onOpenChange={(open) => {
+  1050→          setProductDialogOpen(open);
+  1051→          if (!open) {
+  1052→            setEditingProduct(null);
+  1053→            resetProductForm();
+  1054→          }
+  1055→        }}
+  1056→      >
+  1057→        <DialogContent className="sm:max-w-md" dir="rtl">
+  1058→          <DialogHeader>
+  1059→            <DialogTitle>{editingProduct ? "ویرایش محصول" : "افزودن محصول جدید"}</DialogTitle>
+  1060→          </DialogHeader>
+  1061→          <div className="space-y-4 mt-4">
+  1062→            <div className="space-y-2">
+  1063→              <Label>نام محصول *</Label>
+  1064→              <Input
+  1065→                value={productForm.name}
+  1066→                onChange={(e) => setProductForm((f) => ({ ...f, name: e.target.value }))}
+  1067→                placeholder="مثلاً: گوشی موبایل سامسونگ"
+  1068→              />
+  1069→            </div>
+  1070→            <div className="space-y-2">
+  1071→              <Label>قیمت ({currencyUnit}) *</Label>
+  1072→              <Input
+  1073→                type="number"
+  1074→                value={productForm.price}
+  1075→                onChange={(e) => setProductForm((f) => ({ ...f, price: e.target.value }))}
+  1076→                placeholder="مثلاً: 25000000"
+  1077→              />
+  1078→            </div>
+  1079→            <div className="space-y-2">
+  1080→              <Label>توضیحات</Label>
+  1081→              <Textarea
+  1082→                value={productForm.description}
+  1083→                onChange={(e) => setProductForm((f) => ({ ...f, description: e.target.value }))}
+  1084→                placeholder="توضیحات محصول..."
+  1085→                rows={3}
+  1086→              />
+  1087→            </div>
+  1088→            <div className="space-y-2">
+  1089→              <Label>آدرس تصویر</Label>
+  1090→              <Input
+  1091→                value={productForm.imageUrl}
+  1092→                onChange={(e) => setProductForm((f) => ({ ...f, imageUrl: e.target.value }))}
+  1093→                placeholder="https://example.com/image.jpg"
+  1094→                dir="ltr"
+  1095→              />
+  1096→            </div>
+  1097→            <div className="space-y-2">
+  1098→              <Label>گروه / دسته‌بندی</Label>
+  1099→              <Select value={productForm.groupId || "__none__"} onValueChange={(v) => setProductForm((f) => ({ ...f, groupId: v === "__none__" ? "" : v }))}>
+  1100→                <SelectTrigger>
+  1101→                  <SelectValue placeholder="بدون گروه" />
+  1102→                </SelectTrigger>
+  1103→                <SelectContent>
+  1104→                  <SelectItem value="__none__">بدون گروه</SelectItem>
+  1105→                  {groups.map((g) => (
+  1106→                    <React.Fragment key={g.id}>
+  1107→                      <SelectItem value={g.id}>
+  1108→                        <span className="font-medium">{g.name}</span>
+  1109→                      </SelectItem>
+  1110→                      {g.children.map((sub) => (
+  1111→                        <SelectItem key={sub.id} value={sub.id}>
+  1112→                          <span className="text-muted-foreground">└ {sub.name}</span>
+  1113→                        </SelectItem>
+  1114→                      ))}
+  1115→                    </React.Fragment>
+  1116→                  ))}
+  1117→                </SelectContent>
+  1118→              </Select>
+  1119→            </div>
+  1120→            <Button
+  1121→              onClick={handleSaveProduct}
+  1122→              className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white"
+  1123→              disabled={!productForm.name || !productForm.price}
+  1124→            >
+  1125→              {editingProduct ? "بروزرسانی" : "افزودن محصول"}
+  1126→            </Button>
+  1127→          </div>
+  1128→        </DialogContent>
+  1129→      </Dialog>
+  1130→
+  1131→      {/* Link Dialog */}
+  1132→      <Dialog
+  1133→        open={linkDialogOpen}
+  1134→        onOpenChange={(open) => {
+  1135→          setLinkDialogOpen(open);
+  1136→          if (!open) {
+  1137→            setEditingLink(null);
+  1138→            resetLinkForm();
+  1139→          }
+  1140→        }}
+  1141→      >
+  1142→        <DialogContent className="sm:max-w-md" dir="rtl">
+  1143→          <DialogHeader>
+  1144→            <DialogTitle>{editingLink ? "ویرایش لینک رقیب" : "افزودن لینک رقیب"}</DialogTitle>
+  1145→          </DialogHeader>
+  1146→          <div className="space-y-4 mt-4">
+  1147→            <div className="space-y-2">
+  1148→              <Label>نام رقیب / منبع *</Label>
+  1149→              <Input
+  1150→                value={linkForm.name}
+  1151→                onChange={(e) => setLinkForm((f) => ({ ...f, name: e.target.value }))}
+  1152→                placeholder="مثلاً: دیجی‌کالا، تکنولایف"
+  1153→              />
+  1154→            </div>
+  1155→            <div className="space-y-2">
+  1156→              <Label>آدرس لینک *</Label>
+  1157→              <Input
+  1158→                value={linkForm.url}
+  1159→                onChange={(e) => setLinkForm((f) => ({ ...f, url: e.target.value }))}
+  1160→                placeholder="https://example.com/product/123"
+  1161→                dir="ltr"
+  1162→              />
+  1163→            </div>
+  1164→            <div className="space-y-2">
+  1165→              <Label>نوع لینک</Label>
+  1166→              <Select value={linkForm.linkType} onValueChange={(val) => setLinkForm((f) => ({ ...f, linkType: val }))}>
+  1167→                <SelectTrigger>
+  1168→                  <SelectValue />
+  1169→                </SelectTrigger>
+  1170→                <SelectContent>
+  1171→                  <SelectItem value="WEBSITE">
+  1172→                    <span className="flex items-center gap-2"><Globe className="w-4 h-4" />وب‌سایت</span>
+  1173→                  </SelectItem>
+  1174→                  <SelectItem value="API">
+  1175→                    <span className="flex items-center gap-2"><Code2 className="w-4 h-4" />API</span>
+  1176→                  </SelectItem>
+  1177→                </SelectContent>
+  1178→              </Select>
+  1179→            </div>
+  1180→            <div className="space-y-2">
+  1181→              <Label>
+  1182→                {linkForm.linkType === "API" ? "مسیر JSON (مثلاً: data.price)" : "انتخابگر CSS (اختیاری)"}
+  1183→              </Label>
+  1184→              <Input
+  1185→                value={linkForm.priceSelector}
+  1186→                onChange={(e) => setLinkForm((f) => ({ ...f, priceSelector: e.target.value }))}
+  1187→                placeholder={linkForm.linkType === "API" ? "data.price" : ".product-price"}
+  1188→                dir="ltr"
+  1189→              />
+  1190→              <p className="text-xs text-muted-foreground">
+  1191→                {linkForm.linkType === "API"
+  1192→                  ? "مسیر فیلد قیمت در پاسخ JSON. این فیلد الزامی است."
+  1193→                  : "اگر وارد نکنید، از هوش مصنوعی برای استخراج استفاده می‌شود."}
+  1194→              </p>
+  1195→            </div>
+  1196→            <div className="space-y-2">
+  1197→              <Label className="flex items-center gap-2">
+  1198→                <Calculator className="w-4 h-4" />
+  1199→                ضریب قیمت
+  1200→              </Label>
+  1201→              <Input
+  1202→                type="number"
+  1203→                step="0.01"
+  1204→                value={linkForm.priceMultiplier}
+  1205→                onChange={(e) => setLinkForm((f) => ({ ...f, priceMultiplier: e.target.value }))}
+  1206→                placeholder="1"
+  1207→                dir="ltr"
+  1208→              />
+  1209→              <p className="text-xs text-muted-foreground flex items-start gap-1">
+  1210→                <Info className="w-3 h-3 mt-0.5 shrink-0" />
+  1211→                قیمت نهایی = قیمت استخراج‌شده × ضریب. مثلاً اگر ضریب ۱.۱ باشد، ۱۰٪ به قیمت اضافه می‌شود.
+  1212→              </p>
+  1213→            </div>
+  1214→            <Button
+  1215→              onClick={handleSaveLink}
+  1216→              className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white"
+  1217→              disabled={!linkForm.name || !linkForm.url}
+  1218→            >
+  1219→              {editingLink ? "بروزرسانی لینک" : "افزودن لینک رقیب"}
+  1220→            </Button>
+  1221→          </div>
+  1222→        </DialogContent>
+  1223→      </Dialog>
+  1224→
+  1225→      {/* Group Dialog */}
+  1226→      <Dialog
+  1227→        open={groupDialogOpen}
+  1228→        onOpenChange={(open) => {
+  1229→          setGroupDialogOpen(open);
+  1230→          if (!open) {
+  1231→            setEditingGroup(null);
+  1232→            setGroupForm({ name: "", parentId: "" });
+  1233→          }
+  1234→        }}
+  1235→      >
+  1236→        <DialogContent className="sm:max-w-md" dir="rtl">
+  1237→          <DialogHeader>
+  1238→            <DialogTitle className="flex items-center gap-2">
+  1239→              <FolderTree className="w-5 h-5" />
+  1240→              {editingGroup ? "ویرایش گروه" : "مدیریت گروه‌ها"}
+  1241→            </DialogTitle>
+  1242→          </DialogHeader>
+  1243→          <div className="space-y-4 mt-4">
+  1244→            {/* Add new group form */}
+  1245→            {!editingGroup && (
+  1246→              <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+  1247→                <p className="text-sm font-medium">افزودن گروه جدید</p>
+  1248→                <div className="space-y-2">
+  1249→                  <Label>نام گروه *</Label>
+  1250→                  <Input
+  1251→                    value={groupForm.name}
+  1252→                    onChange={(e) => setGroupForm((f) => ({ ...f, name: e.target.value }))}
+  1253→                    placeholder="مثلاً: موبایل، لپ‌تاپ"
+  1254→                  />
+  1255→                </div>
+  1256→                <div className="space-y-2">
+  1257→                  <Label>گروه والد (برای زیرگروه)</Label>
+  1258→                  <Select value={groupForm.parentId || "__none__"} onValueChange={(v) => setGroupForm((f) => ({ ...f, parentId: v === "__none__" ? "" : v }))}>
+  1259→                    <SelectTrigger>
+  1260→                      <SelectValue placeholder="گروه اصلی (بدون والد)" />
+  1261→                    </SelectTrigger>
+  1262→                    <SelectContent>
+  1263→                      <SelectItem value="__none__">گروه اصلی (بدون والد)</SelectItem>
+  1264→                      {groups.map((g) => (
+  1265→                        <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+  1266→                      ))}
+  1267→                    </SelectContent>
+  1268→                  </Select>
+  1269→                </div>
+  1270→                <Button
+  1271→                  onClick={handleSaveGroup}
+  1272→                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white"
+  1273→                  disabled={!groupForm.name}
+  1274→                >
+  1275→                  <FolderPlus className="w-4 h-4 ml-2" />
+  1276→                  افزودن {groupForm.parentId ? "زیرگروه" : "گروه اصلی"}
+  1277→                </Button>
+  1278→              </div>
+  1279→            )}
+  1280→
+  1281→            {/* Edit group name */}
+  1282→            {editingGroup && (
+  1283→              <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+  1284→                <p className="text-sm font-medium">ویرایش: {editingGroup.name}</p>
+  1285→                <Input
+  1286→                  value={groupForm.name}
+  1287→                  onChange={(e) => setGroupForm((f) => ({ ...f, name: e.target.value }))}
+  1288→                  placeholder="نام گروه"
+  1289→                />
+  1290→                <div className="flex gap-2">
+  1291→                  <Button
+  1292→                    onClick={handleSaveGroup}
+  1293→                    className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white"
+  1294→                    disabled={!groupForm.name}
+  1295→                  >
+  1296→                    بروزرسانی
+  1297→                  </Button>
+  1298→                  <Button
+  1299→                    variant="outline"
+  1300→                    onClick={() => {
+  1301→                      setEditingGroup(null);
+  1302→                      setGroupForm({ name: "", parentId: "" });
+  1303→                    }}
+  1304→                  >
+  1305→                    انصراف
+  1306→                  </Button>
+  1307→                </div>
+  1308→              </div>
+  1309→            )}
+  1310→
+  1311→            {/* Existing groups tree */}
+  1312→            <div className="space-y-2">
+  1313→              <p className="text-sm font-medium text-muted-foreground">گروه‌های موجود</p>
+  1314→              {groups.length === 0 ? (
+  1315→                <p className="text-sm text-muted-foreground text-center py-4">هنوز گروهی ایجاد نشده</p>
+  1316→              ) : (
+  1317→                <Accordion type="multiple" className="w-full">
+  1318→                  {groups.map((group) => (
+  1319→                    <AccordionItem key={group.id} value={group.id}>
+  1320→                      <AccordionTrigger className="hover:no-underline py-2">
+  1321→                        <div className="flex items-center gap-2 flex-1">
+  1322→                          <FolderOpen className="w-4 h-4 text-emerald-600" />
+  1323→                          <span className="font-medium text-sm">{group.name}</span>
+  1324→                          <Badge variant="secondary" className="text-xs">
+  1325→                            {group.children.length} زیرگروه
+  1326→                          </Badge>
+  1327→                        </div>
+  1328→                        <div className="flex gap-1 ml-2" onClick={(e) => e.stopPropagation()}>
+  1329→                          <Button
+  1330→                            variant="ghost"
+  1331→                            size="icon"
+  1332→                            className="h-7 w-7"
+  1333→                            onClick={() => {
+  1334→                              setEditingGroup(group);
+  1335→                              setGroupForm({ name: group.name, parentId: "" });
+  1336→                            }}
+  1337→                          >
+  1338→                            <Edit3 className="w-3 h-3" />
+  1339→                          </Button>
+  1340→                          <Button
+  1341→                            variant="ghost"
+  1342→                            size="icon"
+  1343→                            className="h-7 w-7 text-destructive"
+  1344→                            onClick={() => setDeleteTarget({ type: "group", id: group.id, name: group.name })}
+  1345→                          >
+  1346→                            <Trash2 className="w-3 h-3" />
+  1347→                          </Button>
+  1348→                        </div>
+  1349→                      </AccordionTrigger>
+  1350→                      <AccordionContent>
+  1351→                        {group.children.length === 0 ? (
+  1352→                          <p className="text-xs text-muted-foreground pr-8 py-1">زیرگروهی ندارد</p>
+  1353→                        ) : (
+  1354→                          <div className="space-y-1 pr-6">
+  1355→                            {group.children.map((sub) => (
+  1356→                              <div key={sub.id} className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-muted">
+  1357→                                <div className="flex items-center gap-2">
+  1358→                                  <FolderTree className="w-3 h-3 text-muted-foreground" />
+  1359→                                  <span className="text-sm">{sub.name}</span>
+  1360→                                </div>
+  1361→                                <div className="flex gap-1">
+  1362→                                  <Button
+  1363→                                    variant="ghost"
+  1364→                                    size="icon"
+  1365→                                    className="h-6 w-6"
+  1366→                                    onClick={() => {
+  1367→                                      setEditingGroup(sub as unknown as ProductGroupParent);
+  1368→                                      setGroupForm({ name: sub.name, parentId: group.id });
+  1369→                                    }}
+  1370→                                  >
+  1371→                                    <Edit3 className="w-3 h-3" />
+  1372→                                  </Button>
+  1373→                                  <Button
+  1374→                                    variant="ghost"
+  1375→                                    size="icon"
+  1376→                                    className="h-6 w-6 text-destructive"
+  1377→                                    onClick={() => setDeleteTarget({ type: "group", id: sub.id, name: sub.name })}
+  1378→                                  >
+  1379→                                    <Trash2 className="w-3 h-3" />
+  1380→                                  </Button>
+  1381→                                </div>
+  1382→                              </div>
+  1383→                            ))}
+  1384→                          </div>
+  1385→                        )}
+  1386→                      </AccordionContent>
+  1387→                    </AccordionItem>
+  1388→                  ))}
+  1389→                </Accordion>
+  1390→              )}
+  1391→            </div>
+  1392→          </div>
+  1393→        </DialogContent>
+  1394→      </Dialog>
+  1395→
+  1396→      {/* Settings Dialog */}
+  1397→      <Dialog open={settingsDialogOpen} onOpenChange={setSettingsDialogOpen}>
+  1398→        <DialogContent className="sm:max-w-md" dir="rtl">
+  1399→          <DialogHeader>
+  1400→            <DialogTitle className="flex items-center gap-2">
+  1401→              <Settings2 className="w-5 h-5" />
+  1402→              تنظیمات سیستم
+  1403→            </DialogTitle>
+  1404→          </DialogHeader>
+  1405→          <div className="space-y-4 mt-4">
+  1406→            <div className="space-y-2">
+  1407→              <Label>واحد پول</Label>
+  1408→              <Select value={settingsForm.currencyUnit} onValueChange={(v) => setSettingsForm((f) => ({ ...f, currencyUnit: v }))}>
+  1409→                <SelectTrigger>
+  1410→                  <SelectValue />
+  1411→                </SelectTrigger>
+  1412→                <SelectContent>
+  1413→                  <SelectItem value="تومان">تومان</SelectItem>
+  1414→                  <SelectItem value="ریال">ریال</SelectItem>
+  1415→                  <SelectItem value="دلار">$ دلار</SelectItem>
+  1416→                  <SelectItem value="یورو">€ یورو</SelectItem>
+  1417→                  <SelectItem value="درهم">درهم</SelectItem>
+  1418→                </SelectContent>
+  1419→              </Select>
+  1420→            </div>
+  1421→            <Separator />
+  1422→            <div className="space-y-3">
+  1423→              <p className="text-sm font-medium">تغییر رمز عبور</p>
+  1424→              <div className="space-y-2">
+  1425→                <Label>رمز عبور فعلی</Label>
+  1426→                <Input
+  1427→                  type="password"
+  1428→                  value={settingsForm.currentPassword}
+  1429→                  onChange={(e) => setSettingsForm((f) => ({ ...f, currentPassword: e.target.value }))}
+  1430→                  placeholder="رمز فعلی را وارد کنید"
+  1431→                />
+  1432→              </div>
+  1433→              <div className="space-y-2">
+  1434→                <Label>رمز عبور جدید</Label>
+  1435→                <Input
+  1436→                  type="password"
+  1437→                  value={settingsForm.adminPassword}
+  1438→                  onChange={(e) => setSettingsForm((f) => ({ ...f, adminPassword: e.target.value }))}
+  1439→                  placeholder="رمز جدید را وارد کنید"
+  1440→                />
+  1441→              </div>
+  1442→              <p className="text-xs text-muted-foreground">اگر نمی‌خواهید رمز را تغییر دهید، این بخش را خالی بگذارید.</p>
+  1443→            </div>
+  1444→            <Button
+  1445→              onClick={handleSaveSettings}
+  1446→              className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white"
+  1447→            >
+  1448→              ذخیره تنظیمات
+  1449→            </Button>
+  1450→          </div>
+  1451→        </DialogContent>
+  1452→      </Dialog>
+  1453→
+  1454→      {/* Delete Confirmation Dialog */}
+  1455→      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+  1456→        <AlertDialogContent dir="rtl">
+  1457→          <AlertDialogHeader>
+  1458→            <AlertDialogTitle>آیا مطمئن هستید؟</AlertDialogTitle>
+  1459→            <AlertDialogDescription>
+  1460→              {deleteTarget?.type === "product"
+  1461→                ? `محصول "${deleteTarget.name}" همراه با تمام لینک‌ها و تاریخچه قیمت‌ها حذف خواهد شد.`
+  1462→                : deleteTarget?.type === "group"
+  1463→                ? `گروه "${deleteTarget.name}" همراه با زیرگروه‌ها حذف خواهد شد. محصولات این گروه بدون گروه می‌شوند.`
+  1464→                : "این لینک رقیب همراه با تاریخچه قیمت‌ها حذف خواهد شد."}
+  1465→            </AlertDialogDescription>
+  1466→          </AlertDialogHeader>
+  1467→          <AlertDialogFooter>
+  1468→            <AlertDialogCancel>انصراف</AlertDialogCancel>
+  1469→            <AlertDialogAction
+  1470→              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+  1471→              onClick={() => {
+  1472→                if (deleteTarget) {
+  1473→                  if (deleteTarget.type === "product") handleDeleteProduct(deleteTarget.id);
+  1474→                  else if (deleteTarget.type === "link" && deleteTarget.parentId) handleDeleteLink(deleteTarget.parentId, deleteTarget.id);
+  1475→                  else if (deleteTarget.type === "group") handleDeleteGroup(deleteTarget.id);
+  1476→                }
+  1477→                setDeleteTarget(null);
+  1478→              }}
+  1479→            >
+  1480→              حذف
+  1481→            </AlertDialogAction>
+  1482→          </AlertDialogFooter>
+  1483→        </AlertDialogContent>
+  1484→      </AlertDialog>
+  1485→    </div>
+  1486→  );
+  1487→}
+  1488→
