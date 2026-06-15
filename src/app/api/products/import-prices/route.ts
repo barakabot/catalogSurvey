@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import * as XLSX from "xlsx";
 
-// POST /api/products/import-prices — Upload Excel file to update product prices & descriptions
+// POST /api/products/import-prices — Upload Excel file to update product data
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
@@ -39,6 +39,9 @@ export async function POST(req: NextRequest) {
     let nameCol: string | null = null;
     let priceCol: string | null = null;
     let descCol: string | null = null;
+    let targetMarketCol: string | null = null;
+    let competitiveAdvantageCol: string | null = null;
+    let promotionDescCol: string | null = null;
 
     for (const col of columns) {
       const n = normalize(col);
@@ -50,13 +53,19 @@ export async function POST(req: NextRequest) {
         priceCol = col;
       } else if (n === "description" || n === "توضیحات" || n === "مشخصات" || n === "توضیح" || n === "desc" || n === "مشخصاتمحصول") {
         descCol = col;
+      } else if (n === "targetmarket" || n === "بازارهدف" || n === "بازار" || n === "target" || n === "بازارهدف") {
+        targetMarketCol = col;
+      } else if (n === "competitiveadvantage" || n === "مزیت" || n === "مزیترقابتی" || n === "advantage" || n === "مزیترقابتی") {
+        competitiveAdvantageCol = col;
+      } else if (n === "promotiondescription" || n === "پروموشن" || n === "توضیحاتپروموشن" || n === "promotion" || n === "پروموت") {
+        promotionDescCol = col;
       }
     }
 
     // If price column not found, try to find a numeric column that's not id
     if (!priceCol) {
       for (const col of columns) {
-        if (col === idCol || col === nameCol || col === descCol) continue;
+        if (col === idCol || col === nameCol || col === descCol || col === targetMarketCol || col === competitiveAdvantageCol || col === promotionDescCol) continue;
         const val = firstRow[col];
         if (typeof val === "number" || (!isNaN(Number(val)) && val !== "")) {
           priceCol = col;
@@ -65,10 +74,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // At least price or description must be present
-    if (!priceCol && !descCol) {
+    // At least one updatable field must be present
+    if (!priceCol && !descCol && !targetMarketCol && !competitiveAdvantageCol && !promotionDescCol) {
       return NextResponse.json(
-        { error: `ستون قیمت (price) یا توضیحات (description) یافت نشد. ستون‌های موجود: ${columns.join(", ")}` },
+        { error: `هیچ ستون قابل بروزرسانی یافت نشد. ستون‌های موجود: ${columns.join(", ")}` },
         { status: 400 }
       );
     }
@@ -102,11 +111,11 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // Parse description if column exists
-        let description: string | null = null;
-        if (descCol) {
-          description = String(row[descCol] ?? "").trim();
-        }
+        // Parse text fields
+        const description = descCol ? String(row[descCol] ?? "").trim() : null;
+        const targetMarket = targetMarketCol ? String(row[targetMarketCol] ?? "").trim() : null;
+        const competitiveAdvantage = competitiveAdvantageCol ? String(row[competitiveAdvantageCol] ?? "").trim() : null;
+        const promotionDescription = promotionDescCol ? String(row[promotionDescCol] ?? "").trim() : null;
 
         let product;
 
@@ -133,9 +142,12 @@ export async function POST(req: NextRequest) {
         }
 
         // Build update data — only update fields that exist in the Excel
-        const updateData: { price?: number; description?: string | null } = {};
+        const updateData: Record<string, unknown> = {};
         if (price !== null) updateData.price = price;
         if (descCol) updateData.description = description || null;
+        if (targetMarketCol) updateData.targetMarket = targetMarket || null;
+        if (competitiveAdvantageCol) updateData.competitiveAdvantage = competitiveAdvantage || null;
+        if (promotionDescCol) updateData.promotionDescription = promotionDescription || null;
 
         await db.product.update({
           where: { id: product.id },
@@ -155,7 +167,7 @@ export async function POST(req: NextRequest) {
       notFound: results.notFound,
       skipped: results.skipped,
       errors: results.errors,
-      detectedColumns: { id: idCol, name: nameCol, price: priceCol, description: descCol },
+      detectedColumns: { id: idCol, name: nameCol, price: priceCol, description: descCol, targetMarket: targetMarketCol, competitiveAdvantage: competitiveAdvantageCol, promotionDescription: promotionDescCol },
     });
   } catch (error) {
     console.error("Excel import error:", error);
