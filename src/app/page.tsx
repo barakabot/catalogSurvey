@@ -213,6 +213,11 @@ export default function CatalogPage() {
     detectedColumns: { id: string | null; name: string | null; price: string | null; description: string | null; targetMarket: string | null; competitiveAdvantage: string | null; promotionDescription: string | null };
   } | null>(null);
 
+  // Baraka images
+  const [barakaDialogOpen, setBarakaDialogOpen] = useState(false);
+  const [barakaProducts, setBarakaProducts] = useState<{ name: string; imageUrl: string; productUrl: string }[]>([]);
+  const [barakaLoading, setBarakaLoading] = useState(false);
+
   // Form states
   const [productForm, setProductForm] = useState({
     name: "",
@@ -329,6 +334,53 @@ export default function CatalogPage() {
       if (!(await fetch(`/api/products/${id}`, { method: "DELETE" })).ok) throw new Error();
       toast({ title: "محصول حذف شد" }); fetchProducts();
     } catch { toast({ title: "خطا", description: "حذف ناموفق بود", variant: "destructive" }); }
+  };
+
+  // ─── Baraka Images ────────────────────────────────────────────────
+  const fetchBarakaImages = async () => {
+    setBarakaLoading(true);
+    try {
+      const res = await fetch("/api/scrape-baraka");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setBarakaProducts(data.products || []);
+    } catch (err) {
+      toast({ title: "خطا", description: err instanceof Error ? err.message : "خطا در دریافت عکس‌ها", variant: "destructive" });
+    } finally {
+      setBarakaLoading(false);
+    }
+  };
+
+  const applyBarakaImage = async (barakaName: string, imageUrl: string) => {
+    // Try to find a product whose name matches the baraka product name
+    const matched = products.find((p) => {
+      const pName = p.name.toLowerCase().replace(/\s+/g, "");
+      const bName = barakaName.toLowerCase().replace(/\s+/g, "");
+      return pName.includes(bName) || bName.includes(pName);
+    });
+
+    if (matched) {
+      try {
+        const res = await fetch(`/api/products/${matched.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageUrl }),
+        });
+        if (!res.ok) throw new Error();
+        toast({ title: `عکس "${barakaName}" به "${matched.name}" اختصاص یافت` });
+        fetchProducts();
+      } catch {
+        toast({ title: "خطا", description: "ذخیره عکس ناموفق بود", variant: "destructive" });
+      }
+    } else {
+      // Copy URL to clipboard for manual use
+      try {
+        await navigator.clipboard.writeText(imageUrl);
+        toast({ title: "لینک عکس کپی شد", description: `محصول "${barakaName}" در کاتالوگ یافت نشد. لینک کپی شد.` });
+      } catch {
+        toast({ title: "محصول یافت نشد", description: `"${barakaName}" در کاتالوگ وجود ندارد` });
+      }
+    }
   };
 
   // ─── Excel Import ─────────────────────────────────────────────────
@@ -653,6 +705,9 @@ export default function CatalogPage() {
                   </Button>
                   <Button variant="outline" size="sm" className="gap-2" onClick={() => { setImportResult(null); setImportDialogOpen(true); }}>
                     <FileSpreadsheet className="w-4 h-4" /> وارد کردن قیمت‌ها
+                  </Button>
+                  <Button variant="outline" size="sm" className="gap-2" onClick={() => { setBarakaDialogOpen(true); fetchBarakaImages(); }}>
+                    <Globe className="w-4 h-4" /> عکس باراکا
                   </Button>
                   <Button variant="outline" size="sm" className="gap-2" onClick={() => { setSettingsForm((f) => ({ ...f, currencyUnit, adminPassword: "", currentPassword: "" })); setSettingsDialogOpen(true); }}>
                     <Settings2 className="w-4 h-4" /> تنظیمات
@@ -1135,6 +1190,65 @@ export default function CatalogPage() {
                 </Accordion>
               )}
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Baraka Images Dialog */}
+      <Dialog open={barakaDialogOpen} onOpenChange={setBarakaDialogOpen}>
+        <DialogContent className="sm:max-w-3xl max-h-[85vh]" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Globe className="w-5 h-5" /> عکس محصولات باراکا
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">عکس‌های محصولات از سایت barakachocolate.com — کلیک روی عکس برای اختصاص به محصول مشابه کاتالوگ</p>
+            {barakaLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+                <span className="ml-3 text-muted-foreground">در حال دریافت...</span>
+              </div>
+            ) : barakaProducts.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">محصولی یافت نشد</p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto">
+                {barakaProducts.map((bp, i) => {
+                  // Check if a catalog product matches
+                  const matched = products.find((p) => {
+                    const pName = p.name.toLowerCase().replace(/\s+/g, "");
+                    const bName = bp.name.toLowerCase().replace(/\s+/g, "");
+                    return pName.includes(bName) || bName.includes(pName);
+                  });
+                  return (
+                    <div
+                      key={i}
+                      className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer group"
+                      onClick={() => applyBarakaImage(bp.name, bp.imageUrl)}
+                    >
+                      <div className="aspect-square bg-muted overflow-hidden">
+                        <img
+                          src={bp.imageUrl}
+                          alt={bp.name}
+                          className="w-full h-full object-contain group-hover:scale-105 transition-transform"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                        />
+                      </div>
+                      <div className="p-2">
+                        <p className="text-xs font-medium truncate">{bp.name}</p>
+                        {matched ? (
+                          <Badge className="mt-1 text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
+                            ✓ {matched.name}
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="mt-1 text-[10px]">کپی لینک</Badge>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
