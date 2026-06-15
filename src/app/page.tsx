@@ -3,7 +3,6 @@
 import React, { useState, useCallback } from "react";
 import {
   Plus,
-  RefreshCw,
   ExternalLink,
   Trash2,
   Edit3,
@@ -18,8 +17,6 @@ import {
   Search,
   X,
   Loader2,
-  ChevronDown,
-  ChevronUp,
   Settings2,
   LogIn,
   LogOut,
@@ -29,12 +26,14 @@ import {
   FolderPlus,
   Calculator,
   Info,
+  RefreshCw,
+  Eye,
+  ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
 } from "@/components/ui/card";
 import {
@@ -42,7 +41,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -132,6 +130,21 @@ interface Product {
   links: CompetitorLink[];
 }
 
+// Competitor detail from Python service
+interface CompetitorDetail {
+  id: string;
+  productId: string;
+  name: string;
+  url: string;
+  linkType: string;
+  priceSelector: string | null;
+  priceMultiplier: number;
+  lastPrice: number | null;
+  lastAdjustedPrice: number | null;
+  lastFetchedAt: string | null;
+  priceHistory?: PriceHistory[];
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────
 function formatPrice(price: number, currencyUnit: string): string {
   return new Intl.NumberFormat("fa-IR").format(Math.round(price)) + " " + currencyUnit;
@@ -155,8 +168,6 @@ export default function CatalogPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGroup, setSelectedGroup] = useState<string>("all");
-  const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
-  const [fetchingPrices, setFetchingPrices] = useState<Set<string>>(new Set());
 
   // Auth state
   const [isAdmin, setIsAdmin] = useState(false);
@@ -166,16 +177,18 @@ export default function CatalogPage() {
   // Dialog states
   const [productDialogOpen, setProductDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
-  const [linkProductId, setLinkProductId] = useState<string>("");
-  const [editingLink, setEditingLink] = useState<CompetitorLink | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{
-    type: "product" | "link" | "group";
+    type: "product" | "group";
     id: string;
-    parentId?: string;
     name?: string;
   } | null>(null);
+
+  // Product detail modal (competitor prices from Python service)
+  const [detailProduct, setDetailProduct] = useState<Product | null>(null);
+  const [competitors, setCompetitors] = useState<CompetitorDetail[]>([]);
+  const [loadingCompetitors, setLoadingCompetitors] = useState(false);
+  const [fetchingPrices, setFetchingPrices] = useState(false);
 
   // Settings dialog
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
@@ -200,13 +213,6 @@ export default function CatalogPage() {
     price: "",
     imageUrl: "",
     groupId: "",
-  });
-  const [linkForm, setLinkForm] = useState({
-    name: "",
-    url: "",
-    linkType: "WEBSITE",
-    priceSelector: "",
-    priceMultiplier: "1",
   });
 
   // ─── Fetch Data ────────────────────────────────────────────────
@@ -367,86 +373,50 @@ export default function CatalogPage() {
     }
   };
 
-  // ─── Link CRUD ─────────────────────────────────────────────────
-  const handleSaveLink = async () => {
+  // ─── Fetch Competitors from Python Service (via Next.js proxy) ─
+  const openProductDetail = async (product: Product) => {
+    setDetailProduct(product);
+    setLoadingCompetitors(true);
+    setCompetitors([]);
     try {
-      const url = editingLink
-        ? `/api/products/${linkProductId}/links/${editingLink.id}`
-        : `/api/products/${linkProductId}/links`;
-      const method = editingLink ? "PUT" : "POST";
-
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: linkForm.name,
-          url: linkForm.url,
-          linkType: linkForm.linkType,
-          priceSelector: linkForm.priceSelector || null,
-          priceMultiplier: parseFloat(linkForm.priceMultiplier) || 1.0,
-        }),
-      });
-
+      const res = await fetch(`/api/price-service?path=/api/products/${product.id}/competitors`);
       if (!res.ok) throw new Error();
-
-      toast({
-        title: editingLink ? "لینک بروزرسانی شد" : "لینک رقیب اضافه شد",
-        description: linkForm.name,
-      });
-
-      setLinkDialogOpen(false);
-      setEditingLink(null);
-      resetLinkForm();
-      fetchProducts();
-    } catch {
-      toast({ title: "خطا", description: "ذخیره لینک ناموفق بود", variant: "destructive" });
-    }
-  };
-
-  const handleDeleteLink = async (productId: string, linkId: string) => {
-    try {
-      const res = await fetch(`/api/products/${productId}/links/${linkId}`, { method: "DELETE" });
-      if (!res.ok) throw new Error();
-      toast({ title: "لینک حذف شد" });
-      fetchProducts();
-    } catch {
-      toast({ title: "خطا", description: "حذف لینک ناموفق بود", variant: "destructive" });
-    }
-  };
-
-  // ─── Fetch Prices ──────────────────────────────────────────────
-  const handleFetchPrices = async (productId: string) => {
-    setFetchingPrices((prev) => new Set(prev).add(productId));
-    try {
-      const res = await fetch(`/api/products/${productId}/fetch-prices`, { method: "POST" });
-      if (!res.ok) throw new Error();
-
       const data = await res.json();
-      const successCount = data.results.filter((r: { success: boolean }) => r.success).length;
-      const failCount = data.results.filter((r: { success: boolean }) => !r.success).length;
+      setCompetitors(data.competitors || []);
+    } catch {
+      toast({ title: "خطا", description: "دریافت اطلاعات رقبا ناموفق بود", variant: "destructive" });
+    } finally {
+      setLoadingCompetitors(false);
+    }
+  };
 
-      // Show error details for failed extractions
-      const failedDetails = data.results
-        .filter((r: { success: boolean }) => !r.success)
-        .map((r: { linkName: string; error?: string }) => `${r.linkName}: ${r.error || "نامشخص"}`)
-        .join("\n");
+  const handleFetchPrices = async () => {
+    if (!detailProduct) return;
+    setFetchingPrices(true);
+    try {
+      const res = await fetch(`/api/price-service?path=/api/products/${detailProduct.id}/fetch-prices`, { method: "POST" });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+
+      const successCount = data.results?.filter((r: { success: boolean }) => r.success).length || 0;
+      const failCount = data.results?.filter((r: { success: boolean }) => !r.success).length || 0;
 
       toast({
         title: "استخراج قیمت‌ها انجام شد",
-        description: `${successCount} موفق${failCount > 0 ? `، ${failCount} ناموفق` : ""}${failedDetails ? "\n" + failedDetails : ""}`,
+        description: `${successCount} موفق${failCount > 0 ? `، ${failCount} ناموفق` : ""}`,
         variant: failCount > 0 && successCount === 0 ? "destructive" : "default",
-        duration: failCount > 0 ? 8000 : 4000,
       });
 
-      fetchProducts();
+      // Refresh competitors
+      const refreshRes = await fetch(`/api/price-service?path=/api/products/${detailProduct.id}/competitors`);
+      if (refreshRes.ok) {
+        const refreshData = await refreshRes.json();
+        setCompetitors(refreshData.competitors || []);
+      }
     } catch {
       toast({ title: "خطا", description: "استخراج قیمت‌ها ناموفق بود", variant: "destructive" });
     } finally {
-      setFetchingPrices((prev) => {
-        const next = new Set(prev);
-        next.delete(productId);
-        return next;
-      });
+      setFetchingPrices(false);
     }
   };
 
@@ -480,7 +450,7 @@ export default function CatalogPage() {
       setEditingGroup(null);
       setGroupForm({ name: "", parentId: "" });
       fetchGroups();
-      fetchProducts(); // refresh group relations
+      fetchProducts();
     } catch {
       toast({ title: "خطا", description: "ذخیره گروه ناموفق بود", variant: "destructive" });
     }
@@ -534,9 +504,6 @@ export default function CatalogPage() {
   const resetProductForm = () => {
     setProductForm({ name: "", description: "", price: "", imageUrl: "", groupId: "" });
   };
-  const resetLinkForm = () => {
-    setLinkForm({ name: "", url: "", linkType: "WEBSITE", priceSelector: "", priceMultiplier: "1" });
-  };
 
   const openEditProduct = (product: Product) => {
     setEditingProduct(product);
@@ -548,26 +515,6 @@ export default function CatalogPage() {
       groupId: product.groupId || "",
     });
     setProductDialogOpen(true);
-  };
-
-  const openAddLink = (productId: string) => {
-    setLinkProductId(productId);
-    setEditingLink(null);
-    resetLinkForm();
-    setLinkDialogOpen(true);
-  };
-
-  const openEditLink = (productId: string, link: CompetitorLink) => {
-    setLinkProductId(productId);
-    setEditingLink(link);
-    setLinkForm({
-      name: link.name,
-      url: link.url,
-      linkType: link.linkType,
-      priceSelector: link.priceSelector || "",
-      priceMultiplier: String(parseFloat(link.priceMultiplier.toFixed(4))),
-    });
-    setLinkDialogOpen(true);
   };
 
   // ─── Computed ──────────────────────────────────────────────────
@@ -738,9 +685,7 @@ export default function CatalogPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <AnimatePresence mode="popLayout">
               {filteredProducts.map((product) => {
-                const isExpanded = expandedProduct === product.id;
                 const bestPrice = getBestCompetitorPrice(product);
-                const isFetching = fetchingPrices.has(product.id);
                 const hasLinks = product.links.length > 0;
                 const groupName = getGroupName(product);
 
@@ -751,9 +696,11 @@ export default function CatalogPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    className={isExpanded ? "sm:col-span-2 lg:col-span-3" : ""}
                   >
-                    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-border/50 group">
+                    <Card
+                      className="overflow-hidden hover:shadow-xl transition-all duration-300 border-border/50 group cursor-pointer"
+                      onClick={() => openProductDetail(product)}
+                    >
                       {/* Product Image */}
                       {product.imageUrl && (
                         <div className="relative h-48 overflow-hidden bg-muted">
@@ -793,7 +740,7 @@ export default function CatalogPage() {
                             )}
                           </div>
                           {isAdmin && (
-                            <div className="flex gap-1 mr-2">
+                            <div className="flex gap-1 mr-2" onClick={(e) => e.stopPropagation()}>
                               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditProduct(product)}>
                                 <Edit3 className="w-4 h-4" />
                               </Button>
@@ -810,7 +757,7 @@ export default function CatalogPage() {
                         </div>
                       </CardHeader>
 
-                      <CardContent className="pb-2">
+                      <CardContent className="pb-4">
                         <div className="flex items-center justify-between">
                           <div>
                             <span className="text-xs text-muted-foreground">قیمت شما:</span>
@@ -840,150 +787,19 @@ export default function CatalogPage() {
                         {hasLinks && (
                           <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
                             <Link2 className="w-4 h-4" />
-                            <span>{product.links.length} لینک رقیب</span>
+                            <span>{product.links.length} رقیب</span>
                             <span className="text-xs">
                               ({product.links.filter((l) => l.lastAdjustedPrice !== null).length} قیمت استخراج شده)
                             </span>
                           </div>
                         )}
-                      </CardContent>
 
-                      <CardFooter className="flex flex-col items-stretch gap-3 pt-2">
-                        <div className="flex gap-2">
-                          {isAdmin && (
-                            <Button variant="outline" size="sm" className="gap-2" onClick={() => openAddLink(product.id)}>
-                              <Plus className="w-3 h-3" />
-                              لینک رقیب
-                            </Button>
-                          )}
-                          {hasLinks && (
-                            <>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="gap-2"
-                                onClick={() => handleFetchPrices(product.id)}
-                                disabled={isFetching}
-                              >
-                                {isFetching ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
-                                استخراج قیمت
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="gap-1"
-                                onClick={() => setExpandedProduct(isExpanded ? null : product.id)}
-                              >
-                                {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                              </Button>
-                            </>
-                          )}
+                        {/* Click hint */}
+                        <div className="mt-3 flex items-center justify-center gap-1 text-xs text-muted-foreground/60">
+                          <Eye className="w-3 h-3" />
+                          <span>برای مشاهده رقبا کلیک کنید</span>
                         </div>
-
-                        {/* Expanded Competitor Prices */}
-                        <AnimatePresence>
-                          {isExpanded && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: "auto", opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.3 }}
-                              className="overflow-hidden"
-                            >
-                              <Separator className="mb-3" />
-                              <div className="space-y-3 max-h-96 overflow-y-auto custom-scrollbar">
-                                {product.links.map((link) => (
-                                  <div
-                                    key={link.id}
-                                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-                                  >
-                                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                                      <div
-                                        className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                                          link.linkType === "API"
-                                            ? "bg-amber-100 dark:bg-amber-900/30"
-                                            : "bg-sky-100 dark:bg-sky-900/30"
-                                        }`}
-                                      >
-                                        {link.linkType === "API" ? (
-                                          <Code2 className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                                        ) : (
-                                          <Globe className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-                                        )}
-                                      </div>
-                                      <div className="min-w-0">
-                                        <p className="text-sm font-medium line-clamp-1" title={link.name}>{link.name}</p>
-                                        <a
-                                          href={link.url}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="text-xs text-muted-foreground hover:text-primary line-clamp-1 block max-w-[180px]"
-                                        >
-                                          {link.url}
-                                          <ExternalLink className="w-2.5 h-2.5 inline mr-1" />
-                                        </a>
-                                      </div>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <div className="text-left">
-                                        {link.lastAdjustedPrice !== null ? (
-                                          <>
-                                            <p className="text-sm font-bold">
-                                              {formatPrice(link.lastAdjustedPrice, currencyUnit)}
-                                            </p>
-                                            {link.priceMultiplier !== 1 && link.lastPrice !== null && (
-                                              <HoverCard>
-                                                <HoverCardTrigger asChild>
-                                                  <p className="text-[10px] text-muted-foreground cursor-help flex items-center gap-0.5">
-                                                    <Calculator className="w-2.5 h-2.5" />
-                                                    {formatPrice(link.lastPrice, currencyUnit)} × {parseFloat(link.priceMultiplier.toFixed(4))}
-                                                  </p>
-                                                </HoverCardTrigger>
-                                                <HoverCardContent side="left" className="w-64 text-xs" dir="rtl">
-                                                  <div className="space-y-1">
-                                                    <p className="font-semibold">محاسبه قیمت با ضریب</p>
-                                                    <p>قیمت استخراج‌شده: {formatPrice(link.lastPrice, currencyUnit)}</p>
-                                                    <p>ضریب: {parseFloat(link.priceMultiplier.toFixed(4))}</p>
-                                                    <Separator />
-                                                    <p className="font-semibold">قیمت نهایی: {formatPrice(link.lastAdjustedPrice, currencyUnit)}</p>
-                                                  </div>
-                                                </HoverCardContent>
-                                              </HoverCard>
-                                            )}
-                                            {link.lastFetchedAt && (
-                                              <p className="text-[10px] text-muted-foreground">
-                                                {new Date(link.lastFetchedAt).toLocaleDateString("fa-IR")}
-                                              </p>
-                                            )}
-                                          </>
-                                        ) : (
-                                          <p className="text-xs text-muted-foreground">قیمت استخراج نشده</p>
-                                        )}
-                                      </div>
-                                      {getPriceTrend(link.priceHistory)}
-                                      {isAdmin && (
-                                        <div className="flex gap-1">
-                                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditLink(product.id, link)}>
-                                            <Edit3 className="w-3 h-3" />
-                                          </Button>
-                                          <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-7 w-7 text-destructive hover:text-destructive"
-                                            onClick={() => setDeleteTarget({ type: "link", id: link.id, parentId: product.id })}
-                                          >
-                                            <Trash2 className="w-3 h-3" />
-                                          </Button>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </CardFooter>
+                      </CardContent>
                     </Card>
                   </motion.div>
                 );
@@ -1007,6 +823,184 @@ export default function CatalogPage() {
       </footer>
 
       {/* ═══ Dialogs ═══ */}
+
+      {/* Product Detail Modal - Shows competitor prices from Python service */}
+      <Dialog open={!!detailProduct} onOpenChange={(open) => { if (!open) setDetailProduct(null); }}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
+          {detailProduct && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-lg">
+                  <Package className="w-5 h-5 text-emerald-600" />
+                  <span className="line-clamp-2">{detailProduct.name}</span>
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-5 mt-4">
+                {/* Product info */}
+                <div className="flex items-start gap-4 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+                  {detailProduct.imageUrl && (
+                    <img
+                      src={detailProduct.imageUrl}
+                      alt={detailProduct.name}
+                      className="w-20 h-20 rounded-lg object-cover shrink-0"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-muted-foreground">قیمت شما:</p>
+                    <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                      {formatPrice(detailProduct.price, currencyUnit)}
+                    </p>
+                    {detailProduct.description && (
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{detailProduct.description}</p>
+                    )}
+                    {(() => {
+                      const gn = getGroupName(detailProduct);
+                      return gn ? (
+                        <Badge className="mt-2" variant="secondary">
+                          <FolderTree className="w-3 h-3 ml-1" />
+                          {gn}
+                        </Badge>
+                      ) : null;
+                    })()}
+                  </div>
+                </div>
+
+                {/* Competitor Prices Section */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <Link2 className="w-4 h-4" />
+                      قیمت رقبا
+                    </h3>
+                    {competitors.length > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        onClick={handleFetchPrices}
+                        disabled={fetchingPrices}
+                      >
+                        {fetchingPrices ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                        بروزرسانی قیمت‌ها
+                      </Button>
+                    )}
+                  </div>
+
+                  {loadingCompetitors ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                      <span className="mr-2 text-muted-foreground">در حال بارگذاری...</span>
+                    </div>
+                  ) : competitors.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Globe className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                      <p className="text-sm">هنوز رقیبی برای این محصول ثبت نشده</p>
+                      <p className="text-xs mt-1">از طریق سرویس مدیریت قیمت، رقبای این محصول را اضافه کنید</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {competitors.map((link) => {
+                        const isCheaper = link.lastAdjustedPrice !== null && link.lastAdjustedPrice < detailProduct.price;
+                        const isMoreExpensive = link.lastAdjustedPrice !== null && link.lastAdjustedPrice > detailProduct.price;
+
+                        return (
+                          <div
+                            key={link.id}
+                            className={`flex items-center justify-between p-4 rounded-xl border transition-colors ${
+                              isCheaper
+                                ? "bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800"
+                                : isMoreExpensive
+                                ? "bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800"
+                                : "bg-muted/50 border-border"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                              <div
+                                className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+                                  link.linkType === "API"
+                                    ? "bg-amber-100 dark:bg-amber-900/30"
+                                    : "bg-sky-100 dark:bg-sky-900/30"
+                                }`}
+                              >
+                                {link.linkType === "API" ? (
+                                  <Code2 className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                                ) : (
+                                  <Globe className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-medium line-clamp-1">{link.name}</p>
+                                <a
+                                  href={link.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-muted-foreground hover:text-primary line-clamp-1 block max-w-[200px]"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {link.url}
+                                  <ExternalLink className="w-2.5 h-2.5 inline mr-1" />
+                                </a>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="text-left">
+                                {link.lastAdjustedPrice !== null ? (
+                                  <>
+                                    <p className="font-bold text-base">
+                                      {formatPrice(link.lastAdjustedPrice, currencyUnit)}
+                                    </p>
+                                    {link.priceMultiplier !== 1 && link.lastPrice !== null && (
+                                      <HoverCard>
+                                        <HoverCardTrigger asChild>
+                                          <p className="text-[10px] text-muted-foreground cursor-help flex items-center gap-0.5">
+                                            <Calculator className="w-2.5 h-2.5" />
+                                            {formatPrice(link.lastPrice, currencyUnit)} × {parseFloat(link.priceMultiplier.toFixed(4))}
+                                          </p>
+                                        </HoverCardTrigger>
+                                        <HoverCardContent side="left" className="w-64 text-xs" dir="rtl">
+                                          <div className="space-y-1">
+                                            <p className="font-semibold">محاسبه قیمت با ضریب</p>
+                                            <p>قیمت استخراج‌شده: {formatPrice(link.lastPrice, currencyUnit)}</p>
+                                            <p>ضریب: {parseFloat(link.priceMultiplier.toFixed(4))}</p>
+                                            <Separator />
+                                            <p className="font-semibold">قیمت نهایی: {formatPrice(link.lastAdjustedPrice, currencyUnit)}</p>
+                                          </div>
+                                        </HoverCardContent>
+                                      </HoverCard>
+                                    )}
+                                    {isCheaper && (
+                                      <Badge variant="destructive" className="text-[10px] mt-1">رقیب ارزان‌تر</Badge>
+                                    )}
+                                    {isMoreExpensive && (
+                                      <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] mt-1">
+                                        شما ارزان‌تر!
+                                      </Badge>
+                                    )}
+                                    {link.lastFetchedAt && (
+                                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                                        {new Date(typeof link.lastFetchedAt === "number" ? link.lastFetchedAt : link.lastFetchedAt).toLocaleDateString("fa-IR")}
+                                      </p>
+                                    )}
+                                  </>
+                                ) : (
+                                  <p className="text-xs text-muted-foreground">قیمت استخراج نشده</p>
+                                )}
+                              </div>
+                              {getPriceTrend(link.priceHistory)}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Login Dialog */}
       <Dialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen}>
@@ -1123,100 +1117,6 @@ export default function CatalogPage() {
               disabled={!productForm.name || !productForm.price}
             >
               {editingProduct ? "بروزرسانی" : "افزودن محصول"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Link Dialog */}
-      <Dialog
-        open={linkDialogOpen}
-        onOpenChange={(open) => {
-          setLinkDialogOpen(open);
-          if (!open) {
-            setEditingLink(null);
-            resetLinkForm();
-          }
-        }}
-      >
-        <DialogContent className="sm:max-w-md" dir="rtl">
-          <DialogHeader>
-            <DialogTitle>{editingLink ? "ویرایش لینک رقیب" : "افزودن لینک رقیب"}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <Label>نام رقیب / منبع *</Label>
-              <Input
-                value={linkForm.name}
-                onChange={(e) => setLinkForm((f) => ({ ...f, name: e.target.value }))}
-                placeholder="مثلاً: دیجی‌کالا، تکنولایف"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>آدرس لینک *</Label>
-              <Input
-                value={linkForm.url}
-                onChange={(e) => setLinkForm((f) => ({ ...f, url: e.target.value }))}
-                placeholder="https://example.com/product/123"
-                dir="ltr"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>نوع لینک</Label>
-              <Select value={linkForm.linkType} onValueChange={(val) => setLinkForm((f) => ({ ...f, linkType: val }))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="WEBSITE">
-                    <span className="flex items-center gap-2"><Globe className="w-4 h-4" />وب‌سایت</span>
-                  </SelectItem>
-                  <SelectItem value="API">
-                    <span className="flex items-center gap-2"><Code2 className="w-4 h-4" />API</span>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>
-                {linkForm.linkType === "API" ? "مسیر JSON (مثلاً: data.price)" : "انتخابگر CSS (اختیاری)"}
-              </Label>
-              <Input
-                value={linkForm.priceSelector}
-                onChange={(e) => setLinkForm((f) => ({ ...f, priceSelector: e.target.value }))}
-                placeholder={linkForm.linkType === "API" ? "data.price" : ".product-price"}
-                dir="ltr"
-              />
-              <p className="text-xs text-muted-foreground">
-                {linkForm.linkType === "API"
-                  ? "مسیر فیلد قیمت در پاسخ JSON. این فیلد الزامی است."
-                  : "اگر وارد نکنید، از هوش مصنوعی برای استخراج استفاده می‌شود."}
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Calculator className="w-4 h-4" />
-                ضریب قیمت
-              </Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={linkForm.priceMultiplier}
-                onChange={(e) => setLinkForm((f) => ({ ...f, priceMultiplier: e.target.value }))}
-                placeholder="1"
-                dir="ltr"
-              />
-              <p className="text-xs text-muted-foreground flex items-start gap-1">
-                <Info className="w-3 h-3 mt-0.5 shrink-0" />
-                قیمت نهایی = قیمت استخراج‌شده × ضریب. مثلاً اگر ضریب ۱.۱ باشد، ۱۰٪ به قیمت اضافه می‌شود.
-              </p>
-            </div>
-            <Button
-              onClick={handleSaveLink}
-              className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white"
-              disabled={!linkForm.name || !linkForm.url}
-            >
-              {editingLink ? "بروزرسانی لینک" : "افزودن لینک رقیب"}
             </Button>
           </div>
         </DialogContent>
@@ -1458,10 +1358,10 @@ export default function CatalogPage() {
             <AlertDialogTitle>آیا مطمئن هستید؟</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteTarget?.type === "product"
-                ? <span>محصول &laquo;{deleteTarget.name.length > 50 ? deleteTarget.name.slice(0, 50) + '…' : deleteTarget.name}&raquo; همراه با تمام لینک‌ها و تاریخچه قیمت‌ها حذف خواهد شد.</span>
+                ? <span>محصول &laquo;{deleteTarget.name && deleteTarget.name.length > 50 ? deleteTarget.name.slice(0, 50) + '…' : deleteTarget.name}&raquo; همراه با تمام لینک‌ها و تاریخچه قیمت‌ها حذف خواهد شد.</span>
                 : deleteTarget?.type === "group"
                 ? <span>گروه &laquo;{deleteTarget.name}&raquo; همراه با زیرگروه‌ها حذف خواهد شد. محصولات این گروه بدون گروه می‌شوند.</span>
-                : "این لینک رقیب همراه با تاریخچه قیمت‌ها حذف خواهد شد."}
+                : ""}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1471,7 +1371,6 @@ export default function CatalogPage() {
               onClick={() => {
                 if (deleteTarget) {
                   if (deleteTarget.type === "product") handleDeleteProduct(deleteTarget.id);
-                  else if (deleteTarget.type === "link" && deleteTarget.parentId) handleDeleteLink(deleteTarget.parentId, deleteTarget.id);
                   else if (deleteTarget.type === "group") handleDeleteGroup(deleteTarget.id);
                 }
                 setDeleteTarget(null);
