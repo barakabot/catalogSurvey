@@ -699,7 +699,7 @@ export default function CatalogPage() {
                     <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-border/50 group cursor-pointer" onClick={() => openProductDetail(product)}>
                       {product.imageUrl && (
                         <div className="relative h-48 overflow-hidden bg-muted">
-                          <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                          <img src={product.imageUrl} alt={product.name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                           {groupName && <Badge className="absolute top-3 right-3 bg-white/90 dark:bg-slate-800/90 text-foreground backdrop-blur-sm"><FolderTree className="w-3 h-3 ml-1" />{groupName}</Badge>}
                         </div>
                       )}
@@ -759,7 +759,7 @@ export default function CatalogPage() {
               <div className="space-y-5 mt-4">
                 {/* Product Info */}
                 <div className="flex items-start gap-4 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
-                  {detailProduct.imageUrl && <img src={detailProduct.imageUrl} alt={detailProduct.name} className="w-20 h-20 rounded-lg object-cover shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />}
+                  {detailProduct.imageUrl && <img src={detailProduct.imageUrl} alt={detailProduct.name} className="w-20 h-20 rounded-lg object-contain shrink-0 bg-muted" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-muted-foreground">قیمت شما:</p>
                     <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatPrice(detailProduct.price, currencyUnit)}</p>
@@ -805,7 +805,7 @@ export default function CatalogPage() {
                             <div className="flex items-center gap-3 min-w-0 flex-1">
                               <div className="relative shrink-0">
                                 {comp.imageUrl ? (
-                                  <img src={comp.imageUrl} alt={comp.name} className="w-12 h-12 rounded-lg object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                                  <img src={comp.imageUrl} alt={comp.name} className="w-12 h-12 rounded-lg object-contain bg-muted" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                                 ) : (
                                   <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center text-lg">
                                     {getSourceIcon(comp.source)}
@@ -978,7 +978,7 @@ export default function CatalogPage() {
                 {allCompetitors.map((comp) => (
                   <div key={comp.id} className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
                     {comp.imageUrl ? (
-                      <img src={comp.imageUrl} alt="" className="w-10 h-10 rounded object-cover shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                      <img src={comp.imageUrl} alt="" className="w-10 h-10 rounded object-contain shrink-0 bg-muted" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                     ) : (
                       <div className="w-10 h-10 rounded bg-muted flex items-center justify-center text-sm shrink-0">{getSourceIcon(comp.source)}</div>
                     )}
