@@ -350,17 +350,24 @@ export default function CatalogPage() {
   };
 
   const handleDownloadTemplate = () => {
-    // Create a simple Excel template
-    const wsData = [
+    // Create Excel with actual products data
+    const wsData: (string | number)[][] = [
       ["id", "name", "price"],
-      ["clx_example123", "نمونه محصول", "150000"],
     ];
+    // Add all current products with their IDs, names, and current prices
+    for (const p of products) {
+      wsData.push([p.id, p.name, Math.round(p.price)]);
+    }
+    // If no products yet, add an example row
+    if (products.length === 0) {
+      wsData.push(["clx_example123", "نمونه محصول", 150000]);
+    }
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     // Set column widths
-    ws["!cols"] = [{ wch: 20 }, { wch: 25 }, { wch: 15 }];
+    ws["!cols"] = [{ wch: 25 }, { wch: 30 }, { wch: 15 }];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "قیمت‌ها");
-    XLSX.writeFile(wb, "price-template.xlsx");
+    XLSX.writeFile(wb, "catalog-prices.xlsx");
   };
 
   // ─── Product Detail ────────────────────────────────────────────
@@ -1110,7 +1117,7 @@ export default function CatalogPage() {
 
             {/* Download Template */}
             <Button variant="outline" className="w-full gap-2" onClick={handleDownloadTemplate}>
-              <Download className="w-4 h-4" /> دانلود فایل نمونه اکسل
+              <Download className="w-4 h-4" /> دانلود لیست قیمت‌ها (اکسل)
             </Button>
 
             {/* File Upload */}
