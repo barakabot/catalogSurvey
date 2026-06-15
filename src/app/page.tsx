@@ -124,6 +124,9 @@ interface Product {
   description: string | null;
   price: number;
   imageUrl: string | null;
+  targetMarket: string | null;
+  competitiveAdvantage: string | null;
+  promotionDescription: string | null;
   groupId: string | null;
   group?: ProductGroup & { parent?: { id: string; name: string } | null } | null;
   createdAt: string;
@@ -207,8 +210,13 @@ export default function CatalogPage() {
     notFound: string[];
     skipped: string[];
     errors: string[];
-    detectedColumns: { id: string | null; name: string | null; price: string | null };
+    detectedColumns: { id: string | null; name: string | null; price: string | null; description: string | null; targetMarket: string | null; competitiveAdvantage: string | null; promotionDescription: string | null };
   } | null>(null);
+
+  // Baraka images
+  const [barakaDialogOpen, setBarakaDialogOpen] = useState(false);
+  const [barakaProducts, setBarakaProducts] = useState<{ name: string; imageUrl: string; productUrl: string }[]>([]);
+  const [barakaLoading, setBarakaLoading] = useState(false);
 
   // Form states
   const [productForm, setProductForm] = useState({
@@ -217,6 +225,9 @@ export default function CatalogPage() {
     price: "",
     imageUrl: "",
     groupId: "",
+    targetMarket: "",
+    competitiveAdvantage: "",
+    promotionDescription: "",
   });
 
   // ─── Fetch Data ────────────────────────────────────────────────
@@ -308,7 +319,7 @@ export default function CatalogPage() {
   const handleSaveProduct = async () => {
     try {
       const url = editingProduct ? `/api/products/${editingProduct.id}` : "/api/products";
-      const res = await fetch(url, { method: editingProduct ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: productForm.name, description: productForm.description || null, price: parseFloat(productForm.price), imageUrl: productForm.imageUrl || null, groupId: productForm.groupId || null }) });
+      const res = await fetch(url, { method: editingProduct ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: productForm.name, description: productForm.description || null, price: parseFloat(productForm.price), imageUrl: productForm.imageUrl || null, groupId: productForm.groupId || null, targetMarket: productForm.targetMarket || null, competitiveAdvantage: productForm.competitiveAdvantage || null, promotionDescription: productForm.promotionDescription || null }) });
       if (!res.ok) throw new Error();
       toast({ title: editingProduct ? "محصول بروزرسانی شد" : "محصول اضافه شد" });
       setProductDialogOpen(false);
@@ -323,6 +334,53 @@ export default function CatalogPage() {
       if (!(await fetch(`/api/products/${id}`, { method: "DELETE" })).ok) throw new Error();
       toast({ title: "محصول حذف شد" }); fetchProducts();
     } catch { toast({ title: "خطا", description: "حذف ناموفق بود", variant: "destructive" }); }
+  };
+
+  // ─── Baraka Images ────────────────────────────────────────────────
+  const fetchBarakaImages = async () => {
+    setBarakaLoading(true);
+    try {
+      const res = await fetch("/api/scrape-baraka");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setBarakaProducts(data.products || []);
+    } catch (err) {
+      toast({ title: "خطا", description: err instanceof Error ? err.message : "خطا در دریافت عکس‌ها", variant: "destructive" });
+    } finally {
+      setBarakaLoading(false);
+    }
+  };
+
+  const applyBarakaImage = async (barakaName: string, imageUrl: string) => {
+    // Try to find a product whose name matches the baraka product name
+    const matched = products.find((p) => {
+      const pName = p.name.toLowerCase().replace(/\s+/g, "");
+      const bName = barakaName.toLowerCase().replace(/\s+/g, "");
+      return pName.includes(bName) || bName.includes(pName);
+    });
+
+    if (matched) {
+      try {
+        const res = await fetch(`/api/products/${matched.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageUrl }),
+        });
+        if (!res.ok) throw new Error();
+        toast({ title: `عکس "${barakaName}" به "${matched.name}" اختصاص یافت` });
+        fetchProducts();
+      } catch {
+        toast({ title: "خطا", description: "ذخیره عکس ناموفق بود", variant: "destructive" });
+      }
+    } else {
+      // Copy URL to clipboard for manual use
+      try {
+        await navigator.clipboard.writeText(imageUrl);
+        toast({ title: "لینک عکس کپی شد", description: `محصول "${barakaName}" در کاتالوگ یافت نشد. لینک کپی شد.` });
+      } catch {
+        toast({ title: "محصول یافت نشد", description: `"${barakaName}" در کاتالوگ وجود ندارد` });
+      }
+    }
   };
 
   // ─── Excel Import ─────────────────────────────────────────────────
@@ -350,21 +408,21 @@ export default function CatalogPage() {
   };
 
   const handleDownloadTemplate = () => {
-    // Create Excel with actual products data
+    // Create Excel with actual products data including description
     const wsData: (string | number)[][] = [
-      ["id", "name", "price"],
+      ["id", "name", "price", "description", "targetMarket", "competitiveAdvantage", "promotionDescription"],
     ];
-    // Add all current products with their IDs, names, and current prices
+    // Add all current products with their IDs, names, prices, and descriptions
     for (const p of products) {
-      wsData.push([p.id, p.name, Math.round(p.price)]);
+      wsData.push([p.id, p.name, Math.round(p.price), p.description || "", p.targetMarket || "", p.competitiveAdvantage || "", p.promotionDescription || ""]);
     }
     // If no products yet, add an example row
     if (products.length === 0) {
-      wsData.push(["clx_example123", "نمونه محصول", 150000]);
+      wsData.push(["clx_example123", "نمونه محصول", 150000, "توضیحات محصول", "بازار مصرف‌کننده", "قیمت مناسب‌تر", "تخفیف ویژه"]);
     }
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     // Set column widths
-    ws["!cols"] = [{ wch: 25 }, { wch: 30 }, { wch: 15 }];
+    ws["!cols"] = [{ wch: 25 }, { wch: 30 }, { wch: 15 }, { wch: 40 }, { wch: 25 }, { wch: 25 }, { wch: 30 }];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "قیمت‌ها");
     XLSX.writeFile(wb, "catalog-prices.xlsx");
@@ -582,11 +640,11 @@ export default function CatalogPage() {
   };
 
   // ─── Form helpers ──────────────────────────────────────────────
-  const resetProductForm = () => setProductForm({ name: "", description: "", price: "", imageUrl: "", groupId: "" });
+  const resetProductForm = () => setProductForm({ name: "", description: "", price: "", imageUrl: "", groupId: "", targetMarket: "", competitiveAdvantage: "", promotionDescription: "" });
 
   const openEditProduct = (product: Product) => {
     setEditingProduct(product);
-    setProductForm({ name: product.name, description: product.description || "", price: String(product.price), imageUrl: product.imageUrl || "", groupId: product.groupId || "" });
+    setProductForm({ name: product.name, description: product.description || "", price: String(product.price), imageUrl: product.imageUrl || "", groupId: product.groupId || "", targetMarket: product.targetMarket || "", competitiveAdvantage: product.competitiveAdvantage || "", promotionDescription: product.promotionDescription || "" });
     setProductDialogOpen(true);
   };
 
@@ -647,6 +705,9 @@ export default function CatalogPage() {
                   </Button>
                   <Button variant="outline" size="sm" className="gap-2" onClick={() => { setImportResult(null); setImportDialogOpen(true); }}>
                     <FileSpreadsheet className="w-4 h-4" /> وارد کردن قیمت‌ها
+                  </Button>
+                  <Button variant="outline" size="sm" className="gap-2" onClick={() => { setBarakaDialogOpen(true); fetchBarakaImages(); }}>
+                    <Globe className="w-4 h-4" /> عکس باراکا
                   </Button>
                   <Button variant="outline" size="sm" className="gap-2" onClick={() => { setSettingsForm((f) => ({ ...f, currencyUnit, adminPassword: "", currentPassword: "" })); setSettingsDialogOpen(true); }}>
                     <Settings2 className="w-4 h-4" /> تنظیمات
@@ -774,6 +835,39 @@ export default function CatalogPage() {
                     {(() => { const gn = getGroupName(detailProduct); return gn ? <Badge className="mt-2" variant="secondary"><FolderTree className="w-3 h-3 ml-1" />{gn}</Badge> : null; })()}
                   </div>
                 </div>
+
+                {/* New Info Fields */}
+                {(detailProduct.targetMarket || detailProduct.competitiveAdvantage || detailProduct.promotionDescription) && (
+                  <div className="space-y-3">
+                    {detailProduct.targetMarket && (
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
+                        <Globe className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-xs font-medium text-blue-700 dark:text-blue-400">بازار هدف</p>
+                          <p className="text-sm text-blue-900 dark:text-blue-200 mt-0.5">{detailProduct.targetMarket}</p>
+                        </div>
+                      </div>
+                    )}
+                    {detailProduct.competitiveAdvantage && (
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">
+                        <Tag className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-xs font-medium text-amber-700 dark:text-amber-400">مزیت رقابتی</p>
+                          <p className="text-sm text-amber-900 dark:text-amber-200 mt-0.5">{detailProduct.competitiveAdvantage}</p>
+                        </div>
+                      </div>
+                    )}
+                    {detailProduct.promotionDescription && (
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800">
+                        <Package className="w-5 h-5 text-purple-500 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-xs font-medium text-purple-700 dark:text-purple-400">توضیحات پروموشن</p>
+                          <p className="text-sm text-purple-900 dark:text-purple-200 mt-0.5">{detailProduct.promotionDescription}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Competitor Products */}
                 <div>
@@ -1031,13 +1125,18 @@ export default function CatalogPage() {
 
       {/* Product Dialog */}
       <Dialog open={productDialogOpen} onOpenChange={(open) => { setProductDialogOpen(open); if (!open) { setEditingProduct(null); resetProductForm(); } }}>
-        <DialogContent className="sm:max-w-md" dir="rtl">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto" dir="rtl">
           <DialogHeader><DialogTitle>{editingProduct ? "ویرایش محصول" : "افزودن محصول جدید"}</DialogTitle></DialogHeader>
           <div className="space-y-4 mt-4">
             <div className="space-y-2"><Label>نام محصول *</Label><Input value={productForm.name} onChange={(e) => setProductForm((f) => ({ ...f, name: e.target.value }))} placeholder="مثلاً: گوشی موبایل سامسونگ" /></div>
             <div className="space-y-2"><Label>قیمت ({currencyUnit}) *</Label><Input type="number" value={productForm.price} onChange={(e) => setProductForm((f) => ({ ...f, price: e.target.value }))} placeholder="مثلاً: 25000000" /></div>
-            <div className="space-y-2"><Label>توضیحات</Label><Textarea value={productForm.description} onChange={(e) => setProductForm((f) => ({ ...f, description: e.target.value }))} placeholder="توضیحات محصول..." rows={3} /></div>
+            <div className="space-y-2"><Label>توضیحات</Label><Textarea value={productForm.description} onChange={(e) => setProductForm((f) => ({ ...f, description: e.target.value }))} placeholder="توضیحات محصول..." rows={2} /></div>
             <div className="space-y-2"><Label>آدرس تصویر</Label><Input value={productForm.imageUrl} onChange={(e) => setProductForm((f) => ({ ...f, imageUrl: e.target.value }))} placeholder="https://example.com/image.jpg" dir="ltr" /></div>
+            <Separator />
+            <div className="space-y-2"><Label className="flex items-center gap-2"><Globe className="w-4 h-4 text-blue-500" /> بازار هدف</Label><Textarea value={productForm.targetMarket} onChange={(e) => setProductForm((f) => ({ ...f, targetMarket: e.target.value }))} placeholder="مثلاً: بازار مصرف‌کننده نهایی، بازار سازمانی..." rows={2} /></div>
+            <div className="space-y-2"><Label className="flex items-center gap-2"><Tag className="w-4 h-4 text-amber-500" /> مزیت رقابتی</Label><Textarea value={productForm.competitiveAdvantage} onChange={(e) => setProductForm((f) => ({ ...f, competitiveAdvantage: e.target.value }))} placeholder="مثلاً: قیمت مناسب‌تر، کیفیت بالاتر..." rows={2} /></div>
+            <div className="space-y-2"><Label className="flex items-center gap-2"><Package className="w-4 h-4 text-purple-500" /> توضیحات پروموشن</Label><Textarea value={productForm.promotionDescription} onChange={(e) => setProductForm((f) => ({ ...f, promotionDescription: e.target.value }))} placeholder="مثلاً: تخفیف ویژه تابستانه، هدیه رایگان..." rows={2} /></div>
+            <Separator />
             <div className="space-y-2"><Label>گروه / دسته‌بندی</Label><Select value={productForm.groupId || "__none__"} onValueChange={(v) => setProductForm((f) => ({ ...f, groupId: v === "__none__" ? "" : v }))}><SelectTrigger><SelectValue placeholder="بدون گروه" /></SelectTrigger><SelectContent><SelectItem value="__none__">بدون گروه</SelectItem>{groups.map((g) => <React.Fragment key={g.id}><SelectItem value={g.id}><span className="font-medium">{g.name}</span></SelectItem>{g.children.map((sub) => <SelectItem key={sub.id} value={sub.id}><span className="text-muted-foreground">└ {sub.name}</span></SelectItem>)}</React.Fragment>)}</SelectContent></Select></div>
             <Button onClick={handleSaveProduct} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white" disabled={!productForm.name || !productForm.price}>{editingProduct ? "بروزرسانی" : "افزودن محصول"}</Button>
           </div>
@@ -1095,6 +1194,65 @@ export default function CatalogPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Baraka Images Dialog */}
+      <Dialog open={barakaDialogOpen} onOpenChange={setBarakaDialogOpen}>
+        <DialogContent className="sm:max-w-3xl max-h-[85vh]" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Globe className="w-5 h-5" /> عکس محصولات باراکا
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">عکس‌های محصولات از سایت barakachocolate.com — کلیک روی عکس برای اختصاص به محصول مشابه کاتالوگ</p>
+            {barakaLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+                <span className="ml-3 text-muted-foreground">در حال دریافت...</span>
+              </div>
+            ) : barakaProducts.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">محصولی یافت نشد</p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto">
+                {barakaProducts.map((bp, i) => {
+                  // Check if a catalog product matches
+                  const matched = products.find((p) => {
+                    const pName = p.name.toLowerCase().replace(/\s+/g, "");
+                    const bName = bp.name.toLowerCase().replace(/\s+/g, "");
+                    return pName.includes(bName) || bName.includes(pName);
+                  });
+                  return (
+                    <div
+                      key={i}
+                      className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer group"
+                      onClick={() => applyBarakaImage(bp.name, bp.imageUrl)}
+                    >
+                      <div className="aspect-square bg-muted overflow-hidden">
+                        <img
+                          src={bp.imageUrl}
+                          alt={bp.name}
+                          className="w-full h-full object-contain group-hover:scale-105 transition-transform"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                        />
+                      </div>
+                      <div className="p-2">
+                        <p className="text-xs font-medium truncate">{bp.name}</p>
+                        {matched ? (
+                          <Badge className="mt-1 text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
+                            ✓ {matched.name}
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="mt-1 text-[10px]">کپی لینک</Badge>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Excel Import Dialog */}
       <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
         <DialogContent className="sm:max-w-lg" dir="rtl">
@@ -1111,8 +1269,12 @@ export default function CatalogPage() {
                 <li>ستون <Badge variant="secondary" className="text-xs mx-1">id</Badge> یا <Badge variant="secondary" className="text-xs mx-1">شناسه</Badge> — شناسه محصول کاتالوگ</li>
                 <li>ستون <Badge variant="secondary" className="text-xs mx-1">name</Badge> یا <Badge variant="secondary" className="text-xs mx-1">نام</Badge> — نام محصول (اگر id ندارید)</li>
                 <li>ستون <Badge variant="secondary" className="text-xs mx-1">price</Badge> یا <Badge variant="secondary" className="text-xs mx-1">قیمت</Badge> — قیمت جدید (ریال)</li>
+                <li>ستون <Badge variant="secondary" className="text-xs mx-1">description</Badge> یا <Badge variant="secondary" className="text-xs mx-1">توضیحات</Badge> — توضیحات محصول</li>
+                <li>ستون <Badge variant="secondary" className="text-xs mx-1">targetMarket</Badge> یا <Badge variant="secondary" className="text-xs mx-1">بازار هدف</Badge> — بازار هدف</li>
+                <li>ستون <Badge variant="secondary" className="text-xs mx-1">competitiveAdvantage</Badge> یا <Badge variant="secondary" className="text-xs mx-1">مزیت رقابتی</Badge> — مزیت رقابتی</li>
+                <li>ستون <Badge variant="secondary" className="text-xs mx-1">promotionDescription</Badge> یا <Badge variant="secondary" className="text-xs mx-1">پروموشن</Badge> — توضیحات پروموشن</li>
               </ul>
-              <p className="text-muted-foreground text-xs">اگر ستون id باشد، تطبیق دقیق‌تر است. بدون id، تطبیق با نام محصول انجام می‌شود.</p>
+              <p className="text-muted-foreground text-xs">اگر ستون id باشد، تطبیق دقیق‌تر است. هر ستونی که در فایل نباشد، تغییر نمی‌کند.</p>
             </div>
 
             {/* Download Template */}
@@ -1167,11 +1329,15 @@ export default function CatalogPage() {
                   </div>
                 </div>
                 {importResult.detectedColumns && (
-                  <p className="text-xs text-muted-foreground">
-                    ستون‌های شناسایی شده: 
-                    {importResult.detectedColumns.id && <Badge variant="outline" className="mx-1 text-xs">id: {importResult.detectedColumns.id}</Badge>}
-                    {importResult.detectedColumns.name && <Badge variant="outline" className="mx-1 text-xs">نام: {importResult.detectedColumns.name}</Badge>}
-                    {importResult.detectedColumns.price && <Badge variant="outline" className="mx-1 text-xs">قیمت: {importResult.detectedColumns.price}</Badge>}
+                  <p className="text-xs text-muted-foreground flex flex-wrap gap-1">
+                    ستون‌ها: 
+                    {importResult.detectedColumns.id && <Badge variant="outline" className="text-xs">id: {importResult.detectedColumns.id}</Badge>}
+                    {importResult.detectedColumns.name && <Badge variant="outline" className="text-xs">نام: {importResult.detectedColumns.name}</Badge>}
+                    {importResult.detectedColumns.price && <Badge variant="outline" className="text-xs">قیمت: {importResult.detectedColumns.price}</Badge>}
+                    {importResult.detectedColumns.description && <Badge variant="outline" className="text-xs">توضیحات: {importResult.detectedColumns.description}</Badge>}
+                    {importResult.detectedColumns.targetMarket && <Badge variant="outline" className="text-xs">بازار هدف: {importResult.detectedColumns.targetMarket}</Badge>}
+                    {importResult.detectedColumns.competitiveAdvantage && <Badge variant="outline" className="text-xs">مزیت: {importResult.detectedColumns.competitiveAdvantage}</Badge>}
+                    {importResult.detectedColumns.promotionDescription && <Badge variant="outline" className="text-xs">پروموشن: {importResult.detectedColumns.promotionDescription}</Badge>}
                   </p>
                 )}
                 {importResult.notFound.length > 0 && (

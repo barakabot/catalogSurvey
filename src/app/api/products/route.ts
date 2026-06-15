@@ -29,7 +29,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, description, price, imageUrl, groupId } = body;
+    const { name, description, price, imageUrl, groupId, targetMarket, competitiveAdvantage, promotionDescription } = body;
 
     if (!name || price === undefined) {
       return NextResponse.json({ error: 'Name and price are required' }, { status: 400 });
@@ -42,6 +42,9 @@ export async function POST(request: Request) {
         price: parseFloat(String(price)),
         imageUrl: imageUrl || null,
         groupId: groupId || null,
+        targetMarket: targetMarket || null,
+        competitiveAdvantage: competitiveAdvantage || null,
+        promotionDescription: promotionDescription || null,
       },
       include: {
         competitorProducts: true,
