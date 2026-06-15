@@ -1,7 +1,7 @@
 {
   "name": "price-service",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "scripts": {
-    "dev": "bun --hot index.py"
+    "dev": "python3 index.py"
   }
 }

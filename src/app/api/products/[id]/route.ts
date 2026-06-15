@@ -11,8 +11,8 @@ export async function GET(
     const product = await db.product.findUnique({
       where: { id },
       include: {
-        links: {
-          orderBy: { createdAt: 'asc' },
+        competitorProducts: {
+          orderBy: { fetchedAt: 'desc' },
           include: {
             priceHistory: {
               orderBy: { fetchedAt: 'desc' },
@@ -57,7 +57,7 @@ export async function PUT(
         ...(groupId !== undefined && { groupId: groupId || null }),
       },
       include: {
-        links: true,
+        competitorProducts: true,
         group: { include: { parent: true } },
       },
     });

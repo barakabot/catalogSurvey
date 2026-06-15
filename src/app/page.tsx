@@ -6,13 +6,6 @@ import {
   ExternalLink,
   Trash2,
   Edit3,
-  Link2,
-  TrendingDown,
-  TrendingUp,
-  Minus,
-  Package,
-  Globe,
-  Code2,
   Search,
   X,
   Loader2,
@@ -24,8 +17,14 @@ import {
   FolderTree,
   FolderOpen,
   FolderPlus,
-  Calculator,
   Eye,
+  Link2,
+  Unlink,
+  Globe,
+  ShoppingCart,
+  Tag,
+  Package,
+  ArrowRightLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -67,34 +66,33 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ─── Types ────────────────────────────────────────────────────────
-interface PriceHistory {
+interface CompetitorPriceHistory {
   id: string;
   price: number;
-  adjustedPrice: number;
+  originalPrice: number | null;
+  discountPercent: number;
   fetchedAt: string;
 }
 
-interface CompetitorLink {
+interface CompetitorProduct {
   id: string;
-  productId: string;
+  source: string;
+  sourceId: string;
   name: string;
-  url: string;
-  linkType: string;
-  priceSelector: string | null;
-  priceMultiplier: number;
-  lastPrice: number | null;
-  lastAdjustedPrice: number | null;
-  lastFetchedAt: string | null;
-  priceHistory?: PriceHistory[];
+  imageUrl: string | null;
+  weight: string | null;
+  volume: string | null;
+  price: number;
+  originalPrice: number | null;
+  discountPercent: number;
+  brand: string | null;
+  fetchedAt: string;
+  catalogProductId: string | null;
+  priceHistory?: CompetitorPriceHistory[];
 }
 
 interface ProductGroupParent {
@@ -124,21 +122,12 @@ interface Product {
   group?: ProductGroup & { parent?: { id: string; name: string } | null } | null;
   createdAt: string;
   updatedAt: string;
-  links: CompetitorLink[];
+  competitorProducts?: CompetitorProduct[];
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────
 function formatPrice(price: number, currencyUnit: string): string {
   return new Intl.NumberFormat("fa-IR").format(Math.round(price)) + " " + currencyUnit;
-}
-
-function getPriceTrend(history?: PriceHistory[]) {
-  if (!history || history.length < 2) return null;
-  const latest = history[0].adjustedPrice;
-  const previous = history[1].adjustedPrice;
-  if (latest < previous) return <TrendingDown className="w-4 h-4 text-emerald-500" />;
-  if (latest > previous) return <TrendingUp className="w-4 h-4 text-red-500" />;
-  return <Minus className="w-4 h-4 text-muted-foreground" />;
 }
 
 // ─── Main Component ───────────────────────────────────────────────
@@ -161,16 +150,33 @@ export default function CatalogPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{
-    type: "product" | "group";
+    type: "product" | "group" | "competitor";
     id: string;
     name?: string;
   } | null>(null);
 
   // Product detail modal
   const [detailProduct, setDetailProduct] = useState<Product | null>(null);
-  const [detailLinks, setDetailLinks] = useState<CompetitorLink[]>([]);
+  const [detailCompetitors, setDetailCompetitors] = useState<CompetitorProduct[]>([]);
   const [loadingDetail, setLoadingDetail] = useState(false);
-  const [fetchingPrices, setFetchingPrices] = useState(false);
+  const [refreshingCompetitor, setRefreshingCompetitor] = useState<string | null>(null);
+
+  // Add competitor dialog
+  const [addCompetitorDialogOpen, setAddCompetitorDialogOpen] = useState(false);
+  const [competitorSource, setCompetitorSource] = useState<string>("");
+  const [competitorSourceId, setCompetitorSourceId] = useState<string>("");
+  const [competitorLinkProductId, setCompetitorLinkProductId] = useState<string>("");
+  const [scrapeLoading, setScrapeLoading] = useState(false);
+
+  // Link competitor dialog
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [linkingCompetitor, setLinkingCompetitor] = useState<CompetitorProduct | null>(null);
+  const [linkProductId, setLinkProductId] = useState<string>("");
+
+  // All competitors (unlinked) for management
+  const [allCompetitors, setAllCompetitors] = useState<CompetitorProduct[]>([]);
+  const [competitorManageOpen, setCompetitorManageOpen] = useState(false);
+  const [competitorFilter, setCompetitorFilter] = useState<string>("all");
 
   // Settings dialog
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
@@ -200,8 +206,7 @@ export default function CatalogPage() {
       setLoading(true);
       const res = await fetch("/api/products");
       if (!res.ok) throw new Error();
-      const data = await res.json();
-      setProducts(data);
+      setProducts(await res.json());
     } catch {
       toast({ title: "خطا", description: "دریافت محصولات ناموفق بود", variant: "destructive" });
     } finally {
@@ -304,41 +309,177 @@ export default function CatalogPage() {
   // ─── Product Detail ────────────────────────────────────────────
   const openProductDetail = async (product: Product) => {
     setDetailProduct(product);
-    setDetailLinks(product.links || []);
     setLoadingDetail(true);
     try {
-      // Fetch fresh product data with links
-      const res = await fetch(`/api/products`);
+      const res = await fetch(`/api/competitors?catalogProductId=${product.id}`);
       if (res.ok) {
-        const allProducts: Product[] = await res.json();
-        const fresh = allProducts.find((p) => p.id === product.id);
-        if (fresh) setDetailLinks(fresh.links || []);
+        const data = await res.json();
+        setDetailCompetitors(data.competitors || []);
+      } else {
+        setDetailCompetitors([]);
       }
-    } catch {}
+    } catch {
+      setDetailCompetitors([]);
+    }
     setLoadingDetail(false);
   };
 
-  const handleFetchPrices = async () => {
-    if (!detailProduct) return;
-    setFetchingPrices(true);
+  const handleRefreshCompetitor = async (competitorId: string) => {
+    setRefreshingCompetitor(competitorId);
     try {
-      const res = await fetch(`/api/products/${detailProduct.id}/fetch-prices`, { method: "POST" });
-      if (!res.ok) throw new Error();
+      const res = await fetch(`/api/competitors/${competitorId}/refresh`, { method: "POST" });
       const data = await res.json();
-      const sc = data.results?.filter((r: { success: boolean }) => r.success).length || 0;
-      const fc = data.results?.filter((r: { success: boolean }) => !r.success).length || 0;
-      const failedDetails = data.results?.filter((r: { success: boolean }) => !r.success).map((r: { linkName: string; error?: string }) => `${r.linkName}: ${r.error || "نامشخص"}`).join("\n") || "";
-      toast({ title: "استخراج قیمت‌ها انجام شد", description: `${sc} موفق${fc > 0 ? `، ${fc} ناموفق` : ""}${failedDetails ? "\n" + failedDetails : ""}`, variant: fc > 0 && sc === 0 ? "destructive" : "default", duration: fc > 0 ? 8000 : 4000 });
-      // Refresh
-      const refreshRes = await fetch(`/api/products`);
-      if (refreshRes.ok) {
-        const allP: Product[] = await refreshRes.json();
-        const fresh = allP.find((p) => p.id === detailProduct.id);
-        if (fresh) setDetailLinks(fresh.links || []);
-        setProducts(allP);
+      if (!res.ok) {
+        toast({ title: "خطا", description: data.error || "بروزرسانی ناموفق بود", variant: "destructive" });
+      } else {
+        toast({ title: "بروزرسانی شد", description: data.priceChanged ? "قیمت تغییر کرد" : "قیمت بدون تغییر" });
+        // Refresh the list
+        if (detailProduct) {
+          const refreshRes = await fetch(`/api/competitors?catalogProductId=${detailProduct.id}`);
+          if (refreshRes.ok) {
+            const refreshData = await refreshRes.json();
+            setDetailCompetitors(refreshData.competitors || []);
+          }
+        }
+        fetchProducts();
       }
-    } catch { toast({ title: "خطا", description: "استخراج قیمت‌ها ناموفق بود", variant: "destructive" }); }
-    finally { setFetchingPrices(false); }
+    } catch {
+      toast({ title: "خطا", description: "بروزرسانی ناموفق بود", variant: "destructive" });
+    } finally {
+      setRefreshingCompetitor(null);
+    }
+  };
+
+  const handleRefreshAllCompetitors = async () => {
+    if (!detailProduct) return;
+    setRefreshingCompetitor("all");
+    try {
+      let successCount = 0;
+      for (const comp of detailCompetitors) {
+        const res = await fetch(`/api/competitors/${comp.id}/refresh`, { method: "POST" });
+        if (res.ok) successCount++;
+      }
+      toast({ title: "بروزرسانی انجام شد", description: `${successCount} از ${detailCompetitors.length} موفق` });
+      // Refresh the list
+      const refreshRes = await fetch(`/api/competitors?catalogProductId=${detailProduct.id}`);
+      if (refreshRes.ok) {
+        const refreshData = await refreshRes.json();
+        setDetailCompetitors(refreshData.competitors || []);
+      }
+      fetchProducts();
+    } catch {
+      toast({ title: "خطا", description: "بروزرسانی ناموفق بود", variant: "destructive" });
+    } finally {
+      setRefreshingCompetitor(null);
+    }
+  };
+
+  // ─── Competitor CRUD ──────────────────────────────────────────
+  const handleScrapeAndAdd = async () => {
+    if (!competitorSource || !competitorSourceId) {
+      toast({ title: "خطا", description: "منبع و شناسه محصول الزامی است", variant: "destructive" });
+      return;
+    }
+    setScrapeLoading(true);
+    try {
+      const body: Record<string, string> = {
+        source: competitorSource,
+        sourceId: competitorSourceId,
+      };
+      if (competitorLinkProductId) body.catalogProductId = competitorLinkProductId;
+
+      const res = await fetch("/api/competitors/scrape", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast({ title: "خطا در اسکرپ", description: data.error || "خطای ناشناخته", variant: "destructive", duration: 6000 });
+        return;
+      }
+      toast({
+        title: data.action === "created" ? "محصول رقیب اضافه شد" : "محصول رقیب بروزرسانی شد",
+        description: `${data.data?.name} — ${data.data?.price ? formatPrice(data.data.price, currencyUnit) : ""}`,
+      });
+      setAddCompetitorDialogOpen(false);
+      setCompetitorSource("");
+      setCompetitorSourceId("");
+      setCompetitorLinkProductId("");
+      // Refresh detail if open
+      if (detailProduct) {
+        const refreshRes = await fetch(`/api/competitors?catalogProductId=${detailProduct.id}`);
+        if (refreshRes.ok) {
+          const refreshData = await refreshRes.json();
+          setDetailCompetitors(refreshData.competitors || []);
+        }
+      }
+      fetchProducts();
+    } catch {
+      toast({ title: "خطا", description: "اسکرپ محصول ناموفق بود", variant: "destructive" });
+    } finally {
+      setScrapeLoading(false);
+    }
+  };
+
+  const handleDeleteCompetitor = async (id: string) => {
+    try {
+      const res = await fetch(`/api/competitors?id=${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      toast({ title: "محصول رقیب حذف شد" });
+      if (detailProduct) {
+        setDetailCompetitors((prev) => prev.filter((c) => c.id !== id));
+      }
+      fetchProducts();
+    } catch {
+      toast({ title: "خطا", description: "حذف ناموفق بود", variant: "destructive" });
+    }
+  };
+
+  const handleLinkCompetitor = async () => {
+    if (!linkingCompetitor || !linkProductId) return;
+    try {
+      const res = await fetch(`/api/competitors/${linkingCompetitor.id}/link`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ catalogProductId: linkProductId }),
+      });
+      if (!res.ok) throw new Error();
+      toast({ title: "محصول رقیب به کاتالوگ متصل شد" });
+      setLinkDialogOpen(false);
+      setLinkingCompetitor(null);
+      setLinkProductId("");
+      // Refresh
+      if (detailProduct) openProductDetail(detailProduct);
+      fetchProducts();
+    } catch {
+      toast({ title: "خطا", description: "اتصال ناموفق بود", variant: "destructive" });
+    }
+  };
+
+  const handleUnlinkCompetitor = async (competitorId: string) => {
+    try {
+      const res = await fetch(`/api/competitors/${competitorId}/unlink`, { method: "PUT" });
+      if (!res.ok) throw new Error();
+      toast({ title: "اتصال لغو شد" });
+      if (detailProduct) {
+        setDetailCompetitors((prev) => prev.filter((c) => c.id !== competitorId));
+      }
+      fetchProducts();
+    } catch {
+      toast({ title: "خطا", description: "لغو اتصال ناموفق بود", variant: "destructive" });
+    }
+  };
+
+  const fetchAllCompetitors = async () => {
+    try {
+      const filterParam = competitorFilter === "unlinked" ? "&unlinked=true" : competitorFilter !== "all" ? `&source=${competitorFilter}` : "";
+      const res = await fetch(`/api/competitors?${filterParam}`);
+      if (res.ok) {
+        const data = await res.json();
+        setAllCompetitors(data.competitors || []);
+      }
+    } catch {}
   };
 
   // ─── Group CRUD ────────────────────────────────────────────────
@@ -387,13 +528,32 @@ export default function CatalogPage() {
 
   // ─── Computed ──────────────────────────────────────────────────
   const getBestCompetitorPrice = (product: Product) => {
-    const prices = product.links.filter((l) => l.lastAdjustedPrice !== null).map((l) => l.lastAdjustedPrice as number);
+    // This needs competitor data loaded
+    const prices = (product.competitorProducts || []).filter((c) => c.price > 0).map((c) => c.price);
     return prices.length ? Math.min(...prices) : null;
   };
 
   const getGroupName = (product: Product) => {
     if (!product.group) return null;
     return product.group.parent?.name ? `${product.group.parent.name} › ${product.group.name}` : product.group.name;
+  };
+
+  const getSourceIcon = (source: string) => {
+    if (source === "DIGIKALA") return "🟡";
+    if (source === "SNAPPSHOP") return "🟣";
+    return "⚪";
+  };
+
+  const getSourceLabel = (source: string) => {
+    if (source === "DIGIKALA") return "دیجیکالا";
+    if (source === "SNAPPSHOP") return "اسنپ‌شاپ";
+    return source;
+  };
+
+  const getSourceUrl = (source: string, sourceId: string) => {
+    if (source === "DIGIKALA") return `https://www.digikala.com/product/dkp-${sourceId}`;
+    if (source === "SNAPPSHOP") return `https://snappshop.ir/product/snp-${sourceId}`;
+    return "#";
   };
 
   // ─── Render ────────────────────────────────────────────────────
@@ -417,6 +577,9 @@ export default function CatalogPage() {
                 <>
                   <Button variant="outline" size="sm" className="gap-2" onClick={() => { setEditingGroup(null); setGroupForm({ name: "", parentId: "" }); setGroupDialogOpen(true); }}>
                     <FolderPlus className="w-4 h-4" /> گروه‌بندی
+                  </Button>
+                  <Button variant="outline" size="sm" className="gap-2" onClick={() => { setCompetitorManageOpen(true); fetchAllCompetitors(); }}>
+                    <ShoppingCart className="w-4 h-4" /> رقبای اسکرپ شده
                   </Button>
                   <Button variant="outline" size="sm" className="gap-2" onClick={() => { setSettingsForm((f) => ({ ...f, currencyUnit, adminPassword: "", currentPassword: "" })); setSettingsDialogOpen(true); }}>
                     <Settings2 className="w-4 h-4" /> تنظیمات
@@ -470,8 +633,6 @@ export default function CatalogPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <AnimatePresence mode="popLayout">
               {filteredProducts.map((product) => {
-                const bestPrice = getBestCompetitorPrice(product);
-                const hasLinks = product.links.length > 0;
                 const groupName = getGroupName(product);
                 return (
                   <motion.div key={product.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
@@ -498,30 +659,10 @@ export default function CatalogPage() {
                         </div>
                       </CardHeader>
                       <CardContent className="pb-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-xs text-muted-foreground">قیمت شما:</span>
-                            <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{formatPrice(product.price, currencyUnit)}</p>
-                          </div>
-                          {bestPrice !== null && (
-                            <div className="text-left">
-                              <span className="text-xs text-muted-foreground">ارزان‌ترین رقیب:</span>
-                              <p className="text-lg font-semibold text-foreground">{formatPrice(bestPrice, currencyUnit)}</p>
-                              {bestPrice > product.price ? (
-                                <Badge variant="default" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-xs">شما ارزان‌تر!</Badge>
-                              ) : (
-                                <Badge variant="destructive" className="text-xs">رقیب ارزان‌تر</Badge>
-                              )}
-                            </div>
-                          )}
+                        <div>
+                          <span className="text-xs text-muted-foreground">قیمت شما:</span>
+                          <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{formatPrice(product.price, currencyUnit)}</p>
                         </div>
-                        {hasLinks && (
-                          <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
-                            <Link2 className="w-4 h-4" />
-                            <span>{product.links.length} رقیب</span>
-                            <span className="text-xs">({product.links.filter((l) => l.lastAdjustedPrice !== null).length} قیمت استخراج شده)</span>
-                          </div>
-                        )}
                         <div className="mt-3 flex items-center justify-center gap-1 text-xs text-muted-foreground/60">
                           <Eye className="w-3 h-3" />
                           <span>برای مشاهده رقبا کلیک کنید</span>
@@ -567,77 +708,96 @@ export default function CatalogPage() {
                   </div>
                 </div>
 
-                {/* Competitor Prices */}
+                {/* Competitor Products */}
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold flex items-center gap-2"><Link2 className="w-4 h-4" /> قیمت رقبا</h3>
-                    {detailLinks.length > 0 && (
-                      <Button variant="outline" size="sm" className="gap-2" onClick={handleFetchPrices} disabled={fetchingPrices}>
-                        {fetchingPrices ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
-                        بروزرسانی قیمت‌ها
-                      </Button>
-                    )}
+                    <div className="flex gap-2">
+                      {detailCompetitors.length > 0 && (
+                        <Button variant="outline" size="sm" className="gap-1" onClick={handleRefreshAllCompetitors} disabled={refreshingCompetitor === "all"}>
+                          {refreshingCompetitor === "all" ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                          بروزرسانی همه
+                        </Button>
+                      )}
+                      {isAdmin && (
+                        <Button variant="default" size="sm" className="gap-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white" onClick={() => { setCompetitorLinkProductId(detailProduct.id); setAddCompetitorDialogOpen(true); }}>
+                          <Plus className="w-3 h-3" /> افزودن رقیب
+                        </Button>
+                      )}
+                    </div>
                   </div>
 
                   {loadingDetail ? (
                     <div className="flex items-center justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /><span className="mr-2 text-muted-foreground">در حال بارگذاری...</span></div>
-                  ) : detailLinks.length === 0 ? (
+                  ) : detailCompetitors.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       <Globe className="w-10 h-10 mx-auto mb-3 opacity-30" />
                       <p className="text-sm">هنوز رقیبی برای این محصول ثبت نشده</p>
-                      <p className="text-xs mt-1">از طریق سرویس مدیریت قیمت، رقبای این محصول را اضافه کنید</p>
+                      {isAdmin && <p className="text-xs mt-1">از دکمه «افزودن رقیب» محصولی از دیجیکالا یا اسنپ‌شاپ اضافه کنید</p>}
                     </div>
                   ) : (
-                    <div className="space-y-3">
-                      {detailLinks.map((link) => {
-                        const isCheaper = link.lastAdjustedPrice !== null && link.lastAdjustedPrice < detailProduct.price;
-                        const isMoreExpensive = link.lastAdjustedPrice !== null && link.lastAdjustedPrice > detailProduct.price;
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {detailCompetitors.map((comp) => {
+                        const isCheaper = comp.price > 0 && comp.price < detailProduct.price;
+                        const isMoreExpensive = comp.price > 0 && comp.price > detailProduct.price;
                         return (
-                          <div key={link.id} className={`flex items-center justify-between p-4 rounded-xl border transition-colors ${isCheaper ? "bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800" : isMoreExpensive ? "bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800" : "bg-muted/50 border-border"}`}>
+                          <div key={comp.id} className={`flex items-center justify-between p-4 rounded-xl border transition-colors ${isCheaper ? "bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800" : isMoreExpensive ? "bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800" : "bg-muted/50 border-border"}`}>
                             <div className="flex items-center gap-3 min-w-0 flex-1">
-                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${link.linkType === "API" ? "bg-amber-100 dark:bg-amber-900/30" : "bg-sky-100 dark:bg-sky-900/30"}`}>
-                                {link.linkType === "API" ? <Code2 className="w-5 h-5 text-amber-600 dark:text-amber-400" /> : <Globe className="w-5 h-5 text-sky-600 dark:text-sky-400" />}
+                              <div className="relative shrink-0">
+                                {comp.imageUrl ? (
+                                  <img src={comp.imageUrl} alt={comp.name} className="w-12 h-12 rounded-lg object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                                ) : (
+                                  <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center text-lg">
+                                    {getSourceIcon(comp.source)}
+                                  </div>
+                                )}
                               </div>
                               <div className="min-w-0">
-                                <p className="font-medium line-clamp-1">{link.name}</p>
-                                <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-primary line-clamp-1 block max-w-[200px]" onClick={(e) => e.stopPropagation()}>
-                                  {link.url} <ExternalLink className="w-2.5 h-2.5 inline mr-1" />
-                                </a>
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{getSourceLabel(comp.source)}</Badge>
+                                  {comp.brand && <span className="text-[10px] text-muted-foreground">{comp.brand}</span>}
+                                </div>
+                                <p className="font-medium line-clamp-1 text-sm">{comp.name}</p>
+                                <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                                  {(comp.weight || comp.volume) && <span>{comp.weight || comp.volume}</span>}
+                                  <a href={getSourceUrl(comp.source, comp.sourceId)} target="_blank" rel="noopener noreferrer" className="hover:text-primary inline-flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+                                    مشاهده <ExternalLink className="w-2.5 h-2.5" />
+                                  </a>
+                                </div>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 shrink-0">
                               <div className="text-left">
-                                {link.lastAdjustedPrice !== null ? (
+                                {comp.price > 0 ? (
                                   <>
-                                    <p className="font-bold text-base">{formatPrice(link.lastAdjustedPrice, currencyUnit)}</p>
-                                    {link.priceMultiplier !== 1 && link.lastPrice !== null && (
-                                      <HoverCard>
-                                        <HoverCardTrigger asChild>
-                                          <p className="text-[10px] text-muted-foreground cursor-help flex items-center gap-0.5">
-                                            <Calculator className="w-2.5 h-2.5" />
-                                            {formatPrice(link.lastPrice, currencyUnit)} × {parseFloat(link.priceMultiplier.toFixed(4))}
-                                          </p>
-                                        </HoverCardTrigger>
-                                        <HoverCardContent side="left" className="w-64 text-xs" dir="rtl">
-                                          <div className="space-y-1">
-                                            <p className="font-semibold">محاسبه قیمت با ضریب</p>
-                                            <p>قیمت استخراج‌شده: {formatPrice(link.lastPrice, currencyUnit)}</p>
-                                            <p>ضریب: {parseFloat(link.priceMultiplier.toFixed(4))}</p>
-                                            <Separator />
-                                            <p className="font-semibold">قیمت نهایی: {formatPrice(link.lastAdjustedPrice, currencyUnit)}</p>
-                                          </div>
-                                        </HoverCardContent>
-                                      </HoverCard>
+                                    <p className="font-bold text-base">{formatPrice(comp.price, currencyUnit)}</p>
+                                    {comp.discountPercent > 0 && comp.originalPrice && (
+                                      <div className="flex items-center gap-1">
+                                        <Badge variant="destructive" className="text-[10px] px-1 py-0">
+                                          <Tag className="w-2.5 h-2.5 ml-0.5" />
+                                          {comp.discountPercent}%
+                                        </Badge>
+                                        <span className="text-[10px] text-muted-foreground line-through">{formatPrice(comp.originalPrice, currencyUnit)}</span>
+                                      </div>
                                     )}
                                     {isCheaper && <Badge variant="destructive" className="text-[10px] mt-1">رقیب ارزان‌تر</Badge>}
                                     {isMoreExpensive && <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] mt-1">شما ارزان‌تر!</Badge>}
-                                    {link.lastFetchedAt && <p className="text-[10px] text-muted-foreground mt-0.5">{new Date(link.lastFetchedAt).toLocaleDateString("fa-IR")}</p>}
+                                    <p className="text-[10px] text-muted-foreground mt-0.5">{new Date(comp.fetchedAt).toLocaleDateString("fa-IR")}</p>
                                   </>
                                 ) : (
-                                  <p className="text-xs text-muted-foreground">قیمت استخراج نشده</p>
+                                  <p className="text-xs text-muted-foreground">ناموجود</p>
                                 )}
                               </div>
-                              {getPriceTrend(link.priceHistory)}
+                              {isAdmin && (
+                                <div className="flex flex-col gap-1" onClick={(e) => e.stopPropagation()}>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRefreshCompetitor(comp.id)} disabled={refreshingCompetitor === comp.id}>
+                                    {refreshingCompetitor === comp.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleUnlinkCompetitor(comp.id)}>
+                                    <Unlink className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              )}
                             </div>
                           </div>
                         );
@@ -648,6 +808,146 @@ export default function CatalogPage() {
               </div>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ═══ Add Competitor Dialog ═══ */}
+      <Dialog open={addCompetitorDialogOpen} onOpenChange={(open) => { setAddCompetitorDialogOpen(open); if (!open) { setCompetitorSource(""); setCompetitorSourceId(""); setCompetitorLinkProductId(""); } }}>
+        <DialogContent className="sm:max-w-md" dir="rtl">
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><ShoppingCart className="w-5 h-5 text-emerald-600" /> افزودن محصول رقیب از فروشگاه آنلاین</DialogTitle></DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label>فروشگاه منبع *</Label>
+              <Select value={competitorSource} onValueChange={setCompetitorSource}>
+                <SelectTrigger><SelectValue placeholder="فروشگاه را انتخاب کنید" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="DIGIKALA">🟡 دیجیکالا</SelectItem>
+                  <SelectItem value="SNAPPSHOP">🟣 اسنپ‌شاپ</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>شناسه محصول *</Label>
+              <Input value={competitorSourceId} onChange={(e) => setCompetitorSourceId(e.target.value)} placeholder={competitorSource === "DIGIKALA" ? "مثلاً: 16349888" : competitorSource === "SNAPPSHOP" ? "مثلاً: 717225954" : "شناسه محصول در فروشگاه"} dir="ltr" />
+              {competitorSource && (
+                <p className="text-xs text-muted-foreground">
+                  {competitorSource === "DIGIKALA" ? "شناسه عددی محصول در دیجیکالا (قسمت dkp- از URL)" : "شناسه عددی محصول در اسنپ‌شاپ"}
+                </p>
+              )}
+            </div>
+            {!competitorLinkProductId && (
+              <div className="space-y-2">
+                <Label>اتصال به محصول کاتالوگ (اختیاری)</Label>
+                <Select value={competitorLinkProductId} onValueChange={setCompetitorLinkProductId}>
+                  <SelectTrigger><SelectValue placeholder="محصول کاتالوگ را انتخاب کنید" /></SelectTrigger>
+                  <SelectContent className="max-h-48">
+                    {products.map((p) => <SelectItem key={p.id} value={p.id}><span className="line-clamp-1">{p.name}</span></SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {competitorLinkProductId && (
+              <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+                <p className="text-xs text-emerald-700 dark:text-emerald-400">اتصال به: {products.find((p) => p.id === competitorLinkProductId)?.name}</p>
+              </div>
+            )}
+            <Button onClick={handleScrapeAndAdd} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white" disabled={!competitorSource || !competitorSourceId || scrapeLoading}>
+              {scrapeLoading ? <><Loader2 className="w-4 h-4 ml-2 animate-spin" /> در حال اسکرپ...</> : <><Globe className="w-4 h-4 ml-2" /> اسکرپ و ذخیره</>}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ═══ Link Competitor Dialog ═══ */}
+      <Dialog open={linkDialogOpen} onOpenChange={(open) => { setLinkDialogOpen(open); if (!open) { setLinkingCompetitor(null); setLinkProductId(""); } }}>
+        <DialogContent className="sm:max-w-md" dir="rtl">
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><ArrowRightLeft className="w-5 h-5" /> اتصال محصول رقیب به کاتالوگ</DialogTitle></DialogHeader>
+          <div className="space-y-4 mt-4">
+            {linkingCompetitor && (
+              <div className="p-3 rounded-lg bg-muted">
+                <p className="text-sm font-medium">{linkingCompetitor.name}</p>
+                <p className="text-xs text-muted-foreground">{getSourceLabel(linkingCompetitor.source)} — {linkingCompetitor.sourceId}</p>
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label>محصول کاتالوگ *</Label>
+              <Select value={linkProductId} onValueChange={setLinkProductId}>
+                <SelectTrigger><SelectValue placeholder="محصول کاتالوگ را انتخاب کنید" /></SelectTrigger>
+                <SelectContent className="max-h-48">
+                  {products.map((p) => <SelectItem key={p.id} value={p.id}><span className="line-clamp-1">{p.name}</span></SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={handleLinkCompetitor} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white" disabled={!linkProductId}>
+              <Link2 className="w-4 h-4 ml-2" /> اتصال
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ═══ Competitor Management Dialog ═══ */}
+      <Dialog open={competitorManageOpen} onOpenChange={setCompetitorManageOpen}>
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><ShoppingCart className="w-5 h-5" /> مدیریت محصولات رقیب اسکرپ شده</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="flex items-center gap-2">
+              <Select value={competitorFilter} onValueChange={(v) => { setCompetitorFilter(v); }}>
+                <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">همه</SelectItem>
+                  <SelectItem value="unlinked">بدون اتصال</SelectItem>
+                  <SelectItem value="DIGIKALA">دیجیکالا</SelectItem>
+                  <SelectItem value="SNAPPSHOP">اسنپ‌شاپ</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="outline" size="sm" onClick={fetchAllCompetitors}><RefreshCw className="w-3 h-3" /></Button>
+              <Button variant="default" size="sm" className="gap-1 mr-auto bg-gradient-to-r from-emerald-500 to-teal-600 text-white" onClick={() => { setCompetitorLinkProductId(""); setAddCompetitorDialogOpen(true); }}>
+                <Plus className="w-3 h-3" /> افزودن
+              </Button>
+            </div>
+
+            {allCompetitors.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <ShoppingCart className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                <p className="text-sm">هنوز محصول رقیبی اسکرپ نشده</p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {allCompetitors.map((comp) => (
+                  <div key={comp.id} className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
+                    {comp.imageUrl ? (
+                      <img src={comp.imageUrl} alt="" className="w-10 h-10 rounded object-cover shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                    ) : (
+                      <div className="w-10 h-10 rounded bg-muted flex items-center justify-center text-sm shrink-0">{getSourceIcon(comp.source)}</div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium line-clamp-1">{comp.name}</p>
+                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                        <Badge variant="secondary" className="text-[9px] px-1 py-0">{getSourceLabel(comp.source)}</Badge>
+                        {comp.brand && <span>{comp.brand}</span>}
+                        {comp.catalogProductId && <span className="text-emerald-600">✓ متصل</span>}
+                      </div>
+                    </div>
+                    <div className="text-left shrink-0">
+                      <p className="text-sm font-bold">{comp.price > 0 ? formatPrice(comp.price, currencyUnit) : "—"}</p>
+                    </div>
+                    <div className="flex gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                      {!comp.catalogProductId && (
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setLinkingCompetitor(comp); setLinkProductId(""); setLinkDialogOpen(true); }}>
+                          <Link2 className="w-3 h-3" />
+                        </Button>
+                      )}
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ type: "competitor", id: comp.id, name: comp.name })}>
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -746,12 +1046,12 @@ export default function CatalogPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader><AlertDialogTitle>آیا مطمئن هستید؟</AlertDialogTitle>
             <AlertDialogDescription>
-              {deleteTarget?.type === "product" ? <span>محصول &laquo;{deleteTarget.name && deleteTarget.name.length > 50 ? deleteTarget.name.slice(0, 50) + "…" : deleteTarget.name}&raquo; همراه با تمام لینک‌ها و تاریخچه قیمت‌ها حذف خواهد شد.</span> : deleteTarget?.type === "group" ? <span>گروه &laquo;{deleteTarget.name}&raquo; همراه با زیرگروه‌ها حذف خواهد شد. محصولات این گروه بدون گروه می‌شوند.</span> : ""}
+              {deleteTarget?.type === "product" ? <span>محصول &laquo;{deleteTarget.name && deleteTarget.name.length > 50 ? deleteTarget.name.slice(0, 50) + "…" : deleteTarget.name}&raquo; حذف خواهد شد.</span> : deleteTarget?.type === "group" ? <span>گروه &laquo;{deleteTarget.name}&raquo; همراه با زیرگروه‌ها حذف خواهد شد. محصولات این گروه بدون گروه می‌شوند.</span> : deleteTarget?.type === "competitor" ? <span>محصول رقیب &laquo;{deleteTarget.name && deleteTarget.name.length > 50 ? deleteTarget.name.slice(0, 50) + "…" : deleteTarget.name}&raquo; حذف خواهد شد.</span> : ""}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>انصراف</AlertDialogCancel>
-            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => { if (deleteTarget) { if (deleteTarget.type === "product") handleDeleteProduct(deleteTarget.id); else if (deleteTarget.type === "group") handleDeleteGroup(deleteTarget.id); } setDeleteTarget(null); }}>حذف</AlertDialogAction>
+            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => { if (deleteTarget) { if (deleteTarget.type === "product") handleDeleteProduct(deleteTarget.id); else if (deleteTarget.type === "group") handleDeleteGroup(deleteTarget.id); else if (deleteTarget.type === "competitor") handleDeleteCompetitor(deleteTarget.id); } setDeleteTarget(null); }}>حذف</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

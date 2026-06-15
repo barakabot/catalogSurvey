@@ -23,42 +23,46 @@ model ProductGroup {
 }
 
 model Product {
-  id          String           @id @default(cuid())
-  name        String
-  description String?
-  price       Float
-  imageUrl    String?
-  groupId     String?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  group       ProductGroup?    @relation(fields: [groupId], references: [id], onDelete: SetNull)
-  links       CompetitorLink[]
+  id                  String               @id @default(cuid())
+  name                String
+  description         String?
+  price               Float
+  imageUrl            String?
+  groupId             String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  group               ProductGroup?        @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  competitorProducts  CompetitorProduct[]
 }
 
-model CompetitorLink {
-  id              String         @id @default(cuid())
-  productId       String
-  name            String
-  url             String
-  linkType        String         @default("WEBSITE") // API or WEBSITE
-  priceSelector   String?        // CSS selector for website, JSON path for API (e.g. "data.price")
-  priceMultiplier Float          @default(1.0) // ضریب قیمت: قیمت نهایی = قیمت استخراج شده × ضریب
-  lastPrice       Float?         // last raw extracted price
-  lastAdjustedPrice Float?       // last adjusted price = lastPrice * priceMultiplier
-  lastFetchedAt   DateTime?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  product         Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
-  priceHistory    PriceHistory[]
+model CompetitorProduct {
+  id               String                  @id @default(cuid())
+  source           String                  // DIGIKALA or SNAPPSHOP
+  sourceId         String                  // Product ID from the source platform
+  name             String
+  imageUrl         String?
+  weight           String?                 // وزن
+  volume           String?                 // حجم
+  price            Float                   // Current price (in Rial for Iranian sites)
+  originalPrice    Float?                  // Price before discount
+  discountPercent  Float                   @default(0)
+  brand            String?                 // Brand name
+  fetchedAt        DateTime                @default(now()) // Date of last price fetch
+  catalogProductId String?                 // Link to catalog product
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+  catalogProduct   Product?               @relation(fields: [catalogProductId], references: [id], onDelete: SetNull)
+  priceHistory     CompetitorPriceHistory[]
 }
 
-model PriceHistory {
-  id               String         @id @default(cuid())
-  competitorLinkId String
-  price            Float          // raw extracted price
-  adjustedPrice    Float          // price * multiplier
-  fetchedAt        DateTime       @default(now())
-  link             CompetitorLink @relation(fields: [competitorLinkId], references: [id], onDelete: Cascade)
+model CompetitorPriceHistory {
+  id                  String             @id @default(cuid())
+  competitorProductId String
+  price               Float
+  originalPrice       Float?
+  discountPercent     Float              @default(0)
+  fetchedAt           DateTime           @default(now())
+  competitorProduct   CompetitorProduct  @relation(fields: [competitorProductId], references: [id], onDelete: Cascade)
 }
 
 model Settings {

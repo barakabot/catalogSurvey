@@ -1,0 +1,761 @@
+     1→     1→"use client";
+     2→     2→
+     3→     3→import React, { useState, useCallback } from "react";
+     4→     4→import {
+     5→     5→  Plus,
+     6→     6→  ExternalLink,
+     7→     7→  Trash2,
+     8→     8→  Edit3,
+     9→     9→  Link2,
+    10→    10→  TrendingDown,
+    11→    11→  TrendingUp,
+    12→    12→  Minus,
+    13→    13→  Package,
+    14→    14→  Globe,
+    15→    15→  Code2,
+    16→    16→  Search,
+    17→    17→  X,
+    18→    18→  Loader2,
+    19→    19→  RefreshCw,
+    20→    20→  Settings2,
+    21→    21→  LogIn,
+    22→    22→  LogOut,
+    23→    23→  Shield,
+    24→    24→  FolderTree,
+    25→    25→  FolderOpen,
+    26→    26→  FolderPlus,
+    27→    27→  Calculator,
+    28→    28→  Eye,
+    29→    29→} from "lucide-react";
+    30→    30→import { Button } from "@/components/ui/button";
+    31→    31→import {
+    32→    32→  Card,
+    33→    33→  CardContent,
+    34→    34→  CardHeader,
+    35→    35→} from "@/components/ui/card";
+    36→    36→import {
+    37→    37→  Dialog,
+    38→    38→  DialogContent,
+    39→    39→  DialogHeader,
+    40→    40→  DialogTitle,
+    41→    41→} from "@/components/ui/dialog";
+    42→    42→import {
+    43→    43→  AlertDialog,
+    44→    44→  AlertDialogAction,
+    45→    45→  AlertDialogCancel,
+    46→    46→  AlertDialogContent,
+    47→    47→  AlertDialogDescription,
+    48→    48→  AlertDialogFooter,
+    49→    49→  AlertDialogHeader,
+    50→    50→  AlertDialogTitle,
+    51→    51→} from "@/components/ui/alert-dialog";
+    52→    52→import { Input } from "@/components/ui/input";
+    53→    53→import { Label } from "@/components/ui/label";
+    54→    54→import { Textarea } from "@/components/ui/textarea";
+    55→    55→import { Badge } from "@/components/ui/badge";
+    56→    56→import { Separator } from "@/components/ui/separator";
+    57→    57→import {
+    58→    58→  Select,
+    59→    59→  SelectContent,
+    60→    60→  SelectItem,
+    61→    61→  SelectTrigger,
+    62→    62→  SelectValue,
+    63→    63→} from "@/components/ui/select";
+    64→    64→import {
+    65→    65→  Accordion,
+    66→    66→  AccordionContent,
+    67→    67→  AccordionItem,
+    68→    68→  AccordionTrigger,
+    69→    69→} from "@/components/ui/accordion";
+    70→    70→import {
+    71→    71→  HoverCard,
+    72→    72→  HoverCardContent,
+    73→    73→  HoverCardTrigger,
+    74→    74→} from "@/components/ui/hover-card";
+    75→    75→import { useToast } from "@/hooks/use-toast";
+    76→    76→import { motion, AnimatePresence } from "framer-motion";
+    77→    77→
+    78→    78→// ─── Types ────────────────────────────────────────────────────────
+    79→    79→interface PriceHistory {
+    80→    80→  id: string;
+    81→    81→  price: number;
+    82→    82→  adjustedPrice: number;
+    83→    83→  fetchedAt: string;
+    84→    84→}
+    85→    85→
+    86→    86→interface CompetitorLink {
+    87→    87→  id: string;
+    88→    88→  productId: string;
+    89→    89→  name: string;
+    90→    90→  url: string;
+    91→    91→  linkType: string;
+    92→    92→  priceSelector: string | null;
+    93→    93→  priceMultiplier: number;
+    94→    94→  lastPrice: number | null;
+    95→    95→  lastAdjustedPrice: number | null;
+    96→    96→  lastFetchedAt: string | null;
+    97→    97→  priceHistory?: PriceHistory[];
+    98→    98→}
+    99→    99→
+   100→   100→interface ProductGroupParent {
+   101→   101→  id: string;
+   102→   102→  name: string;
+   103→   103→  parentId: string | null;
+   104→   104→  order: number;
+   105→   105→  children: ProductGroup[];
+   106→   106→  productCount?: number;
+   107→   107→}
+   108→   108→
+   109→   109→interface ProductGroup {
+   110→   110→  id: string;
+   111→   111→  name: string;
+   112→   112→  parentId: string | null;
+   113→   113→  order: number;
+   114→   114→  parent?: { id: string; name: string } | null;
+   115→   115→}
+   116→   116→
+   117→   117→interface Product {
+   118→   118→  id: string;
+   119→   119→  name: string;
+   120→   120→  description: string | null;
+   121→   121→  price: number;
+   122→   122→  imageUrl: string | null;
+   123→   123→  groupId: string | null;
+   124→   124→  group?: ProductGroup & { parent?: { id: string; name: string } | null } | null;
+   125→   125→  createdAt: string;
+   126→   126→  updatedAt: string;
+   127→   127→  links: CompetitorLink[];
+   128→   128→}
+   129→   129→
+   130→   130→// ─── Helpers ──────────────────────────────────────────────────────
+   131→   131→function formatPrice(price: number, currencyUnit: string): string {
+   132→   132→  return new Intl.NumberFormat("fa-IR").format(Math.round(price)) + " " + currencyUnit;
+   133→   133→}
+   134→   134→
+   135→   135→function getPriceTrend(history?: PriceHistory[]) {
+   136→   136→  if (!history || history.length < 2) return null;
+   137→   137→  const latest = history[0].adjustedPrice;
+   138→   138→  const previous = history[1].adjustedPrice;
+   139→   139→  if (latest < previous) return <TrendingDown className="w-4 h-4 text-emerald-500" />;
+   140→   140→  if (latest > previous) return <TrendingUp className="w-4 h-4 text-red-500" />;
+   141→   141→  return <Minus className="w-4 h-4 text-muted-foreground" />;
+   142→   142→}
+   143→   143→
+   144→   144→// ─── Main Component ───────────────────────────────────────────────
+   145→   145→export default function CatalogPage() {
+   146→   146→  const { toast } = useToast();
+   147→   147→  const [products, setProducts] = useState<Product[]>([]);
+   148→   148→  const [groups, setGroups] = useState<ProductGroupParent[]>([]);
+   149→   149→  const [currencyUnit, setCurrencyUnit] = useState("تومان");
+   150→   150→  const [loading, setLoading] = useState(true);
+   151→   151→  const [searchQuery, setSearchQuery] = useState("");
+   152→   152→  const [selectedGroup, setSelectedGroup] = useState<string>("all");
+   153→   153→
+   154→   154→  // Auth state
+   155→   155→  const [isAdmin, setIsAdmin] = useState(false);
+   156→   156→  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
+   157→   157→  const [loginPassword, setLoginPassword] = useState("");
+   158→   158→
+   159→   159→  // Dialog states
+   160→   160→  const [productDialogOpen, setProductDialogOpen] = useState(false);
+   161→   161→  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+   162→   162→  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+   163→   163→  const [deleteTarget, setDeleteTarget] = useState<{
+   164→   164→    type: "product" | "group";
+   165→   165→    id: string;
+   166→   166→    name?: string;
+   167→   167→  } | null>(null);
+   168→   168→
+   169→   169→  // Product detail modal
+   170→   170→  const [detailProduct, setDetailProduct] = useState<Product | null>(null);
+   171→   171→  const [detailLinks, setDetailLinks] = useState<CompetitorLink[]>([]);
+   172→   172→  const [loadingDetail, setLoadingDetail] = useState(false);
+   173→   173→  const [fetchingPrices, setFetchingPrices] = useState(false);
+   174→   174→
+   175→   175→  // Settings dialog
+   176→   176→  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+   177→   177→  const [settingsForm, setSettingsForm] = useState({
+   178→   178→    currencyUnit: "تومان",
+   179→   179→    adminPassword: "",
+   180→   180→    currentPassword: "",
+   181→   181→  });
+   182→   182→
+   183→   183→  // Group dialog
+   184→   184→  const [groupDialogOpen, setGroupDialogOpen] = useState(false);
+   185→   185→  const [groupForm, setGroupForm] = useState({ name: "", parentId: "" });
+   186→   186→  const [editingGroup, setEditingGroup] = useState<ProductGroupParent | null>(null);
+   187→   187→
+   188→   188→  // Form states
+   189→   189→  const [productForm, setProductForm] = useState({
+   190→   190→    name: "",
+   191→   191→    description: "",
+   192→   192→    price: "",
+   193→   193→    imageUrl: "",
+   194→   194→    groupId: "",
+   195→   195→  });
+   196→   196→
+   197→   197→  // ─── Fetch Data ────────────────────────────────────────────────
+   198→   198→  const fetchProducts = useCallback(async () => {
+   199→   199→    try {
+   200→   200→      setLoading(true);
+   201→   201→      const res = await fetch("/api/products");
+   202→   202→      if (!res.ok) throw new Error();
+   203→   203→      const data = await res.json();
+   204→   204→      setProducts(data);
+   205→   205→    } catch {
+   206→   206→      toast({ title: "خطا", description: "دریافت محصولات ناموفق بود", variant: "destructive" });
+   207→   207→    } finally {
+   208→   208→      setLoading(false);
+   209→   209→    }
+   210→   210→  }, [toast]);
+   211→   211→
+   212→   212→  const fetchGroups = useCallback(async () => {
+   213→   213→    try {
+   214→   214→      const res = await fetch("/api/groups");
+   215→   215→      if (!res.ok) throw new Error();
+   216→   216→      setGroups(await res.json());
+   217→   217→    } catch {
+   218→   218→      toast({ title: "خطا", description: "دریافت گروه‌ها ناموفق بود", variant: "destructive" });
+   219→   219→    }
+   220→   220→  }, [toast]);
+   221→   221→
+   222→   222→  const fetchSettings = useCallback(async () => {
+   223→   223→    try {
+   224→   224→      const res = await fetch("/api/settings");
+   225→   225→      if (!res.ok) return;
+   226→   226→      const data = await res.json();
+   227→   227→      setCurrencyUnit(data.currencyUnit || "تومان");
+   228→   228→      setSettingsForm((f) => ({ ...f, currencyUnit: data.currencyUnit || "تومان" }));
+   229→   229→    } catch {}
+   230→   230→  }, []);
+   231→   231→
+   232→   232→  const checkAuth = useCallback(async () => {
+   233→   233→    try {
+   234→   234→      const res = await fetch("/api/auth");
+   235→   235→      if (!res.ok) return;
+   236→   236→      setIsAdmin((await res.json()).authenticated);
+   237→   237→    } catch {}
+   238→   238→  }, []);
+   239→   239→
+   240→   240→  React.useEffect(() => {
+   241→   241→    fetchProducts();
+   242→   242→    fetchGroups();
+   243→   243→    fetchSettings();
+   244→   244→    checkAuth();
+   245→   245→  }, [fetchProducts, fetchGroups, fetchSettings, checkAuth]);
+   246→   246→
+   247→   247→  // ─── Group filter options ──────────────────────────────────────
+   248→   248→  const groupFilterOptions = React.useMemo(() => {
+   249→   249→    const opts: { id: string; name: string; depth: number }[] = [];
+   250→   250→    groups.forEach((g) => {
+   251→   251→      opts.push({ id: g.id, name: g.name, depth: 0 });
+   252→   252→      g.children.forEach((sub) => opts.push({ id: sub.id, name: sub.name, depth: 1 }));
+   253→   253→    });
+   254→   254→    return opts;
+   255→   255→  }, [groups]);
+   256→   256→
+   257→   257→  // ─── Filter products ───────────────────────────────────────────
+   258→   258→  const filteredProducts = React.useMemo(() => {
+   259→   259→    return products.filter((p) => {
+   260→   260→      const mq = !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase()) || (p.description?.toLowerCase().includes(searchQuery.toLowerCase()));
+   261→   261→      const mg = selectedGroup === "all" || p.groupId === selectedGroup;
+   262→   262→      return mq && mg;
+   263→   263→    });
+   264→   264→  }, [products, searchQuery, selectedGroup]);
+   265→   265→
+   266→   266→  // ─── Auth ──────────────────────────────────────────────────────
+   267→   267→  const handleLogin = async () => {
+   268→   268→    try {
+   269→   269→      const res = await fetch("/api/auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: loginPassword }) });
+   270→   270→      const data = await res.json();
+   271→   271→      if (!res.ok) { toast({ title: "خطا", description: data.error || "ورود ناموفق بود", variant: "destructive" }); return; }
+   272→   272→      setIsAdmin(true);
+   273→   273→      setLoginDialogOpen(false);
+   274→   274→      setLoginPassword("");
+   275→   275→      toast({ title: "ورود موفق", description: "به عنوان مدیر وارد شدید" });
+   276→   276→    } catch { toast({ title: "خطا", description: "ورود ناموفق بود", variant: "destructive" }); }
+   277→   277→  };
+   278→   278→
+   279→   279→  const handleLogout = async () => {
+   280→   280→    try { await fetch("/api/auth", { method: "DELETE" }); setIsAdmin(false); toast({ title: "خروج" }); } catch {}
+   281→   281→  };
+   282→   282→
+   283→   283→  // ─── Product CRUD ──────────────────────────────────────────────
+   284→   284→  const handleSaveProduct = async () => {
+   285→   285→    try {
+   286→   286→      const url = editingProduct ? `/api/products/${editingProduct.id}` : "/api/products";
+   287→   287→      const res = await fetch(url, { method: editingProduct ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: productForm.name, description: productForm.description || null, price: parseFloat(productForm.price), imageUrl: productForm.imageUrl || null, groupId: productForm.groupId || null }) });
+   288→   288→      if (!res.ok) throw new Error();
+   289→   289→      toast({ title: editingProduct ? "محصول بروزرسانی شد" : "محصول اضافه شد" });
+   290→   290→      setProductDialogOpen(false);
+   291→   291→      setEditingProduct(null);
+   292→   292→      resetProductForm();
+   293→   293→      fetchProducts();
+   294→   294→    } catch { toast({ title: "خطا", description: "ذخیره محصول ناموفق بود", variant: "destructive" }); }
+   295→   295→  };
+   296→   296→
+   297→   297→  const handleDeleteProduct = async (id: string) => {
+   298→   298→    try {
+   299→   299→      if (!(await fetch(`/api/products/${id}`, { method: "DELETE" })).ok) throw new Error();
+   300→   300→      toast({ title: "محصول حذف شد" }); fetchProducts();
+   301→   301→    } catch { toast({ title: "خطا", description: "حذف ناموفق بود", variant: "destructive" }); }
+   302→   302→  };
+   303→   303→
+   304→   304→  // ─── Product Detail ────────────────────────────────────────────
+   305→   305→  const openProductDetail = async (product: Product) => {
+   306→   306→    setDetailProduct(product);
+   307→   307→    setDetailLinks(product.links || []);
+   308→   308→    setLoadingDetail(true);
+   309→   309→    try {
+   310→   310→      // Fetch fresh product data with links
+   311→   311→      const res = await fetch(`/api/products`);
+   312→   312→      if (res.ok) {
+   313→   313→        const allProducts: Product[] = await res.json();
+   314→   314→        const fresh = allProducts.find((p) => p.id === product.id);
+   315→   315→        if (fresh) setDetailLinks(fresh.links || []);
+   316→   316→      }
+   317→   317→    } catch {}
+   318→   318→    setLoadingDetail(false);
+   319→   319→  };
+   320→   320→
+   321→   321→  const handleFetchPrices = async () => {
+   322→   322→    if (!detailProduct) return;
+   323→   323→    setFetchingPrices(true);
+   324→   324→    try {
+   325→   325→      const res = await fetch(`/api/products/${detailProduct.id}/fetch-prices`, { method: "POST" });
+   326→   326→      if (!res.ok) throw new Error();
+   327→   327→      const data = await res.json();
+   328→   328→      const sc = data.results?.filter((r: { success: boolean }) => r.success).length || 0;
+   329→   329→      const fc = data.results?.filter((r: { success: boolean }) => !r.success).length || 0;
+   330→   330→      const failedDetails = data.results?.filter((r: { success: boolean }) => !r.success).map((r: { linkName: string; error?: string }) => `${r.linkName}: ${r.error || "نامشخص"}`).join("\n") || "";
+   331→   331→      toast({ title: "استخراج قیمت‌ها انجام شد", description: `${sc} موفق${fc > 0 ? `، ${fc} ناموفق` : ""}${failedDetails ? "\n" + failedDetails : ""}`, variant: fc > 0 && sc === 0 ? "destructive" : "default", duration: fc > 0 ? 8000 : 4000 });
+   332→   332→      // Refresh
+   333→   333→      const refreshRes = await fetch(`/api/products`);
+   334→   334→      if (refreshRes.ok) {
+   335→   335→        const allP: Product[] = await refreshRes.json();
+   336→   336→        const fresh = allP.find((p) => p.id === detailProduct.id);
+   337→   337→        if (fresh) setDetailLinks(fresh.links || []);
+   338→   338→        setProducts(allP);
+   339→   339→      }
+   340→   340→    } catch { toast({ title: "خطا", description: "استخراج قیمت‌ها ناموفق بود", variant: "destructive" }); }
+   341→   341→    finally { setFetchingPrices(false); }
+   342→   342→  };
+   343→   343→
+   344→   344→  // ─── Group CRUD ────────────────────────────────────────────────
+   345→   345→  const handleSaveGroup = async () => {
+   346→   346→    try {
+   347→   347→      const url = editingGroup ? `/api/groups/${editingGroup.id}` : "/api/groups";
+   348→   348→      const body: Record<string, unknown> = { name: groupForm.name };
+   349→   349→      if (!editingGroup) body.parentId = groupForm.parentId || null;
+   350→   350→      if (!(await fetch(url, { method: editingGroup ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })).ok) throw new Error();
+   351→   351→      toast({ title: editingGroup ? "گروه بروزرسانی شد" : "گروه اضافه شد" });
+   352→   352→      setGroupDialogOpen(false); setEditingGroup(null); setGroupForm({ name: "", parentId: "" });
+   353→   353→      fetchGroups(); fetchProducts();
+   354→   354→    } catch { toast({ title: "خطا", description: "ذخیره گروه ناموفق بود", variant: "destructive" }); }
+   355→   355→  };
+   356→   356→
+   357→   357→  const handleDeleteGroup = async (id: string) => {
+   358→   358→    try {
+   359→   359→      if (!(await fetch(`/api/groups/${id}`, { method: "DELETE" })).ok) throw new Error();
+   360→   360→      toast({ title: "گروه حذف شد" }); fetchGroups(); fetchProducts();
+   361→   361→    } catch { toast({ title: "خطا", description: "حذف ناموفق بود", variant: "destructive" }); }
+   362→   362→  };
+   363→   363→
+   364→   364→  // ─── Settings ──────────────────────────────────────────────────
+   365→   365→  const handleSaveSettings = async () => {
+   366→   366→    try {
+   367→   367→      const body: Record<string, string> = { currencyUnit: settingsForm.currencyUnit };
+   368→   368→      if (settingsForm.adminPassword) { body.adminPassword = settingsForm.adminPassword; body.currentPassword = settingsForm.currentPassword; }
+   369→   369→      const res = await fetch("/api/settings", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+   370→   370→      const data = await res.json();
+   371→   371→      if (!res.ok) { toast({ title: "خطا", description: data.error || "ذخیره ناموفق بود", variant: "destructive" }); return; }
+   372→   372→      setCurrencyUnit(data.currencyUnit);
+   373→   373→      setSettingsDialogOpen(false);
+   374→   374→      setSettingsForm((f) => ({ ...f, adminPassword: "", currentPassword: "" }));
+   375→   375→      toast({ title: "تنظیمات ذخیره شد" });
+   376→   376→    } catch { toast({ title: "خطا", description: "ذخیره ناموفق بود", variant: "destructive" }); }
+   377→   377→  };
+   378→   378→
+   379→   379→  // ─── Form helpers ──────────────────────────────────────────────
+   380→   380→  const resetProductForm = () => setProductForm({ name: "", description: "", price: "", imageUrl: "", groupId: "" });
+   381→   381→
+   382→   382→  const openEditProduct = (product: Product) => {
+   383→   383→    setEditingProduct(product);
+   384→   384→    setProductForm({ name: product.name, description: product.description || "", price: String(product.price), imageUrl: product.imageUrl || "", groupId: product.groupId || "" });
+   385→   385→    setProductDialogOpen(true);
+   386→   386→  };
+   387→   387→
+   388→   388→  // ─── Computed ──────────────────────────────────────────────────
+   389→   389→  const getBestCompetitorPrice = (product: Product) => {
+   390→   390→    const prices = product.links.filter((l) => l.lastAdjustedPrice !== null).map((l) => l.lastAdjustedPrice as number);
+   391→   391→    return prices.length ? Math.min(...prices) : null;
+   392→   392→  };
+   393→   393→
+   394→   394→  const getGroupName = (product: Product) => {
+   395→   395→    if (!product.group) return null;
+   396→   396→    return product.group.parent?.name ? `${product.group.parent.name} › ${product.group.name}` : product.group.name;
+   397→   397→  };
+   398→   398→
+   399→   399→  // ─── Render ────────────────────────────────────────────────────
+   400→   400→  return (
+   401→   401→    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+   402→   402→      {/* Header */}
+   403→   403→      <header className="sticky top-0 z-50 backdrop-blur-lg bg-white/80 dark:bg-slate-900/80 border-b border-border">
+   404→   404→        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+   405→   405→          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+   406→   406→            <div className="flex items-center gap-3">
+   407→   407→              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+   408→   408→                <Package className="w-5 h-5 text-white" />
+   409→   409→              </div>
+   410→   410→              <div>
+   411→   411→                <h1 className="text-xl font-bold text-foreground">کاتالوگ دیجیتال</h1>
+   412→   412→                <p className="text-xs text-muted-foreground">مقایسه قیمت محصولات با رقبا</p>
+   413→   413→              </div>
+   414→   414→            </div>
+   415→   415→            <div className="flex items-center gap-2 flex-wrap">
+   416→   416→              {isAdmin && (
+   417→   417→                <>
+   418→   418→                  <Button variant="outline" size="sm" className="gap-2" onClick={() => { setEditingGroup(null); setGroupForm({ name: "", parentId: "" }); setGroupDialogOpen(true); }}>
+   419→   419→                    <FolderPlus className="w-4 h-4" /> گروه‌بندی
+   420→   420→                  </Button>
+   421→   421→                  <Button variant="outline" size="sm" className="gap-2" onClick={() => { setSettingsForm((f) => ({ ...f, currencyUnit, adminPassword: "", currentPassword: "" })); setSettingsDialogOpen(true); }}>
+   422→   422→                    <Settings2 className="w-4 h-4" /> تنظیمات
+   423→   423→                  </Button>
+   424→   424→                  <Button variant="default" size="sm" className="gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/20" onClick={() => { setEditingProduct(null); resetProductForm(); setProductDialogOpen(true); }}>
+   425→   425→                    <Plus className="w-4 h-4" /> افزودن محصول
+   426→   426→                  </Button>
+   427→   427→                </>
+   428→   428→              )}
+   429→   429→              {isAdmin ? (
+   430→   430→                <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground" onClick={handleLogout}><LogOut className="w-4 h-4" /> خروج مدیر</Button>
+   431→   431→              ) : (
+   432→   432→                <Button variant="outline" size="sm" className="gap-2" onClick={() => setLoginDialogOpen(true)}><LogIn className="w-4 h-4" /> ورود مدیر</Button>
+   433→   433→              )}
+   434→   434→            </div>
+   435→   435→          </div>
+   436→   436→          {/* Search & Filters */}
+   437→   437→          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-4">
+   438→   438→            <div className="relative flex-1">
+   439→   439→              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+   440→   440→              <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="جستجوی محصول..." className="pr-10" />
+   441→   441→              {searchQuery && <button onClick={() => setSearchQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2"><X className="w-4 h-4 text-muted-foreground hover:text-foreground" /></button>}
+   442→   442→            </div>
+   443→   443→            {groupFilterOptions.length > 0 && (
+   444→   444→              <Select value={selectedGroup} onValueChange={setSelectedGroup}>
+   445→   445→                <SelectTrigger className="w-full sm:w-56"><SelectValue placeholder="دسته‌بندی" /></SelectTrigger>
+   446→   446→                <SelectContent>
+   447→   447→                  <SelectItem value="all">همه دسته‌ها</SelectItem>
+   448→   448→                  {groupFilterOptions.map((g) => <SelectItem key={g.id} value={g.id}>{g.depth === 0 ? g.name : `└ ${g.name}`}</SelectItem>)}
+   449→   449→                </SelectContent>
+   450→   450→              </Select>
+   451→   451→            )}
+   452→   452→          </div>
+   453→   453→        </div>
+   454→   454→      </header>
+   455→   455→
+   456→   456→      {/* Main Content */}
+   457→   457→      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-8">
+   458→   458→        {loading ? (
+   459→   459→          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+   460→   460→            {[1, 2, 3].map((i) => <Card key={i} className="animate-pulse"><div className="h-48 bg-muted rounded-t-lg" /><CardContent className="p-6"><div className="h-4 bg-muted rounded w-3/4 mb-3" /><div className="h-4 bg-muted rounded w-1/2" /></CardContent></Card>)}
+   461→   461→          </div>
+   462→   462→        ) : filteredProducts.length === 0 ? (
+   463→   463→          <div className="flex flex-col items-center justify-center py-24 text-center">
+   464→   464→            <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mb-6"><Package className="w-12 h-12 text-muted-foreground" /></div>
+   465→   465→            <h3 className="text-lg font-semibold text-foreground mb-2">{products.length === 0 ? "هنوز محصولی اضافه نشده" : "محصولی یافت نشد"}</h3>
+   466→   466→            <p className="text-muted-foreground mb-6 max-w-md">{products.length === 0 ? "برای شروع، ابتدا به عنوان مدیر وارد شوید." : "فیلترهای خود را تغییر دهید."}</p>
+   467→   467→            {products.length === 0 && !isAdmin && <Button variant="outline" className="gap-2" onClick={() => setLoginDialogOpen(true)}><LogIn className="w-4 h-4" /> ورود مدیر</Button>}
+   468→   468→          </div>
+   469→   469→        ) : (
+   470→   470→          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+   471→   471→            <AnimatePresence mode="popLayout">
+   472→   472→              {filteredProducts.map((product) => {
+   473→   473→                const bestPrice = getBestCompetitorPrice(product);
+   474→   474→                const hasLinks = product.links.length > 0;
+   475→   475→                const groupName = getGroupName(product);
+   476→   476→                return (
+   477→   477→                  <motion.div key={product.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+   478→   478→                    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-border/50 group cursor-pointer" onClick={() => openProductDetail(product)}>
+   479→   479→                      {product.imageUrl && (
+   480→   480→                        <div className="relative h-48 overflow-hidden bg-muted">
+   481→   481→                          <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+   482→   482→                          {groupName && <Badge className="absolute top-3 right-3 bg-white/90 dark:bg-slate-800/90 text-foreground backdrop-blur-sm"><FolderTree className="w-3 h-3 ml-1" />{groupName}</Badge>}
+   483→   483→                        </div>
+   484→   484→                      )}
+   485→   485→                      <CardHeader className="pb-2">
+   486→   486→                        <div className="flex items-start justify-between">
+   487→   487→                          <div className="flex-1 min-w-0">
+   488→   488→                            <h3 className="font-bold text-base leading-snug text-foreground line-clamp-2" title={product.name}>{product.name}</h3>
+   489→   489→                            {product.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{product.description}</p>}
+   490→   490→                            {!product.imageUrl && groupName && <Badge className="mt-2" variant="secondary"><FolderTree className="w-3 h-3 ml-1" />{groupName}</Badge>}
+   491→   491→                          </div>
+   492→   492→                          {isAdmin && (
+   493→   493→                            <div className="flex gap-1 mr-2" onClick={(e) => e.stopPropagation()}>
+   494→   494→                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditProduct(product)}><Edit3 className="w-4 h-4" /></Button>
+   495→   495→                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ type: "product", id: product.id, name: product.name })}><Trash2 className="w-4 h-4" /></Button>
+   496→   496→                            </div>
+   497→   497→                          )}
+   498→   498→                        </div>
+   499→   499→                      </CardHeader>
+   500→   500→                      <CardContent className="pb-4">
+   501→   501→                        <div className="flex items-center justify-between">
+   502→   502→                          <div>
+   503→   503→                            <span className="text-xs text-muted-foreground">قیمت شما:</span>
+   504→   504→                            <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{formatPrice(product.price, currencyUnit)}</p>
+   505→   505→                          </div>
+   506→   506→                          {bestPrice !== null && (
+   507→   507→                            <div className="text-left">
+   508→   508→                              <span className="text-xs text-muted-foreground">ارزان‌ترین رقیب:</span>
+   509→   509→                              <p className="text-lg font-semibold text-foreground">{formatPrice(bestPrice, currencyUnit)}</p>
+   510→   510→                              {bestPrice > product.price ? (
+   511→   511→                                <Badge variant="default" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-xs">شما ارزان‌تر!</Badge>
+   512→   512→                              ) : (
+   513→   513→                                <Badge variant="destructive" className="text-xs">رقیب ارزان‌تر</Badge>
+   514→   514→                              )}
+   515→   515→                            </div>
+   516→   516→                          )}
+   517→   517→                        </div>
+   518→   518→                        {hasLinks && (
+   519→   519→                          <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+   520→   520→                            <Link2 className="w-4 h-4" />
+   521→   521→                            <span>{product.links.length} رقیب</span>
+   522→   522→                            <span className="text-xs">({product.links.filter((l) => l.lastAdjustedPrice !== null).length} قیمت استخراج شده)</span>
+   523→   523→                          </div>
+   524→   524→                        )}
+   525→   525→                        <div className="mt-3 flex items-center justify-center gap-1 text-xs text-muted-foreground/60">
+   526→   526→                          <Eye className="w-3 h-3" />
+   527→   527→                          <span>برای مشاهده رقبا کلیک کنید</span>
+   528→   528→                        </div>
+   529→   529→                      </CardContent>
+   530→   530→                    </Card>
+   531→   531→                  </motion.div>
+   532→   532→                );
+   533→   533→              })}
+   534→   534→            </AnimatePresence>
+   535→   535→          </div>
+   536→   536→        )}
+   537→   537→      </main>
+   538→   538→
+   539→   539→      {/* Footer */}
+   540→   540→      <footer className="mt-auto border-t border-border bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+   541→   541→        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 text-center">
+   542→   542→          <p className="text-sm text-muted-foreground">کاتالوگ دیجیتال — مقایسه هوشمند قیمت با رقبا</p>
+   543→   543→          <p className="text-xs text-muted-foreground mt-1">{products.length} محصول{isAdmin && <span className="text-emerald-600"> • مدیر</span>}</p>
+   544→   544→        </div>
+   545→   545→      </footer>
+   546→   546→
+   547→   547→      {/* ═══ Product Detail Modal ═══ */}
+   548→   548→      <Dialog open={!!detailProduct} onOpenChange={(open) => { if (!open) setDetailProduct(null); }}>
+   549→   549→        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto" dir="rtl">
+   550→   550→          {detailProduct && (
+   551→   551→            <>
+   552→   552→              <DialogHeader>
+   553→   553→                <DialogTitle className="flex items-center gap-2 text-lg">
+   554→   554→                  <Package className="w-5 h-5 text-emerald-600 shrink-0" />
+   555→   555→                  <span className="line-clamp-2">{detailProduct.name}</span>
+   556→   556→                </DialogTitle>
+   557→   557→              </DialogHeader>
+   558→   558→              <div className="space-y-5 mt-4">
+   559→   559→                {/* Product Info */}
+   560→   560→                <div className="flex items-start gap-4 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+   561→   561→                  {detailProduct.imageUrl && <img src={detailProduct.imageUrl} alt={detailProduct.name} className="w-20 h-20 rounded-lg object-cover shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />}
+   562→   562→                  <div className="flex-1 min-w-0">
+   563→   563→                    <p className="text-sm text-muted-foreground">قیمت شما:</p>
+   564→   564→                    <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatPrice(detailProduct.price, currencyUnit)}</p>
+   565→   565→                    {detailProduct.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{detailProduct.description}</p>}
+   566→   566→                    {(() => { const gn = getGroupName(detailProduct); return gn ? <Badge className="mt-2" variant="secondary"><FolderTree className="w-3 h-3 ml-1" />{gn}</Badge> : null; })()}
+   567→   567→                  </div>
+   568→   568→                </div>
+   569→   569→
+   570→   570→                {/* Competitor Prices */}
+   571→   571→                <div>
+   572→   572→                  <div className="flex items-center justify-between mb-3">
+   573→   573→                    <h3 className="font-semibold flex items-center gap-2"><Link2 className="w-4 h-4" /> قیمت رقبا</h3>
+   574→   574→                    {detailLinks.length > 0 && (
+   575→   575→                      <Button variant="outline" size="sm" className="gap-2" onClick={handleFetchPrices} disabled={fetchingPrices}>
+   576→   576→                        {fetchingPrices ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+   577→   577→                        بروزرسانی قیمت‌ها
+   578→   578→                      </Button>
+   579→   579→                    )}
+   580→   580→                  </div>
+   581→   581→
+   582→   582→                  {loadingDetail ? (
+   583→   583→                    <div className="flex items-center justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /><span className="mr-2 text-muted-foreground">در حال بارگذاری...</span></div>
+   584→   584→                  ) : detailLinks.length === 0 ? (
+   585→   585→                    <div className="text-center py-8 text-muted-foreground">
+   586→   586→                      <Globe className="w-10 h-10 mx-auto mb-3 opacity-30" />
+   587→   587→                      <p className="text-sm">هنوز رقیبی برای این محصول ثبت نشده</p>
+   588→   588→                      <p className="text-xs mt-1">از طریق سرویس مدیریت قیمت، رقبای این محصول را اضافه کنید</p>
+   589→   589→                    </div>
+   590→   590→                  ) : (
+   591→   591→                    <div className="space-y-3">
+   592→   592→                      {detailLinks.map((link) => {
+   593→   593→                        const isCheaper = link.lastAdjustedPrice !== null && link.lastAdjustedPrice < detailProduct.price;
+   594→   594→                        const isMoreExpensive = link.lastAdjustedPrice !== null && link.lastAdjustedPrice > detailProduct.price;
+   595→   595→                        return (
+   596→   596→                          <div key={link.id} className={`flex items-center justify-between p-4 rounded-xl border transition-colors ${isCheaper ? "bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800" : isMoreExpensive ? "bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800" : "bg-muted/50 border-border"}`}>
+   597→   597→                            <div className="flex items-center gap-3 min-w-0 flex-1">
+   598→   598→                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${link.linkType === "API" ? "bg-amber-100 dark:bg-amber-900/30" : "bg-sky-100 dark:bg-sky-900/30"}`}>
+   599→   599→                                {link.linkType === "API" ? <Code2 className="w-5 h-5 text-amber-600 dark:text-amber-400" /> : <Globe className="w-5 h-5 text-sky-600 dark:text-sky-400" />}
+   600→   600→                              </div>
+   601→   601→                              <div className="min-w-0">
+   602→   602→                                <p className="font-medium line-clamp-1">{link.name}</p>
+   603→   603→                                <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-primary line-clamp-1 block max-w-[200px]" onClick={(e) => e.stopPropagation()}>
+   604→   604→                                  {link.url} <ExternalLink className="w-2.5 h-2.5 inline mr-1" />
+   605→   605→                                </a>
+   606→   606→                              </div>
+   607→   607→                            </div>
+   608→   608→                            <div className="flex items-center gap-2">
+   609→   609→                              <div className="text-left">
+   610→   610→                                {link.lastAdjustedPrice !== null ? (
+   611→   611→                                  <>
+   612→   612→                                    <p className="font-bold text-base">{formatPrice(link.lastAdjustedPrice, currencyUnit)}</p>
+   613→   613→                                    {link.priceMultiplier !== 1 && link.lastPrice !== null && (
+   614→   614→                                      <HoverCard>
+   615→   615→                                        <HoverCardTrigger asChild>
+   616→   616→                                          <p className="text-[10px] text-muted-foreground cursor-help flex items-center gap-0.5">
+   617→   617→                                            <Calculator className="w-2.5 h-2.5" />
+   618→   618→                                            {formatPrice(link.lastPrice, currencyUnit)} × {parseFloat(link.priceMultiplier.toFixed(4))}
+   619→   619→                                          </p>
+   620→   620→                                        </HoverCardTrigger>
+   621→   621→                                        <HoverCardContent side="left" className="w-64 text-xs" dir="rtl">
+   622→   622→                                          <div className="space-y-1">
+   623→   623→                                            <p className="font-semibold">محاسبه قیمت با ضریب</p>
+   624→   624→                                            <p>قیمت استخراج‌شده: {formatPrice(link.lastPrice, currencyUnit)}</p>
+   625→   625→                                            <p>ضریب: {parseFloat(link.priceMultiplier.toFixed(4))}</p>
+   626→   626→                                            <Separator />
+   627→   627→                                            <p className="font-semibold">قیمت نهایی: {formatPrice(link.lastAdjustedPrice, currencyUnit)}</p>
+   628→   628→                                          </div>
+   629→   629→                                        </HoverCardContent>
+   630→   630→                                      </HoverCard>
+   631→   631→                                    )}
+   632→   632→                                    {isCheaper && <Badge variant="destructive" className="text-[10px] mt-1">رقیب ارزان‌تر</Badge>}
+   633→   633→                                    {isMoreExpensive && <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] mt-1">شما ارزان‌تر!</Badge>}
+   634→   634→                                    {link.lastFetchedAt && <p className="text-[10px] text-muted-foreground mt-0.5">{new Date(link.lastFetchedAt).toLocaleDateString("fa-IR")}</p>}
+   635→   635→                                  </>
+   636→   636→                                ) : (
+   637→   637→                                  <p className="text-xs text-muted-foreground">قیمت استخراج نشده</p>
+   638→   638→                                )}
+   639→   639→                              </div>
+   640→   640→                              {getPriceTrend(link.priceHistory)}
+   641→   641→                            </div>
+   642→   642→                          </div>
+   643→   643→                        );
+   644→   644→                      })}
+   645→   645→                    </div>
+   646→   646→                  )}
+   647→   647→                </div>
+   648→   648→              </div>
+   649→   649→            </>
+   650→   650→          )}
+   651→   651→        </DialogContent>
+   652→   652→      </Dialog>
+   653→   653→
+   654→   654→      {/* Login Dialog */}
+   655→   655→      <Dialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen}>
+   656→   656→        <DialogContent className="sm:max-w-sm" dir="rtl">
+   657→   657→          <DialogHeader><DialogTitle className="flex items-center gap-2"><Shield className="w-5 h-5 text-emerald-600" /> ورود مدیر سیستم</DialogTitle></DialogHeader>
+   658→   658→          <div className="space-y-4 mt-4">
+   659→   659→            <div className="space-y-2"><Label htmlFor="password">رمز عبور</Label><Input id="password" type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} placeholder="رمز عبور مدیر را وارد کنید" onKeyDown={(e) => e.key === "Enter" && handleLogin()} /><p className="text-xs text-muted-foreground">رمز عبور پیش‌فرض: admin123</p></div>
+   660→   660→            <Button onClick={handleLogin} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white" disabled={!loginPassword}>ورود</Button>
+   661→   661→          </div>
+   662→   662→        </DialogContent>
+   663→   663→      </Dialog>
+   664→   664→
+   665→   665→      {/* Product Dialog */}
+   666→   666→      <Dialog open={productDialogOpen} onOpenChange={(open) => { setProductDialogOpen(open); if (!open) { setEditingProduct(null); resetProductForm(); } }}>
+   667→   667→        <DialogContent className="sm:max-w-md" dir="rtl">
+   668→   668→          <DialogHeader><DialogTitle>{editingProduct ? "ویرایش محصول" : "افزودن محصول جدید"}</DialogTitle></DialogHeader>
+   669→   669→          <div className="space-y-4 mt-4">
+   670→   670→            <div className="space-y-2"><Label>نام محصول *</Label><Input value={productForm.name} onChange={(e) => setProductForm((f) => ({ ...f, name: e.target.value }))} placeholder="مثلاً: گوشی موبایل سامسونگ" /></div>
+   671→   671→            <div className="space-y-2"><Label>قیمت ({currencyUnit}) *</Label><Input type="number" value={productForm.price} onChange={(e) => setProductForm((f) => ({ ...f, price: e.target.value }))} placeholder="مثلاً: 25000000" /></div>
+   672→   672→            <div className="space-y-2"><Label>توضیحات</Label><Textarea value={productForm.description} onChange={(e) => setProductForm((f) => ({ ...f, description: e.target.value }))} placeholder="توضیحات محصول..." rows={3} /></div>
+   673→   673→            <div className="space-y-2"><Label>آدرس تصویر</Label><Input value={productForm.imageUrl} onChange={(e) => setProductForm((f) => ({ ...f, imageUrl: e.target.value }))} placeholder="https://example.com/image.jpg" dir="ltr" /></div>
+   674→   674→            <div className="space-y-2"><Label>گروه / دسته‌بندی</Label><Select value={productForm.groupId || "__none__"} onValueChange={(v) => setProductForm((f) => ({ ...f, groupId: v === "__none__" ? "" : v }))}><SelectTrigger><SelectValue placeholder="بدون گروه" /></SelectTrigger><SelectContent><SelectItem value="__none__">بدون گروه</SelectItem>{groups.map((g) => <React.Fragment key={g.id}><SelectItem value={g.id}><span className="font-medium">{g.name}</span></SelectItem>{g.children.map((sub) => <SelectItem key={sub.id} value={sub.id}><span className="text-muted-foreground">└ {sub.name}</span></SelectItem>)}</React.Fragment>)}</SelectContent></Select></div>
+   675→   675→            <Button onClick={handleSaveProduct} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white" disabled={!productForm.name || !productForm.price}>{editingProduct ? "بروزرسانی" : "افزودن محصول"}</Button>
+   676→   676→          </div>
+   677→   677→        </DialogContent>
+   678→   678→      </Dialog>
+   679→   679→
+   680→   680→      {/* Group Dialog */}
+   681→   681→      <Dialog open={groupDialogOpen} onOpenChange={(open) => { setGroupDialogOpen(open); if (!open) { setEditingGroup(null); setGroupForm({ name: "", parentId: "" }); } }}>
+   682→   682→        <DialogContent className="sm:max-w-md" dir="rtl">
+   683→   683→          <DialogHeader><DialogTitle className="flex items-center gap-2"><FolderTree className="w-5 h-5" /> {editingGroup ? "ویرایش گروه" : "مدیریت گروه‌ها"}</DialogTitle></DialogHeader>
+   684→   684→          <div className="space-y-4 mt-4">
+   685→   685→            {!editingGroup && (
+   686→   686→              <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+   687→   687→                <p className="text-sm font-medium">افزودن گروه جدید</p>
+   688→   688→                <div className="space-y-2"><Label>نام گروه *</Label><Input value={groupForm.name} onChange={(e) => setGroupForm((f) => ({ ...f, name: e.target.value }))} placeholder="مثلاً: موبایل، لپ‌تاپ" /></div>
+   689→   689→                <div className="space-y-2"><Label>گروه والد (برای زیرگروه)</Label><Select value={groupForm.parentId || "__none__"} onValueChange={(v) => setGroupForm((f) => ({ ...f, parentId: v === "__none__" ? "" : v }))}><SelectTrigger><SelectValue placeholder="گروه اصلی (بدون والد)" /></SelectTrigger><SelectContent><SelectItem value="__none__">گروه اصلی (بدون والد)</SelectItem>{groups.map((g) => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}</SelectContent></Select></div>
+   690→   690→                <Button onClick={handleSaveGroup} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white" disabled={!groupForm.name}><FolderPlus className="w-4 h-4 ml-2" /> افزودن {groupForm.parentId ? "زیرگروه" : "گروه اصلی"}</Button>
+   691→   691→              </div>
+   692→   692→            )}
+   693→   693→            {editingGroup && (
+   694→   694→              <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+   695→   695→                <p className="text-sm font-medium">ویرایش: {editingGroup.name}</p>
+   696→   696→                <Input value={groupForm.name} onChange={(e) => setGroupForm((f) => ({ ...f, name: e.target.value }))} placeholder="نام گروه" />
+   697→   697→                <div className="flex gap-2"><Button onClick={handleSaveGroup} className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white" disabled={!groupForm.name}>بروزرسانی</Button><Button variant="outline" onClick={() => { setEditingGroup(null); setGroupForm({ name: "", parentId: "" }); }}>انصراف</Button></div>
+   698→   698→              </div>
+   699→   699→            )}
+   700→   700→            <div className="space-y-2">
+   701→   701→              <p className="text-sm font-medium text-muted-foreground">گروه‌های موجود</p>
+   702→   702→              {groups.length === 0 ? <p className="text-sm text-muted-foreground text-center py-4">هنوز گروهی ایجاد نشده</p> : (
+   703→   703→                <Accordion type="multiple" className="w-full">
+   704→   704→                  {groups.map((group) => (
+   705→   705→                    <AccordionItem key={group.id} value={group.id}>
+   706→   706→                      <AccordionTrigger className="hover:no-underline py-2">
+   707→   707→                        <div className="flex items-center gap-2 flex-1"><FolderOpen className="w-4 h-4 text-emerald-600" /><span className="font-medium text-sm">{group.name}</span><Badge variant="secondary" className="text-xs">{group.children.length} زیرگروه</Badge></div>
+   708→   708→                        <div className="flex gap-1 ml-2" onClick={(e) => e.stopPropagation()}>
+   709→   709→                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setEditingGroup(group); setGroupForm({ name: group.name, parentId: "" }); }}><Edit3 className="w-3 h-3" /></Button>
+   710→   710→                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ type: "group", id: group.id, name: group.name })}><Trash2 className="w-3 h-3" /></Button>
+   711→   711→                        </div>
+   712→   712→                      </AccordionTrigger>
+   713→   713→                      <AccordionContent>
+   714→   714→                        {group.children.length === 0 ? <p className="text-xs text-muted-foreground pr-8 py-1">زیرگروهی ندارد</p> : (
+   715→   715→                          <div className="space-y-1 pr-6">{group.children.map((sub) => (
+   716→   716→                            <div key={sub.id} className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-muted">
+   717→   717→                              <div className="flex items-center gap-2"><FolderTree className="w-3 h-3 text-muted-foreground" /><span className="text-sm">{sub.name}</span></div>
+   718→   718→                              <div className="flex gap-1"><Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setEditingGroup(sub as unknown as ProductGroupParent); setGroupForm({ name: sub.name, parentId: group.id }); }}><Edit3 className="w-3 h-3" /></Button><Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => setDeleteTarget({ type: "group", id: sub.id, name: sub.name })}><Trash2 className="w-3 h-3" /></Button></div>
+   719→   719→                            </div>))}</div>
+   720→   720→                        )}
+   721→   721→                      </AccordionContent>
+   722→   722→                    </AccordionItem>
+   723→   723→                  ))}
+   724→   724→                </Accordion>
+   725→   725→              )}
+   726→   726→            </div>
+   727→   727→          </div>
+   728→   728→        </DialogContent>
+   729→   729→      </Dialog>
+   730→   730→
+   731→   731→      {/* Settings Dialog */}
+   732→   732→      <Dialog open={settingsDialogOpen} onOpenChange={setSettingsDialogOpen}>
+   733→   733→        <DialogContent className="sm:max-w-md" dir="rtl">
+   734→   734→          <DialogHeader><DialogTitle className="flex items-center gap-2"><Settings2 className="w-5 h-5" /> تنظیمات سیستم</DialogTitle></DialogHeader>
+   735→   735→          <div className="space-y-4 mt-4">
+   736→   736→            <div className="space-y-2"><Label>واحد پول</Label><Select value={settingsForm.currencyUnit} onValueChange={(v) => setSettingsForm((f) => ({ ...f, currencyUnit: v }))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="تومان">تومان</SelectItem><SelectItem value="ریال">ریال</SelectItem><SelectItem value="دلار">$ دلار</SelectItem><SelectItem value="یورو">€ یورو</SelectItem><SelectItem value="درهم">درهم</SelectItem></SelectContent></Select></div>
+   737→   737→            <Separator />
+   738→   738→            <div className="space-y-3"><p className="text-sm font-medium">تغییر رمز عبور</p><div className="space-y-2"><Label>رمز عبور فعلی</Label><Input type="password" value={settingsForm.currentPassword} onChange={(e) => setSettingsForm((f) => ({ ...f, currentPassword: e.target.value }))} placeholder="رمز فعلی را وارد کنید" /></div><div className="space-y-2"><Label>رمز عبور جدید</Label><Input type="password" value={settingsForm.adminPassword} onChange={(e) => setSettingsForm((f) => ({ ...f, adminPassword: e.target.value }))} placeholder="رمز جدید را وارد کنید" /></div><p className="text-xs text-muted-foreground">اگر نمی‌خواهید رمز را تغییر دهید، این بخش را خالی بگذارید.</p></div>
+   739→   739→            <Button onClick={handleSaveSettings} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white">ذخیره تنظیمات</Button>
+   740→   740→          </div>
+   741→   741→        </DialogContent>
+   742→   742→      </Dialog>
+   743→   743→
+   744→   744→      {/* Delete Confirmation */}
+   745→   745→      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+   746→   746→        <AlertDialogContent dir="rtl">
+   747→   747→          <AlertDialogHeader><AlertDialogTitle>آیا مطمئن هستید؟</AlertDialogTitle>
+   748→   748→            <AlertDialogDescription>
+   749→   749→              {deleteTarget?.type === "product" ? <span>محصول &laquo;{deleteTarget.name && deleteTarget.name.length > 50 ? deleteTarget.name.slice(0, 50) + "…" : deleteTarget.name}&raquo; همراه با تمام لینک‌ها و تاریخچه قیمت‌ها حذف خواهد شد.</span> : deleteTarget?.type === "group" ? <span>گروه &laquo;{deleteTarget.name}&raquo; همراه با زیرگروه‌ها حذف خواهد شد. محصولات این گروه بدون گروه می‌شوند.</span> : ""}
+   750→   750→            </AlertDialogDescription>
+   751→   751→          </AlertDialogHeader>
+   752→   752→          <AlertDialogFooter>
+   753→   753→            <AlertDialogCancel>انصراف</AlertDialogCancel>
+   754→   754→            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => { if (deleteTarget) { if (deleteTarget.type === "product") handleDeleteProduct(deleteTarget.id); else if (deleteTarget.type === "group") handleDeleteGroup(deleteTarget.id); } setDeleteTarget(null); }}>حذف</AlertDialogAction>
+   755→   755→          </AlertDialogFooter>
+   756→   756→        </AlertDialogContent>
+   757→   757→      </AlertDialog>
+   758→   758→    </div>
+   759→   759→  );
+   760→   760→}
+   761→   761→

@@ -1,13 +1,13 @@
 import { db } from '@/lib/db';
 import { NextResponse } from 'next/server';
 
-// GET /api/products - List all products with their links and groups
+// GET /api/products - List all products with their competitor products and groups
 export async function GET() {
   try {
     const products = await db.product.findMany({
       include: {
-        links: {
-          orderBy: { createdAt: 'asc' },
+        competitorProducts: {
+          orderBy: { fetchedAt: 'desc' },
         },
         group: {
           include: {
@@ -25,7 +25,7 @@ export async function GET() {
   }
 }
 
-// POST /api/products - Create a new product (admin only - checked by middleware or client)
+// POST /api/products - Create a new product
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
         groupId: groupId || null,
       },
       include: {
-        links: true,
+        competitorProducts: true,
         group: { include: { parent: true } },
       },
     });
