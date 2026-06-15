@@ -54,7 +54,8 @@ server.log
 /skills/
 
 # Database
-db/
+db/*
+!db/custom.db
 
 # Uploads
 upload/
