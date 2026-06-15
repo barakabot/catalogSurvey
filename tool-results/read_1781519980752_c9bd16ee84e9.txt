@@ -1,0 +1,1061 @@
+     1→"use client";
+     2→
+     3→import React, { useState, useCallback } from "react";
+     4→import {
+     5→  Plus,
+     6→  ExternalLink,
+     7→  Trash2,
+     8→  Edit3,
+     9→  Search,
+    10→  X,
+    11→  Loader2,
+    12→  RefreshCw,
+    13→  Settings2,
+    14→  LogIn,
+    15→  LogOut,
+    16→  Shield,
+    17→  FolderTree,
+    18→  FolderOpen,
+    19→  FolderPlus,
+    20→  Eye,
+    21→  Link2,
+    22→  Unlink,
+    23→  Globe,
+    24→  ShoppingCart,
+    25→  Tag,
+    26→  Package,
+    27→  ArrowRightLeft,
+    28→} from "lucide-react";
+    29→import { Button } from "@/components/ui/button";
+    30→import {
+    31→  Card,
+    32→  CardContent,
+    33→  CardHeader,
+    34→} from "@/components/ui/card";
+    35→import {
+    36→  Dialog,
+    37→  DialogContent,
+    38→  DialogHeader,
+    39→  DialogTitle,
+    40→} from "@/components/ui/dialog";
+    41→import {
+    42→  AlertDialog,
+    43→  AlertDialogAction,
+    44→  AlertDialogCancel,
+    45→  AlertDialogContent,
+    46→  AlertDialogDescription,
+    47→  AlertDialogFooter,
+    48→  AlertDialogHeader,
+    49→  AlertDialogTitle,
+    50→} from "@/components/ui/alert-dialog";
+    51→import { Input } from "@/components/ui/input";
+    52→import { Label } from "@/components/ui/label";
+    53→import { Textarea } from "@/components/ui/textarea";
+    54→import { Badge } from "@/components/ui/badge";
+    55→import { Separator } from "@/components/ui/separator";
+    56→import {
+    57→  Select,
+    58→  SelectContent,
+    59→  SelectItem,
+    60→  SelectTrigger,
+    61→  SelectValue,
+    62→} from "@/components/ui/select";
+    63→import {
+    64→  Accordion,
+    65→  AccordionContent,
+    66→  AccordionItem,
+    67→  AccordionTrigger,
+    68→} from "@/components/ui/accordion";
+    69→import { useToast } from "@/hooks/use-toast";
+    70→import { motion, AnimatePresence } from "framer-motion";
+    71→
+    72→// ─── Types ────────────────────────────────────────────────────────
+    73→interface CompetitorPriceHistory {
+    74→  id: string;
+    75→  price: number;
+    76→  originalPrice: number | null;
+    77→  discountPercent: number;
+    78→  fetchedAt: string;
+    79→}
+    80→
+    81→interface CompetitorProduct {
+    82→  id: string;
+    83→  source: string;
+    84→  sourceId: string;
+    85→  name: string;
+    86→  imageUrl: string | null;
+    87→  weight: string | null;
+    88→  volume: string | null;
+    89→  price: number;
+    90→  originalPrice: number | null;
+    91→  discountPercent: number;
+    92→  brand: string | null;
+    93→  fetchedAt: string;
+    94→  catalogProductId: string | null;
+    95→  priceHistory?: CompetitorPriceHistory[];
+    96→}
+    97→
+    98→interface ProductGroupParent {
+    99→  id: string;
+   100→  name: string;
+   101→  parentId: string | null;
+   102→  order: number;
+   103→  children: ProductGroup[];
+   104→  productCount?: number;
+   105→}
+   106→
+   107→interface ProductGroup {
+   108→  id: string;
+   109→  name: string;
+   110→  parentId: string | null;
+   111→  order: number;
+   112→  parent?: { id: string; name: string } | null;
+   113→}
+   114→
+   115→interface Product {
+   116→  id: string;
+   117→  name: string;
+   118→  description: string | null;
+   119→  price: number;
+   120→  imageUrl: string | null;
+   121→  groupId: string | null;
+   122→  group?: ProductGroup & { parent?: { id: string; name: string } | null } | null;
+   123→  createdAt: string;
+   124→  updatedAt: string;
+   125→  competitorProducts?: CompetitorProduct[];
+   126→}
+   127→
+   128→// ─── Helpers ──────────────────────────────────────────────────────
+   129→function formatPrice(price: number, currencyUnit: string): string {
+   130→  return new Intl.NumberFormat("fa-IR").format(Math.round(price)) + " " + currencyUnit;
+   131→}
+   132→
+   133→// ─── Main Component ───────────────────────────────────────────────
+   134→export default function CatalogPage() {
+   135→  const { toast } = useToast();
+   136→  const [products, setProducts] = useState<Product[]>([]);
+   137→  const [groups, setGroups] = useState<ProductGroupParent[]>([]);
+   138→  const [currencyUnit, setCurrencyUnit] = useState("تومان");
+   139→  const [loading, setLoading] = useState(true);
+   140→  const [searchQuery, setSearchQuery] = useState("");
+   141→  const [selectedGroup, setSelectedGroup] = useState<string>("all");
+   142→
+   143→  // Auth state
+   144→  const [isAdmin, setIsAdmin] = useState(false);
+   145→  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
+   146→  const [loginPassword, setLoginPassword] = useState("");
+   147→
+   148→  // Dialog states
+   149→  const [productDialogOpen, setProductDialogOpen] = useState(false);
+   150→  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+   151→  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+   152→  const [deleteTarget, setDeleteTarget] = useState<{
+   153→    type: "product" | "group" | "competitor";
+   154→    id: string;
+   155→    name?: string;
+   156→  } | null>(null);
+   157→
+   158→  // Product detail modal
+   159→  const [detailProduct, setDetailProduct] = useState<Product | null>(null);
+   160→  const [detailCompetitors, setDetailCompetitors] = useState<CompetitorProduct[]>([]);
+   161→  const [loadingDetail, setLoadingDetail] = useState(false);
+   162→  const [refreshingCompetitor, setRefreshingCompetitor] = useState<string | null>(null);
+   163→
+   164→  // Add competitor dialog
+   165→  const [addCompetitorDialogOpen, setAddCompetitorDialogOpen] = useState(false);
+   166→  const [competitorSource, setCompetitorSource] = useState<string>("");
+   167→  const [competitorSourceId, setCompetitorSourceId] = useState<string>("");
+   168→  const [competitorLinkProductId, setCompetitorLinkProductId] = useState<string>("");
+   169→  const [scrapeLoading, setScrapeLoading] = useState(false);
+   170→
+   171→  // Link competitor dialog
+   172→  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+   173→  const [linkingCompetitor, setLinkingCompetitor] = useState<CompetitorProduct | null>(null);
+   174→  const [linkProductId, setLinkProductId] = useState<string>("");
+   175→
+   176→  // All competitors (unlinked) for management
+   177→  const [allCompetitors, setAllCompetitors] = useState<CompetitorProduct[]>([]);
+   178→  const [competitorManageOpen, setCompetitorManageOpen] = useState(false);
+   179→  const [competitorFilter, setCompetitorFilter] = useState<string>("all");
+   180→
+   181→  // Settings dialog
+   182→  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+   183→  const [settingsForm, setSettingsForm] = useState({
+   184→    currencyUnit: "تومان",
+   185→    adminPassword: "",
+   186→    currentPassword: "",
+   187→  });
+   188→
+   189→  // Group dialog
+   190→  const [groupDialogOpen, setGroupDialogOpen] = useState(false);
+   191→  const [groupForm, setGroupForm] = useState({ name: "", parentId: "" });
+   192→  const [editingGroup, setEditingGroup] = useState<ProductGroupParent | null>(null);
+   193→
+   194→  // Form states
+   195→  const [productForm, setProductForm] = useState({
+   196→    name: "",
+   197→    description: "",
+   198→    price: "",
+   199→    imageUrl: "",
+   200→    groupId: "",
+   201→  });
+   202→
+   203→  // ─── Fetch Data ────────────────────────────────────────────────
+   204→  const fetchProducts = useCallback(async () => {
+   205→    try {
+   206→      setLoading(true);
+   207→      const res = await fetch("/api/products");
+   208→      if (!res.ok) throw new Error();
+   209→      setProducts(await res.json());
+   210→    } catch {
+   211→      toast({ title: "خطا", description: "دریافت محصولات ناموفق بود", variant: "destructive" });
+   212→    } finally {
+   213→      setLoading(false);
+   214→    }
+   215→  }, [toast]);
+   216→
+   217→  const fetchGroups = useCallback(async () => {
+   218→    try {
+   219→      const res = await fetch("/api/groups");
+   220→      if (!res.ok) throw new Error();
+   221→      setGroups(await res.json());
+   222→    } catch {
+   223→      toast({ title: "خطا", description: "دریافت گروه‌ها ناموفق بود", variant: "destructive" });
+   224→    }
+   225→  }, [toast]);
+   226→
+   227→  const fetchSettings = useCallback(async () => {
+   228→    try {
+   229→      const res = await fetch("/api/settings");
+   230→      if (!res.ok) return;
+   231→      const data = await res.json();
+   232→      setCurrencyUnit(data.currencyUnit || "تومان");
+   233→      setSettingsForm((f) => ({ ...f, currencyUnit: data.currencyUnit || "تومان" }));
+   234→    } catch {}
+   235→  }, []);
+   236→
+   237→  const checkAuth = useCallback(async () => {
+   238→    try {
+   239→      const res = await fetch("/api/auth");
+   240→      if (!res.ok) return;
+   241→      setIsAdmin((await res.json()).authenticated);
+   242→    } catch {}
+   243→  }, []);
+   244→
+   245→  React.useEffect(() => {
+   246→    fetchProducts();
+   247→    fetchGroups();
+   248→    fetchSettings();
+   249→    checkAuth();
+   250→  }, [fetchProducts, fetchGroups, fetchSettings, checkAuth]);
+   251→
+   252→  // ─── Group filter options ──────────────────────────────────────
+   253→  const groupFilterOptions = React.useMemo(() => {
+   254→    const opts: { id: string; name: string; depth: number }[] = [];
+   255→    groups.forEach((g) => {
+   256→      opts.push({ id: g.id, name: g.name, depth: 0 });
+   257→      g.children.forEach((sub) => opts.push({ id: sub.id, name: sub.name, depth: 1 }));
+   258→    });
+   259→    return opts;
+   260→  }, [groups]);
+   261→
+   262→  // ─── Filter products ───────────────────────────────────────────
+   263→  const filteredProducts = React.useMemo(() => {
+   264→    return products.filter((p) => {
+   265→      const mq = !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase()) || (p.description?.toLowerCase().includes(searchQuery.toLowerCase()));
+   266→      const mg = selectedGroup === "all" || p.groupId === selectedGroup;
+   267→      return mq && mg;
+   268→    });
+   269→  }, [products, searchQuery, selectedGroup]);
+   270→
+   271→  // ─── Auth ──────────────────────────────────────────────────────
+   272→  const handleLogin = async () => {
+   273→    try {
+   274→      const res = await fetch("/api/auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: loginPassword }) });
+   275→      const data = await res.json();
+   276→      if (!res.ok) { toast({ title: "خطا", description: data.error || "ورود ناموفق بود", variant: "destructive" }); return; }
+   277→      setIsAdmin(true);
+   278→      setLoginDialogOpen(false);
+   279→      setLoginPassword("");
+   280→      toast({ title: "ورود موفق", description: "به عنوان مدیر وارد شدید" });
+   281→    } catch { toast({ title: "خطا", description: "ورود ناموفق بود", variant: "destructive" }); }
+   282→  };
+   283→
+   284→  const handleLogout = async () => {
+   285→    try { await fetch("/api/auth", { method: "DELETE" }); setIsAdmin(false); toast({ title: "خروج" }); } catch {}
+   286→  };
+   287→
+   288→  // ─── Product CRUD ──────────────────────────────────────────────
+   289→  const handleSaveProduct = async () => {
+   290→    try {
+   291→      const url = editingProduct ? `/api/products/${editingProduct.id}` : "/api/products";
+   292→      const res = await fetch(url, { method: editingProduct ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: productForm.name, description: productForm.description || null, price: parseFloat(productForm.price), imageUrl: productForm.imageUrl || null, groupId: productForm.groupId || null }) });
+   293→      if (!res.ok) throw new Error();
+   294→      toast({ title: editingProduct ? "محصول بروزرسانی شد" : "محصول اضافه شد" });
+   295→      setProductDialogOpen(false);
+   296→      setEditingProduct(null);
+   297→      resetProductForm();
+   298→      fetchProducts();
+   299→    } catch { toast({ title: "خطا", description: "ذخیره محصول ناموفق بود", variant: "destructive" }); }
+   300→  };
+   301→
+   302→  const handleDeleteProduct = async (id: string) => {
+   303→    try {
+   304→      if (!(await fetch(`/api/products/${id}`, { method: "DELETE" })).ok) throw new Error();
+   305→      toast({ title: "محصول حذف شد" }); fetchProducts();
+   306→    } catch { toast({ title: "خطا", description: "حذف ناموفق بود", variant: "destructive" }); }
+   307→  };
+   308→
+   309→  // ─── Product Detail ────────────────────────────────────────────
+   310→  const openProductDetail = async (product: Product) => {
+   311→    setDetailProduct(product);
+   312→    setLoadingDetail(true);
+   313→    try {
+   314→      const res = await fetch(`/api/competitors?catalogProductId=${product.id}`);
+   315→      if (res.ok) {
+   316→        const data = await res.json();
+   317→        setDetailCompetitors(data.competitors || []);
+   318→      } else {
+   319→        setDetailCompetitors([]);
+   320→      }
+   321→    } catch {
+   322→      setDetailCompetitors([]);
+   323→    }
+   324→    setLoadingDetail(false);
+   325→  };
+   326→
+   327→  const handleRefreshCompetitor = async (competitorId: string) => {
+   328→    setRefreshingCompetitor(competitorId);
+   329→    try {
+   330→      const res = await fetch(`/api/competitors/${competitorId}/refresh`, { method: "POST" });
+   331→      const data = await res.json();
+   332→      if (!res.ok) {
+   333→        toast({ title: "خطا", description: data.error || "بروزرسانی ناموفق بود", variant: "destructive" });
+   334→      } else {
+   335→        toast({ title: "بروزرسانی شد", description: data.priceChanged ? "قیمت تغییر کرد" : "قیمت بدون تغییر" });
+   336→        // Refresh the list
+   337→        if (detailProduct) {
+   338→          const refreshRes = await fetch(`/api/competitors?catalogProductId=${detailProduct.id}`);
+   339→          if (refreshRes.ok) {
+   340→            const refreshData = await refreshRes.json();
+   341→            setDetailCompetitors(refreshData.competitors || []);
+   342→          }
+   343→        }
+   344→        fetchProducts();
+   345→      }
+   346→    } catch {
+   347→      toast({ title: "خطا", description: "بروزرسانی ناموفق بود", variant: "destructive" });
+   348→    } finally {
+   349→      setRefreshingCompetitor(null);
+   350→    }
+   351→  };
+   352→
+   353→  const handleRefreshAllCompetitors = async () => {
+   354→    if (!detailProduct) return;
+   355→    setRefreshingCompetitor("all");
+   356→    try {
+   357→      let successCount = 0;
+   358→      for (const comp of detailCompetitors) {
+   359→        const res = await fetch(`/api/competitors/${comp.id}/refresh`, { method: "POST" });
+   360→        if (res.ok) successCount++;
+   361→      }
+   362→      toast({ title: "بروزرسانی انجام شد", description: `${successCount} از ${detailCompetitors.length} موفق` });
+   363→      // Refresh the list
+   364→      const refreshRes = await fetch(`/api/competitors?catalogProductId=${detailProduct.id}`);
+   365→      if (refreshRes.ok) {
+   366→        const refreshData = await refreshRes.json();
+   367→        setDetailCompetitors(refreshData.competitors || []);
+   368→      }
+   369→      fetchProducts();
+   370→    } catch {
+   371→      toast({ title: "خطا", description: "بروزرسانی ناموفق بود", variant: "destructive" });
+   372→    } finally {
+   373→      setRefreshingCompetitor(null);
+   374→    }
+   375→  };
+   376→
+   377→  // ─── Competitor CRUD ──────────────────────────────────────────
+   378→  const handleScrapeAndAdd = async () => {
+   379→    if (!competitorSource || !competitorSourceId) {
+   380→      toast({ title: "خطا", description: "منبع و شناسه محصول الزامی است", variant: "destructive" });
+   381→      return;
+   382→    }
+   383→    setScrapeLoading(true);
+   384→    try {
+   385→      const body: Record<string, string> = {
+   386→        source: competitorSource,
+   387→        sourceId: competitorSourceId,
+   388→      };
+   389→      if (competitorLinkProductId) body.catalogProductId = competitorLinkProductId;
+   390→
+   391→      const res = await fetch("/api/competitors/scrape", {
+   392→        method: "POST",
+   393→        headers: { "Content-Type": "application/json" },
+   394→        body: JSON.stringify(body),
+   395→      });
+   396→      const data = await res.json();
+   397→      if (!res.ok) {
+   398→        toast({ title: "خطا در اسکرپ", description: data.error || "خطای ناشناخته", variant: "destructive", duration: 6000 });
+   399→        return;
+   400→      }
+   401→      toast({
+   402→        title: data.action === "created" ? "محصول رقیب اضافه شد" : "محصول رقیب بروزرسانی شد",
+   403→        description: `${data.data?.name} — ${data.data?.price ? formatPrice(data.data.price, currencyUnit) : ""}`,
+   404→      });
+   405→      setAddCompetitorDialogOpen(false);
+   406→      setCompetitorSource("");
+   407→      setCompetitorSourceId("");
+   408→      setCompetitorLinkProductId("");
+   409→      // Refresh detail if open
+   410→      if (detailProduct) {
+   411→        const refreshRes = await fetch(`/api/competitors?catalogProductId=${detailProduct.id}`);
+   412→        if (refreshRes.ok) {
+   413→          const refreshData = await refreshRes.json();
+   414→          setDetailCompetitors(refreshData.competitors || []);
+   415→        }
+   416→      }
+   417→      fetchProducts();
+   418→    } catch {
+   419→      toast({ title: "خطا", description: "اسکرپ محصول ناموفق بود", variant: "destructive" });
+   420→    } finally {
+   421→      setScrapeLoading(false);
+   422→    }
+   423→  };
+   424→
+   425→  const handleDeleteCompetitor = async (id: string) => {
+   426→    try {
+   427→      const res = await fetch(`/api/competitors?id=${id}`, { method: "DELETE" });
+   428→      if (!res.ok) throw new Error();
+   429→      toast({ title: "محصول رقیب حذف شد" });
+   430→      if (detailProduct) {
+   431→        setDetailCompetitors((prev) => prev.filter((c) => c.id !== id));
+   432→      }
+   433→      fetchProducts();
+   434→    } catch {
+   435→      toast({ title: "خطا", description: "حذف ناموفق بود", variant: "destructive" });
+   436→    }
+   437→  };
+   438→
+   439→  const handleLinkCompetitor = async () => {
+   440→    if (!linkingCompetitor || !linkProductId) return;
+   441→    try {
+   442→      const res = await fetch(`/api/competitors/${linkingCompetitor.id}/link`, {
+   443→        method: "PUT",
+   444→        headers: { "Content-Type": "application/json" },
+   445→        body: JSON.stringify({ catalogProductId: linkProductId }),
+   446→      });
+   447→      if (!res.ok) throw new Error();
+   448→      toast({ title: "محصول رقیب به کاتالوگ متصل شد" });
+   449→      setLinkDialogOpen(false);
+   450→      setLinkingCompetitor(null);
+   451→      setLinkProductId("");
+   452→      // Refresh
+   453→      if (detailProduct) openProductDetail(detailProduct);
+   454→      fetchProducts();
+   455→    } catch {
+   456→      toast({ title: "خطا", description: "اتصال ناموفق بود", variant: "destructive" });
+   457→    }
+   458→  };
+   459→
+   460→  const handleUnlinkCompetitor = async (competitorId: string) => {
+   461→    try {
+   462→      const res = await fetch(`/api/competitors/${competitorId}/unlink`, { method: "PUT" });
+   463→      if (!res.ok) throw new Error();
+   464→      toast({ title: "اتصال لغو شد" });
+   465→      if (detailProduct) {
+   466→        setDetailCompetitors((prev) => prev.filter((c) => c.id !== competitorId));
+   467→      }
+   468→      fetchProducts();
+   469→    } catch {
+   470→      toast({ title: "خطا", description: "لغو اتصال ناموفق بود", variant: "destructive" });
+   471→    }
+   472→  };
+   473→
+   474→  const fetchAllCompetitors = async () => {
+   475→    try {
+   476→      const filterParam = competitorFilter === "unlinked" ? "&unlinked=true" : competitorFilter !== "all" ? `&source=${competitorFilter}` : "";
+   477→      const res = await fetch(`/api/competitors?${filterParam}`);
+   478→      if (res.ok) {
+   479→        const data = await res.json();
+   480→        setAllCompetitors(data.competitors || []);
+   481→      }
+   482→    } catch {}
+   483→  };
+   484→
+   485→  // ─── Group CRUD ────────────────────────────────────────────────
+   486→  const handleSaveGroup = async () => {
+   487→    try {
+   488→      const url = editingGroup ? `/api/groups/${editingGroup.id}` : "/api/groups";
+   489→      const body: Record<string, unknown> = { name: groupForm.name };
+   490→      if (!editingGroup) body.parentId = groupForm.parentId || null;
+   491→      if (!(await fetch(url, { method: editingGroup ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })).ok) throw new Error();
+   492→      toast({ title: editingGroup ? "گروه بروزرسانی شد" : "گروه اضافه شد" });
+   493→      setGroupDialogOpen(false); setEditingGroup(null); setGroupForm({ name: "", parentId: "" });
+   494→      fetchGroups(); fetchProducts();
+   495→    } catch { toast({ title: "خطا", description: "ذخیره گروه ناموفق بود", variant: "destructive" }); }
+   496→  };
+   497→
+   498→  const handleDeleteGroup = async (id: string) => {
+   499→    try {
+   500→      if (!(await fetch(`/api/groups/${id}`, { method: "DELETE" })).ok) throw new Error();
+   501→      toast({ title: "گروه حذف شد" }); fetchGroups(); fetchProducts();
+   502→    } catch { toast({ title: "خطا", description: "حذف ناموفق بود", variant: "destructive" }); }
+   503→  };
+   504→
+   505→  // ─── Settings ──────────────────────────────────────────────────
+   506→  const handleSaveSettings = async () => {
+   507→    try {
+   508→      const body: Record<string, string> = { currencyUnit: settingsForm.currencyUnit };
+   509→      if (settingsForm.adminPassword) { body.adminPassword = settingsForm.adminPassword; body.currentPassword = settingsForm.currentPassword; }
+   510→      const res = await fetch("/api/settings", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+   511→      const data = await res.json();
+   512→      if (!res.ok) { toast({ title: "خطا", description: data.error || "ذخیره ناموفق بود", variant: "destructive" }); return; }
+   513→      setCurrencyUnit(data.currencyUnit);
+   514→      setSettingsDialogOpen(false);
+   515→      setSettingsForm((f) => ({ ...f, adminPassword: "", currentPassword: "" }));
+   516→      toast({ title: "تنظیمات ذخیره شد" });
+   517→    } catch { toast({ title: "خطا", description: "ذخیره ناموفق بود", variant: "destructive" }); }
+   518→  };
+   519→
+   520→  // ─── Form helpers ──────────────────────────────────────────────
+   521→  const resetProductForm = () => setProductForm({ name: "", description: "", price: "", imageUrl: "", groupId: "" });
+   522→
+   523→  const openEditProduct = (product: Product) => {
+   524→    setEditingProduct(product);
+   525→    setProductForm({ name: product.name, description: product.description || "", price: String(product.price), imageUrl: product.imageUrl || "", groupId: product.groupId || "" });
+   526→    setProductDialogOpen(true);
+   527→  };
+   528→
+   529→  // ─── Computed ──────────────────────────────────────────────────
+   530→  const getBestCompetitorPrice = (product: Product) => {
+   531→    // This needs competitor data loaded
+   532→    const prices = (product.competitorProducts || []).filter((c) => c.price > 0).map((c) => c.price);
+   533→    return prices.length ? Math.min(...prices) : null;
+   534→  };
+   535→
+   536→  const getGroupName = (product: Product) => {
+   537→    if (!product.group) return null;
+   538→    return product.group.parent?.name ? `${product.group.parent.name} › ${product.group.name}` : product.group.name;
+   539→  };
+   540→
+   541→  const getSourceIcon = (source: string) => {
+   542→    if (source === "DIGIKALA") return "🟡";
+   543→    if (source === "SNAPPSHOP") return "🟣";
+   544→    return "⚪";
+   545→  };
+   546→
+   547→  const getSourceLabel = (source: string) => {
+   548→    if (source === "DIGIKALA") return "دیجیکالا";
+   549→    if (source === "SNAPPSHOP") return "اسنپ‌شاپ";
+   550→    return source;
+   551→  };
+   552→
+   553→  const getSourceUrl = (source: string, sourceId: string) => {
+   554→    if (source === "DIGIKALA") return `https://www.digikala.com/product/dkp-${sourceId}`;
+   555→    if (source === "SNAPPSHOP") return `https://snappshop.ir/product/snp-${sourceId}`;
+   556→    return "#";
+   557→  };
+   558→
+   559→  // ─── Render ────────────────────────────────────────────────────
+   560→  return (
+   561→    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+   562→      {/* Header */}
+   563→      <header className="sticky top-0 z-50 backdrop-blur-lg bg-white/80 dark:bg-slate-900/80 border-b border-border">
+   564→        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+   565→          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+   566→            <div className="flex items-center gap-3">
+   567→              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+   568→                <Package className="w-5 h-5 text-white" />
+   569→              </div>
+   570→              <div>
+   571→                <h1 className="text-xl font-bold text-foreground">کاتالوگ دیجیتال</h1>
+   572→                <p className="text-xs text-muted-foreground">مقایسه قیمت محصولات با رقبا</p>
+   573→              </div>
+   574→            </div>
+   575→            <div className="flex items-center gap-2 flex-wrap">
+   576→              {isAdmin && (
+   577→                <>
+   578→                  <Button variant="outline" size="sm" className="gap-2" onClick={() => { setEditingGroup(null); setGroupForm({ name: "", parentId: "" }); setGroupDialogOpen(true); }}>
+   579→                    <FolderPlus className="w-4 h-4" /> گروه‌بندی
+   580→                  </Button>
+   581→                  <Button variant="outline" size="sm" className="gap-2" onClick={() => { setCompetitorManageOpen(true); fetchAllCompetitors(); }}>
+   582→                    <ShoppingCart className="w-4 h-4" /> رقبای اسکرپ شده
+   583→                  </Button>
+   584→                  <Button variant="outline" size="sm" className="gap-2" onClick={() => { setSettingsForm((f) => ({ ...f, currencyUnit, adminPassword: "", currentPassword: "" })); setSettingsDialogOpen(true); }}>
+   585→                    <Settings2 className="w-4 h-4" /> تنظیمات
+   586→                  </Button>
+   587→                  <Button variant="default" size="sm" className="gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/20" onClick={() => { setEditingProduct(null); resetProductForm(); setProductDialogOpen(true); }}>
+   588→                    <Plus className="w-4 h-4" /> افزودن محصول
+   589→                  </Button>
+   590→                </>
+   591→              )}
+   592→              {isAdmin ? (
+   593→                <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground" onClick={handleLogout}><LogOut className="w-4 h-4" /> خروج مدیر</Button>
+   594→              ) : (
+   595→                <Button variant="outline" size="sm" className="gap-2" onClick={() => setLoginDialogOpen(true)}><LogIn className="w-4 h-4" /> ورود مدیر</Button>
+   596→              )}
+   597→            </div>
+   598→          </div>
+   599→          {/* Search & Filters */}
+   600→          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-4">
+   601→            <div className="relative flex-1">
+   602→              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+   603→              <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="جستجوی محصول..." className="pr-10" />
+   604→              {searchQuery && <button onClick={() => setSearchQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2"><X className="w-4 h-4 text-muted-foreground hover:text-foreground" /></button>}
+   605→            </div>
+   606→            {groupFilterOptions.length > 0 && (
+   607→              <Select value={selectedGroup} onValueChange={setSelectedGroup}>
+   608→                <SelectTrigger className="w-full sm:w-56"><SelectValue placeholder="دسته‌بندی" /></SelectTrigger>
+   609→                <SelectContent>
+   610→                  <SelectItem value="all">همه دسته‌ها</SelectItem>
+   611→                  {groupFilterOptions.map((g) => <SelectItem key={g.id} value={g.id}>{g.depth === 0 ? g.name : `└ ${g.name}`}</SelectItem>)}
+   612→                </SelectContent>
+   613→              </Select>
+   614→            )}
+   615→          </div>
+   616→        </div>
+   617→      </header>
+   618→
+   619→      {/* Main Content */}
+   620→      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-8">
+   621→        {loading ? (
+   622→          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+   623→            {[1, 2, 3].map((i) => <Card key={i} className="animate-pulse"><div className="h-48 bg-muted rounded-t-lg" /><CardContent className="p-6"><div className="h-4 bg-muted rounded w-3/4 mb-3" /><div className="h-4 bg-muted rounded w-1/2" /></CardContent></Card>)}
+   624→          </div>
+   625→        ) : filteredProducts.length === 0 ? (
+   626→          <div className="flex flex-col items-center justify-center py-24 text-center">
+   627→            <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mb-6"><Package className="w-12 h-12 text-muted-foreground" /></div>
+   628→            <h3 className="text-lg font-semibold text-foreground mb-2">{products.length === 0 ? "هنوز محصولی اضافه نشده" : "محصولی یافت نشد"}</h3>
+   629→            <p className="text-muted-foreground mb-6 max-w-md">{products.length === 0 ? "برای شروع، ابتدا به عنوان مدیر وارد شوید." : "فیلترهای خود را تغییر دهید."}</p>
+   630→            {products.length === 0 && !isAdmin && <Button variant="outline" className="gap-2" onClick={() => setLoginDialogOpen(true)}><LogIn className="w-4 h-4" /> ورود مدیر</Button>}
+   631→          </div>
+   632→        ) : (
+   633→          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+   634→            <AnimatePresence mode="popLayout">
+   635→              {filteredProducts.map((product) => {
+   636→                const groupName = getGroupName(product);
+   637→                return (
+   638→                  <motion.div key={product.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+   639→                    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-border/50 group cursor-pointer" onClick={() => openProductDetail(product)}>
+   640→                      {product.imageUrl && (
+   641→                        <div className="relative h-48 overflow-hidden bg-muted">
+   642→                          <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+   643→                          {groupName && <Badge className="absolute top-3 right-3 bg-white/90 dark:bg-slate-800/90 text-foreground backdrop-blur-sm"><FolderTree className="w-3 h-3 ml-1" />{groupName}</Badge>}
+   644→                        </div>
+   645→                      )}
+   646→                      <CardHeader className="pb-2">
+   647→                        <div className="flex items-start justify-between">
+   648→                          <div className="flex-1 min-w-0">
+   649→                            <h3 className="font-bold text-base leading-snug text-foreground line-clamp-2" title={product.name}>{product.name}</h3>
+   650→                            {product.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{product.description}</p>}
+   651→                            {!product.imageUrl && groupName && <Badge className="mt-2" variant="secondary"><FolderTree className="w-3 h-3 ml-1" />{groupName}</Badge>}
+   652→                          </div>
+   653→                          {isAdmin && (
+   654→                            <div className="flex gap-1 mr-2" onClick={(e) => e.stopPropagation()}>
+   655→                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditProduct(product)}><Edit3 className="w-4 h-4" /></Button>
+   656→                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ type: "product", id: product.id, name: product.name })}><Trash2 className="w-4 h-4" /></Button>
+   657→                            </div>
+   658→                          )}
+   659→                        </div>
+   660→                      </CardHeader>
+   661→                      <CardContent className="pb-4">
+   662→                        <div>
+   663→                          <span className="text-xs text-muted-foreground">قیمت شما:</span>
+   664→                          <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{formatPrice(product.price, currencyUnit)}</p>
+   665→                        </div>
+   666→                        <div className="mt-3 flex items-center justify-center gap-1 text-xs text-muted-foreground/60">
+   667→                          <Eye className="w-3 h-3" />
+   668→                          <span>برای مشاهده رقبا کلیک کنید</span>
+   669→                        </div>
+   670→                      </CardContent>
+   671→                    </Card>
+   672→                  </motion.div>
+   673→                );
+   674→              })}
+   675→            </AnimatePresence>
+   676→          </div>
+   677→        )}
+   678→      </main>
+   679→
+   680→      {/* Footer */}
+   681→      <footer className="mt-auto border-t border-border bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+   682→        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 text-center">
+   683→          <p className="text-sm text-muted-foreground">کاتالوگ دیجیتال — مقایسه هوشمند قیمت با رقبا</p>
+   684→          <p className="text-xs text-muted-foreground mt-1">{products.length} محصول{isAdmin && <span className="text-emerald-600"> • مدیر</span>}</p>
+   685→        </div>
+   686→      </footer>
+   687→
+   688→      {/* ═══ Product Detail Modal ═══ */}
+   689→      <Dialog open={!!detailProduct} onOpenChange={(open) => { if (!open) setDetailProduct(null); }}>
+   690→        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto" dir="rtl">
+   691→          {detailProduct && (
+   692→            <>
+   693→              <DialogHeader>
+   694→                <DialogTitle className="flex items-center gap-2 text-lg">
+   695→                  <Package className="w-5 h-5 text-emerald-600 shrink-0" />
+   696→                  <span className="line-clamp-2">{detailProduct.name}</span>
+   697→                </DialogTitle>
+   698→              </DialogHeader>
+   699→              <div className="space-y-5 mt-4">
+   700→                {/* Product Info */}
+   701→                <div className="flex items-start gap-4 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+   702→                  {detailProduct.imageUrl && <img src={detailProduct.imageUrl} alt={detailProduct.name} className="w-20 h-20 rounded-lg object-cover shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />}
+   703→                  <div className="flex-1 min-w-0">
+   704→                    <p className="text-sm text-muted-foreground">قیمت شما:</p>
+   705→                    <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatPrice(detailProduct.price, currencyUnit)}</p>
+   706→                    {detailProduct.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{detailProduct.description}</p>}
+   707→                    {(() => { const gn = getGroupName(detailProduct); return gn ? <Badge className="mt-2" variant="secondary"><FolderTree className="w-3 h-3 ml-1" />{gn}</Badge> : null; })()}
+   708→                  </div>
+   709→                </div>
+   710→
+   711→                {/* Competitor Products */}
+   712→                <div>
+   713→                  <div className="flex items-center justify-between mb-3">
+   714→                    <h3 className="font-semibold flex items-center gap-2"><Link2 className="w-4 h-4" /> قیمت رقبا</h3>
+   715→                    <div className="flex gap-2">
+   716→                      {detailCompetitors.length > 0 && (
+   717→                        <Button variant="outline" size="sm" className="gap-1" onClick={handleRefreshAllCompetitors} disabled={refreshingCompetitor === "all"}>
+   718→                          {refreshingCompetitor === "all" ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+   719→                          بروزرسانی همه
+   720→                        </Button>
+   721→                      )}
+   722→                      {isAdmin && (
+   723→                        <Button variant="default" size="sm" className="gap-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white" onClick={() => { setCompetitorLinkProductId(detailProduct.id); setAddCompetitorDialogOpen(true); }}>
+   724→                          <Plus className="w-3 h-3" /> افزودن رقیب
+   725→                        </Button>
+   726→                      )}
+   727→                    </div>
+   728→                  </div>
+   729→
+   730→                  {loadingDetail ? (
+   731→                    <div className="flex items-center justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /><span className="mr-2 text-muted-foreground">در حال بارگذاری...</span></div>
+   732→                  ) : detailCompetitors.length === 0 ? (
+   733→                    <div className="text-center py-8 text-muted-foreground">
+   734→                      <Globe className="w-10 h-10 mx-auto mb-3 opacity-30" />
+   735→                      <p className="text-sm">هنوز رقیبی برای این محصول ثبت نشده</p>
+   736→                      {isAdmin && <p className="text-xs mt-1">از دکمه «افزودن رقیب» محصولی از دیجیکالا یا اسنپ‌شاپ اضافه کنید</p>}
+   737→                    </div>
+   738→                  ) : (
+   739→                    <div className="space-y-3 max-h-96 overflow-y-auto">
+   740→                      {detailCompetitors.map((comp) => {
+   741→                        const isCheaper = comp.price > 0 && comp.price < detailProduct.price;
+   742→                        const isMoreExpensive = comp.price > 0 && comp.price > detailProduct.price;
+   743→                        return (
+   744→                          <div key={comp.id} className={`flex items-center justify-between p-4 rounded-xl border transition-colors ${isCheaper ? "bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800" : isMoreExpensive ? "bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800" : "bg-muted/50 border-border"}`}>
+   745→                            <div className="flex items-center gap-3 min-w-0 flex-1">
+   746→                              <div className="relative shrink-0">
+   747→                                {comp.imageUrl ? (
+   748→                                  <img src={comp.imageUrl} alt={comp.name} className="w-12 h-12 rounded-lg object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+   749→                                ) : (
+   750→                                  <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center text-lg">
+   751→                                    {getSourceIcon(comp.source)}
+   752→                                  </div>
+   753→                                )}
+   754→                              </div>
+   755→                              <div className="min-w-0">
+   756→                                <div className="flex items-center gap-2">
+   757→                                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{getSourceLabel(comp.source)}</Badge>
+   758→                                  {comp.brand && <span className="text-[10px] text-muted-foreground">{comp.brand}</span>}
+   759→                                </div>
+   760→                                <p className="font-medium line-clamp-1 text-sm">{comp.name}</p>
+   761→                                <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+   762→                                  {(comp.weight || comp.volume) && <span>{comp.weight || comp.volume}</span>}
+   763→                                  <a href={getSourceUrl(comp.source, comp.sourceId)} target="_blank" rel="noopener noreferrer" className="hover:text-primary inline-flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+   764→                                    مشاهده <ExternalLink className="w-2.5 h-2.5" />
+   765→                                  </a>
+   766→                                </div>
+   767→                              </div>
+   768→                            </div>
+   769→                            <div className="flex items-center gap-2 shrink-0">
+   770→                              <div className="text-left">
+   771→                                {comp.price > 0 ? (
+   772→                                  <>
+   773→                                    <p className="font-bold text-base">{formatPrice(comp.price, currencyUnit)}</p>
+   774→                                    {comp.discountPercent > 0 && comp.originalPrice && (
+   775→                                      <div className="flex items-center gap-1">
+   776→                                        <Badge variant="destructive" className="text-[10px] px-1 py-0">
+   777→                                          <Tag className="w-2.5 h-2.5 ml-0.5" />
+   778→                                          {comp.discountPercent}%
+   779→                                        </Badge>
+   780→                                        <span className="text-[10px] text-muted-foreground line-through">{formatPrice(comp.originalPrice, currencyUnit)}</span>
+   781→                                      </div>
+   782→                                    )}
+   783→                                    {isCheaper && <Badge variant="destructive" className="text-[10px] mt-1">رقیب ارزان‌تر</Badge>}
+   784→                                    {isMoreExpensive && <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] mt-1">شما ارزان‌تر!</Badge>}
+   785→                                    <p className="text-[10px] text-muted-foreground mt-0.5">{new Date(comp.fetchedAt).toLocaleDateString("fa-IR")}</p>
+   786→                                  </>
+   787→                                ) : (
+   788→                                  <p className="text-xs text-muted-foreground">ناموجود</p>
+   789→                                )}
+   790→                              </div>
+   791→                              {isAdmin && (
+   792→                                <div className="flex flex-col gap-1" onClick={(e) => e.stopPropagation()}>
+   793→                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRefreshCompetitor(comp.id)} disabled={refreshingCompetitor === comp.id}>
+   794→                                    {refreshingCompetitor === comp.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+   795→                                  </Button>
+   796→                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleUnlinkCompetitor(comp.id)}>
+   797→                                    <Unlink className="w-3 h-3" />
+   798→                                  </Button>
+   799→                                </div>
+   800→                              )}
+   801→                            </div>
+   802→                          </div>
+   803→                        );
+   804→                      })}
+   805→                    </div>
+   806→                  )}
+   807→                </div>
+   808→              </div>
+   809→            </>
+   810→          )}
+   811→        </DialogContent>
+   812→      </Dialog>
+   813→
+   814→      {/* ═══ Add Competitor Dialog ═══ */}
+   815→      <Dialog open={addCompetitorDialogOpen} onOpenChange={(open) => { setAddCompetitorDialogOpen(open); if (!open) { setCompetitorSource(""); setCompetitorSourceId(""); setCompetitorLinkProductId(""); } }}>
+   816→        <DialogContent className="sm:max-w-md" dir="rtl">
+   817→          <DialogHeader><DialogTitle className="flex items-center gap-2"><ShoppingCart className="w-5 h-5 text-emerald-600" /> افزودن محصول رقیب از فروشگاه آنلاین</DialogTitle></DialogHeader>
+   818→          <div className="space-y-4 mt-4">
+   819→            <div className="space-y-2">
+   820→              <Label>فروشگاه منبع *</Label>
+   821→              <Select value={competitorSource} onValueChange={setCompetitorSource}>
+   822→                <SelectTrigger><SelectValue placeholder="فروشگاه را انتخاب کنید" /></SelectTrigger>
+   823→                <SelectContent>
+   824→                  <SelectItem value="DIGIKALA">🟡 دیجیکالا</SelectItem>
+   825→                  <SelectItem value="SNAPPSHOP">🟣 اسنپ‌شاپ</SelectItem>
+   826→                </SelectContent>
+   827→              </Select>
+   828→            </div>
+   829→            <div className="space-y-2">
+   830→              <Label>شناسه محصول *</Label>
+   831→              <Input value={competitorSourceId} onChange={(e) => setCompetitorSourceId(e.target.value)} placeholder={competitorSource === "DIGIKALA" ? "مثلاً: 16349888" : competitorSource === "SNAPPSHOP" ? "مثلاً: 717225954" : "شناسه محصول در فروشگاه"} dir="ltr" />
+   832→              {competitorSource && (
+   833→                <p className="text-xs text-muted-foreground">
+   834→                  {competitorSource === "DIGIKALA" ? "شناسه عددی محصول در دیجیکالا (قسمت dkp- از URL)" : "شناسه عددی محصول در اسنپ‌شاپ"}
+   835→                </p>
+   836→              )}
+   837→            </div>
+   838→            {!competitorLinkProductId && (
+   839→              <div className="space-y-2">
+   840→                <Label>اتصال به محصول کاتالوگ (اختیاری)</Label>
+   841→                <Select value={competitorLinkProductId} onValueChange={setCompetitorLinkProductId}>
+   842→                  <SelectTrigger><SelectValue placeholder="محصول کاتالوگ را انتخاب کنید" /></SelectTrigger>
+   843→                  <SelectContent className="max-h-48">
+   844→                    {products.map((p) => <SelectItem key={p.id} value={p.id}><span className="line-clamp-1">{p.name}</span></SelectItem>)}
+   845→                  </SelectContent>
+   846→                </Select>
+   847→              </div>
+   848→            )}
+   849→            {competitorLinkProductId && (
+   850→              <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+   851→                <p className="text-xs text-emerald-700 dark:text-emerald-400">اتصال به: {products.find((p) => p.id === competitorLinkProductId)?.name}</p>
+   852→              </div>
+   853→            )}
+   854→            <Button onClick={handleScrapeAndAdd} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white" disabled={!competitorSource || !competitorSourceId || scrapeLoading}>
+   855→              {scrapeLoading ? <><Loader2 className="w-4 h-4 ml-2 animate-spin" /> در حال اسکرپ...</> : <><Globe className="w-4 h-4 ml-2" /> اسکرپ و ذخیره</>}
+   856→            </Button>
+   857→          </div>
+   858→        </DialogContent>
+   859→      </Dialog>
+   860→
+   861→      {/* ═══ Link Competitor Dialog ═══ */}
+   862→      <Dialog open={linkDialogOpen} onOpenChange={(open) => { setLinkDialogOpen(open); if (!open) { setLinkingCompetitor(null); setLinkProductId(""); } }}>
+   863→        <DialogContent className="sm:max-w-md" dir="rtl">
+   864→          <DialogHeader><DialogTitle className="flex items-center gap-2"><ArrowRightLeft className="w-5 h-5" /> اتصال محصول رقیب به کاتالوگ</DialogTitle></DialogHeader>
+   865→          <div className="space-y-4 mt-4">
+   866→            {linkingCompetitor && (
+   867→              <div className="p-3 rounded-lg bg-muted">
+   868→                <p className="text-sm font-medium">{linkingCompetitor.name}</p>
+   869→                <p className="text-xs text-muted-foreground">{getSourceLabel(linkingCompetitor.source)} — {linkingCompetitor.sourceId}</p>
+   870→              </div>
+   871→            )}
+   872→            <div className="space-y-2">
+   873→              <Label>محصول کاتالوگ *</Label>
+   874→              <Select value={linkProductId} onValueChange={setLinkProductId}>
+   875→                <SelectTrigger><SelectValue placeholder="محصول کاتالوگ را انتخاب کنید" /></SelectTrigger>
+   876→                <SelectContent className="max-h-48">
+   877→                  {products.map((p) => <SelectItem key={p.id} value={p.id}><span className="line-clamp-1">{p.name}</span></SelectItem>)}
+   878→                </SelectContent>
+   879→              </Select>
+   880→            </div>
+   881→            <Button onClick={handleLinkCompetitor} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white" disabled={!linkProductId}>
+   882→              <Link2 className="w-4 h-4 ml-2" /> اتصال
+   883→            </Button>
+   884→          </div>
+   885→        </DialogContent>
+   886→      </Dialog>
+   887→
+   888→      {/* ═══ Competitor Management Dialog ═══ */}
+   889→      <Dialog open={competitorManageOpen} onOpenChange={setCompetitorManageOpen}>
+   890→        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto" dir="rtl">
+   891→          <DialogHeader>
+   892→            <DialogTitle className="flex items-center gap-2"><ShoppingCart className="w-5 h-5" /> مدیریت محصولات رقیب اسکرپ شده</DialogTitle>
+   893→          </DialogHeader>
+   894→          <div className="space-y-4 mt-4">
+   895→            <div className="flex items-center gap-2">
+   896→              <Select value={competitorFilter} onValueChange={(v) => { setCompetitorFilter(v); }}>
+   897→                <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+   898→                <SelectContent>
+   899→                  <SelectItem value="all">همه</SelectItem>
+   900→                  <SelectItem value="unlinked">بدون اتصال</SelectItem>
+   901→                  <SelectItem value="DIGIKALA">دیجیکالا</SelectItem>
+   902→                  <SelectItem value="SNAPPSHOP">اسنپ‌شاپ</SelectItem>
+   903→                </SelectContent>
+   904→              </Select>
+   905→              <Button variant="outline" size="sm" onClick={fetchAllCompetitors}><RefreshCw className="w-3 h-3" /></Button>
+   906→              <Button variant="default" size="sm" className="gap-1 mr-auto bg-gradient-to-r from-emerald-500 to-teal-600 text-white" onClick={() => { setCompetitorLinkProductId(""); setAddCompetitorDialogOpen(true); }}>
+   907→                <Plus className="w-3 h-3" /> افزودن
+   908→              </Button>
+   909→            </div>
+   910→
+   911→            {allCompetitors.length === 0 ? (
+   912→              <div className="text-center py-8 text-muted-foreground">
+   913→                <ShoppingCart className="w-10 h-10 mx-auto mb-3 opacity-30" />
+   914→                <p className="text-sm">هنوز محصول رقیبی اسکرپ نشده</p>
+   915→              </div>
+   916→            ) : (
+   917→              <div className="space-y-2 max-h-96 overflow-y-auto">
+   918→                {allCompetitors.map((comp) => (
+   919→                  <div key={comp.id} className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
+   920→                    {comp.imageUrl ? (
+   921→                      <img src={comp.imageUrl} alt="" className="w-10 h-10 rounded object-cover shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+   922→                    ) : (
+   923→                      <div className="w-10 h-10 rounded bg-muted flex items-center justify-center text-sm shrink-0">{getSourceIcon(comp.source)}</div>
+   924→                    )}
+   925→                    <div className="flex-1 min-w-0">
+   926→                      <p className="text-sm font-medium line-clamp-1">{comp.name}</p>
+   927→                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+   928→                        <Badge variant="secondary" className="text-[9px] px-1 py-0">{getSourceLabel(comp.source)}</Badge>
+   929→                        {comp.brand && <span>{comp.brand}</span>}
+   930→                        {comp.catalogProductId && <span className="text-emerald-600">✓ متصل</span>}
+   931→                      </div>
+   932→                    </div>
+   933→                    <div className="text-left shrink-0">
+   934→                      <p className="text-sm font-bold">{comp.price > 0 ? formatPrice(comp.price, currencyUnit) : "—"}</p>
+   935→                    </div>
+   936→                    <div className="flex gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+   937→                      {!comp.catalogProductId && (
+   938→                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setLinkingCompetitor(comp); setLinkProductId(""); setLinkDialogOpen(true); }}>
+   939→                          <Link2 className="w-3 h-3" />
+   940→                        </Button>
+   941→                      )}
+   942→                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ type: "competitor", id: comp.id, name: comp.name })}>
+   943→                        <Trash2 className="w-3 h-3" />
+   944→                      </Button>
+   945→                    </div>
+   946→                  </div>
+   947→                ))}
+   948→              </div>
+   949→            )}
+   950→          </div>
+   951→        </DialogContent>
+   952→      </Dialog>
+   953→
+   954→      {/* Login Dialog */}
+   955→      <Dialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen}>
+   956→        <DialogContent className="sm:max-w-sm" dir="rtl">
+   957→          <DialogHeader><DialogTitle className="flex items-center gap-2"><Shield className="w-5 h-5 text-emerald-600" /> ورود مدیر سیستم</DialogTitle></DialogHeader>
+   958→          <div className="space-y-4 mt-4">
+   959→            <div className="space-y-2"><Label htmlFor="password">رمز عبور</Label><Input id="password" type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} placeholder="رمز عبور مدیر را وارد کنید" onKeyDown={(e) => e.key === "Enter" && handleLogin()} /><p className="text-xs text-muted-foreground">رمز عبور پیش‌فرض: admin123</p></div>
+   960→            <Button onClick={handleLogin} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white" disabled={!loginPassword}>ورود</Button>
+   961→          </div>
+   962→        </DialogContent>
+   963→      </Dialog>
+   964→
+   965→      {/* Product Dialog */}
+   966→      <Dialog open={productDialogOpen} onOpenChange={(open) => { setProductDialogOpen(open); if (!open) { setEditingProduct(null); resetProductForm(); } }}>
+   967→        <DialogContent className="sm:max-w-md" dir="rtl">
+   968→          <DialogHeader><DialogTitle>{editingProduct ? "ویرایش محصول" : "افزودن محصول جدید"}</DialogTitle></DialogHeader>
+   969→          <div className="space-y-4 mt-4">
+   970→            <div className="space-y-2"><Label>نام محصول *</Label><Input value={productForm.name} onChange={(e) => setProductForm((f) => ({ ...f, name: e.target.value }))} placeholder="مثلاً: گوشی موبایل سامسونگ" /></div>
+   971→            <div className="space-y-2"><Label>قیمت ({currencyUnit}) *</Label><Input type="number" value={productForm.price} onChange={(e) => setProductForm((f) => ({ ...f, price: e.target.value }))} placeholder="مثلاً: 25000000" /></div>
+   972→            <div className="space-y-2"><Label>توضیحات</Label><Textarea value={productForm.description} onChange={(e) => setProductForm((f) => ({ ...f, description: e.target.value }))} placeholder="توضیحات محصول..." rows={3} /></div>
+   973→            <div className="space-y-2"><Label>آدرس تصویر</Label><Input value={productForm.imageUrl} onChange={(e) => setProductForm((f) => ({ ...f, imageUrl: e.target.value }))} placeholder="https://example.com/image.jpg" dir="ltr" /></div>
+   974→            <div className="space-y-2"><Label>گروه / دسته‌بندی</Label><Select value={productForm.groupId || "__none__"} onValueChange={(v) => setProductForm((f) => ({ ...f, groupId: v === "__none__" ? "" : v }))}><SelectTrigger><SelectValue placeholder="بدون گروه" /></SelectTrigger><SelectContent><SelectItem value="__none__">بدون گروه</SelectItem>{groups.map((g) => <React.Fragment key={g.id}><SelectItem value={g.id}><span className="font-medium">{g.name}</span></SelectItem>{g.children.map((sub) => <SelectItem key={sub.id} value={sub.id}><span className="text-muted-foreground">└ {sub.name}</span></SelectItem>)}</React.Fragment>)}</SelectContent></Select></div>
+   975→            <Button onClick={handleSaveProduct} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white" disabled={!productForm.name || !productForm.price}>{editingProduct ? "بروزرسانی" : "افزودن محصول"}</Button>
+   976→          </div>
+   977→        </DialogContent>
+   978→      </Dialog>
+   979→
+   980→      {/* Group Dialog */}
+   981→      <Dialog open={groupDialogOpen} onOpenChange={(open) => { setGroupDialogOpen(open); if (!open) { setEditingGroup(null); setGroupForm({ name: "", parentId: "" }); } }}>
+   982→        <DialogContent className="sm:max-w-md" dir="rtl">
+   983→          <DialogHeader><DialogTitle className="flex items-center gap-2"><FolderTree className="w-5 h-5" /> {editingGroup ? "ویرایش گروه" : "مدیریت گروه‌ها"}</DialogTitle></DialogHeader>
+   984→          <div className="space-y-4 mt-4">
+   985→            {!editingGroup && (
+   986→              <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+   987→                <p className="text-sm font-medium">افزودن گروه جدید</p>
+   988→                <div className="space-y-2"><Label>نام گروه *</Label><Input value={groupForm.name} onChange={(e) => setGroupForm((f) => ({ ...f, name: e.target.value }))} placeholder="مثلاً: موبایل، لپ‌تاپ" /></div>
+   989→                <div className="space-y-2"><Label>گروه والد (برای زیرگروه)</Label><Select value={groupForm.parentId || "__none__"} onValueChange={(v) => setGroupForm((f) => ({ ...f, parentId: v === "__none__" ? "" : v }))}><SelectTrigger><SelectValue placeholder="گروه اصلی (بدون والد)" /></SelectTrigger><SelectContent><SelectItem value="__none__">گروه اصلی (بدون والد)</SelectItem>{groups.map((g) => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}</SelectContent></Select></div>
+   990→                <Button onClick={handleSaveGroup} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white" disabled={!groupForm.name}><FolderPlus className="w-4 h-4 ml-2" /> افزودن {groupForm.parentId ? "زیرگروه" : "گروه اصلی"}</Button>
+   991→              </div>
+   992→            )}
+   993→            {editingGroup && (
+   994→              <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+   995→                <p className="text-sm font-medium">ویرایش: {editingGroup.name}</p>
+   996→                <Input value={groupForm.name} onChange={(e) => setGroupForm((f) => ({ ...f, name: e.target.value }))} placeholder="نام گروه" />
+   997→                <div className="flex gap-2"><Button onClick={handleSaveGroup} className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white" disabled={!groupForm.name}>بروزرسانی</Button><Button variant="outline" onClick={() => { setEditingGroup(null); setGroupForm({ name: "", parentId: "" }); }}>انصراف</Button></div>
+   998→              </div>
+   999→            )}
+  1000→            <div className="space-y-2">
+  1001→              <p className="text-sm font-medium text-muted-foreground">گروه‌های موجود</p>
+  1002→              {groups.length === 0 ? <p className="text-sm text-muted-foreground text-center py-4">هنوز گروهی ایجاد نشده</p> : (
+  1003→                <Accordion type="multiple" className="w-full">
+  1004→                  {groups.map((group) => (
+  1005→                    <AccordionItem key={group.id} value={group.id}>
+  1006→                      <AccordionTrigger className="hover:no-underline py-2">
+  1007→                        <div className="flex items-center gap-2 flex-1"><FolderOpen className="w-4 h-4 text-emerald-600" /><span className="font-medium text-sm">{group.name}</span><Badge variant="secondary" className="text-xs">{group.children.length} زیرگروه</Badge></div>
+  1008→                        <div className="flex gap-1 ml-2" onClick={(e) => e.stopPropagation()}>
+  1009→                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setEditingGroup(group); setGroupForm({ name: group.name, parentId: "" }); }}><Edit3 className="w-3 h-3" /></Button>
+  1010→                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ type: "group", id: group.id, name: group.name })}><Trash2 className="w-3 h-3" /></Button>
+  1011→                        </div>
+  1012→                      </AccordionTrigger>
+  1013→                      <AccordionContent>
+  1014→                        {group.children.length === 0 ? <p className="text-xs text-muted-foreground pr-8 py-1">زیرگروهی ندارد</p> : (
+  1015→                          <div className="space-y-1 pr-6">{group.children.map((sub) => (
+  1016→                            <div key={sub.id} className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-muted">
+  1017→                              <div className="flex items-center gap-2"><FolderTree className="w-3 h-3 text-muted-foreground" /><span className="text-sm">{sub.name}</span></div>
+  1018→                              <div className="flex gap-1"><Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setEditingGroup(sub as unknown as ProductGroupParent); setGroupForm({ name: sub.name, parentId: group.id }); }}><Edit3 className="w-3 h-3" /></Button><Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => setDeleteTarget({ type: "group", id: sub.id, name: sub.name })}><Trash2 className="w-3 h-3" /></Button></div>
+  1019→                            </div>))}</div>
+  1020→                        )}
+  1021→                      </AccordionContent>
+  1022→                    </AccordionItem>
+  1023→                  ))}
+  1024→                </Accordion>
+  1025→              )}
+  1026→            </div>
+  1027→          </div>
+  1028→        </DialogContent>
+  1029→      </Dialog>
+  1030→
+  1031→      {/* Settings Dialog */}
+  1032→      <Dialog open={settingsDialogOpen} onOpenChange={setSettingsDialogOpen}>
+  1033→        <DialogContent className="sm:max-w-md" dir="rtl">
+  1034→          <DialogHeader><DialogTitle className="flex items-center gap-2"><Settings2 className="w-5 h-5" /> تنظیمات سیستم</DialogTitle></DialogHeader>
+  1035→          <div className="space-y-4 mt-4">
+  1036→            <div className="space-y-2"><Label>واحد پول</Label><Select value={settingsForm.currencyUnit} onValueChange={(v) => setSettingsForm((f) => ({ ...f, currencyUnit: v }))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="تومان">تومان</SelectItem><SelectItem value="ریال">ریال</SelectItem><SelectItem value="دلار">$ دلار</SelectItem><SelectItem value="یورو">€ یورو</SelectItem><SelectItem value="درهم">درهم</SelectItem></SelectContent></Select></div>
+  1037→            <Separator />
+  1038→            <div className="space-y-3"><p className="text-sm font-medium">تغییر رمز عبور</p><div className="space-y-2"><Label>رمز عبور فعلی</Label><Input type="password" value={settingsForm.currentPassword} onChange={(e) => setSettingsForm((f) => ({ ...f, currentPassword: e.target.value }))} placeholder="رمز فعلی را وارد کنید" /></div><div className="space-y-2"><Label>رمز عبور جدید</Label><Input type="password" value={settingsForm.adminPassword} onChange={(e) => setSettingsForm((f) => ({ ...f, adminPassword: e.target.value }))} placeholder="رمز جدید را وارد کنید" /></div><p className="text-xs text-muted-foreground">اگر نمی‌خواهید رمز را تغییر دهید، این بخش را خالی بگذارید.</p></div>
+  1039→            <Button onClick={handleSaveSettings} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white">ذخیره تنظیمات</Button>
+  1040→          </div>
+  1041→        </DialogContent>
+  1042→      </Dialog>
+  1043→
+  1044→      {/* Delete Confirmation */}
+  1045→      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+  1046→        <AlertDialogContent dir="rtl">
+  1047→          <AlertDialogHeader><AlertDialogTitle>آیا مطمئن هستید؟</AlertDialogTitle>
+  1048→            <AlertDialogDescription>
+  1049→              {deleteTarget?.type === "product" ? <span>محصول &laquo;{deleteTarget.name && deleteTarget.name.length > 50 ? deleteTarget.name.slice(0, 50) + "…" : deleteTarget.name}&raquo; حذف خواهد شد.</span> : deleteTarget?.type === "group" ? <span>گروه &laquo;{deleteTarget.name}&raquo; همراه با زیرگروه‌ها حذف خواهد شد. محصولات این گروه بدون گروه می‌شوند.</span> : deleteTarget?.type === "competitor" ? <span>محصول رقیب &laquo;{deleteTarget.name && deleteTarget.name.length > 50 ? deleteTarget.name.slice(0, 50) + "…" : deleteTarget.name}&raquo; حذف خواهد شد.</span> : ""}
+  1050→            </AlertDialogDescription>
+  1051→          </AlertDialogHeader>
+  1052→          <AlertDialogFooter>
+  1053→            <AlertDialogCancel>انصراف</AlertDialogCancel>
+  1054→            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => { if (deleteTarget) { if (deleteTarget.type === "product") handleDeleteProduct(deleteTarget.id); else if (deleteTarget.type === "group") handleDeleteGroup(deleteTarget.id); else if (deleteTarget.type === "competitor") handleDeleteCompetitor(deleteTarget.id); } setDeleteTarget(null); }}>حذف</AlertDialogAction>
+  1055→          </AlertDialogFooter>
+  1056→        </AlertDialogContent>
+  1057→      </AlertDialog>
+  1058→    </div>
+  1059→  );
+  1060→}
+  1061→

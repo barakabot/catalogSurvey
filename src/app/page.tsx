@@ -25,6 +25,11 @@ import {
   Tag,
   Package,
   ArrowRightLeft,
+  FileSpreadsheet,
+  Upload,
+  Download,
+  CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -68,6 +73,7 @@ import {
 } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import * as XLSX from "xlsx";
 
 // ─── Types ────────────────────────────────────────────────────────
 interface CompetitorPriceHistory {
@@ -191,6 +197,19 @@ export default function CatalogPage() {
   const [groupForm, setGroupForm] = useState({ name: "", parentId: "" });
   const [editingGroup, setEditingGroup] = useState<ProductGroupParent | null>(null);
 
+  // Excel import
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importResult, setImportResult] = useState<{
+    message: string;
+    total: number;
+    updated: number;
+    notFound: string[];
+    skipped: string[];
+    errors: string[];
+    detectedColumns: { id: string | null; name: string | null; price: string | null };
+  } | null>(null);
+
   // Form states
   const [productForm, setProductForm] = useState({
     name: "",
@@ -304,6 +323,44 @@ export default function CatalogPage() {
       if (!(await fetch(`/api/products/${id}`, { method: "DELETE" })).ok) throw new Error();
       toast({ title: "محصول حذف شد" }); fetchProducts();
     } catch { toast({ title: "خطا", description: "حذف ناموفق بود", variant: "destructive" }); }
+  };
+
+  // ─── Excel Import ─────────────────────────────────────────────────
+  const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImportLoading(true);
+    setImportResult(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/products/import-prices", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "خطا در وارد کردن فایل");
+      setImportResult(data);
+      if (data.updated > 0) fetchProducts();
+    } catch (err) {
+      toast({ title: "خطا", description: err instanceof Error ? err.message : "خطا در پردازش فایل", variant: "destructive" });
+    } finally {
+      setImportLoading(false);
+      // Reset file input
+      e.target.value = "";
+    }
+  };
+
+  const handleDownloadTemplate = () => {
+    // Create a simple Excel template
+    const wsData = [
+      ["id", "name", "price"],
+      ["clx_example123", "نمونه محصول", "150000"],
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    // Set column widths
+    ws["!cols"] = [{ wch: 20 }, { wch: 25 }, { wch: 15 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "قیمت‌ها");
+    XLSX.writeFile(wb, "price-template.xlsx");
   };
 
   // ─── Product Detail ────────────────────────────────────────────
@@ -580,6 +637,9 @@ export default function CatalogPage() {
                   </Button>
                   <Button variant="outline" size="sm" className="gap-2" onClick={() => { setCompetitorManageOpen(true); fetchAllCompetitors(); }}>
                     <ShoppingCart className="w-4 h-4" /> رقبای اسکرپ شده
+                  </Button>
+                  <Button variant="outline" size="sm" className="gap-2" onClick={() => { setImportResult(null); setImportDialogOpen(true); }}>
+                    <FileSpreadsheet className="w-4 h-4" /> وارد کردن قیمت‌ها
                   </Button>
                   <Button variant="outline" size="sm" className="gap-2" onClick={() => { setSettingsForm((f) => ({ ...f, currencyUnit, adminPassword: "", currentPassword: "" })); setSettingsDialogOpen(true); }}>
                     <Settings2 className="w-4 h-4" /> تنظیمات
@@ -1024,6 +1084,109 @@ export default function CatalogPage() {
                 </Accordion>
               )}
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Excel Import Dialog */}
+      <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+        <DialogContent className="sm:max-w-lg" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileSpreadsheet className="w-5 h-5" /> وارد کردن قیمت‌ها از اکسل
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Instructions */}
+            <div className="bg-muted/50 rounded-lg p-3 space-y-2 text-sm">
+              <p className="font-medium">راهنمای فایل اکسل:</p>
+              <ul className="list-disc list-inside space-y-1 text-muted-foreground text-xs">
+                <li>ستون <Badge variant="secondary" className="text-xs mx-1">id</Badge> یا <Badge variant="secondary" className="text-xs mx-1">شناسه</Badge> — شناسه محصول کاتالوگ</li>
+                <li>ستون <Badge variant="secondary" className="text-xs mx-1">name</Badge> یا <Badge variant="secondary" className="text-xs mx-1">نام</Badge> — نام محصول (اگر id ندارید)</li>
+                <li>ستون <Badge variant="secondary" className="text-xs mx-1">price</Badge> یا <Badge variant="secondary" className="text-xs mx-1">قیمت</Badge> — قیمت جدید (ریال)</li>
+              </ul>
+              <p className="text-muted-foreground text-xs">اگر ستون id باشد، تطبیق دقیق‌تر است. بدون id، تطبیق با نام محصول انجام می‌شود.</p>
+            </div>
+
+            {/* Download Template */}
+            <Button variant="outline" className="w-full gap-2" onClick={handleDownloadTemplate}>
+              <Download className="w-4 h-4" /> دانلود فایل نمونه اکسل
+            </Button>
+
+            {/* File Upload */}
+            <div className="relative">
+              <input
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                onChange={handleImportExcel}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                disabled={importLoading}
+              />
+              <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-emerald-400 transition-colors cursor-pointer">
+                {importLoading ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+                    <p className="text-sm text-muted-foreground">در حال پردازش فایل...</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <Upload className="w-8 h-8 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">فایل اکسل را بکشید و رها کنید یا کلیک کنید</p>
+                    <p className="text-xs text-muted-foreground">.xlsx, .xls, .csv</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Results */}
+            {importResult && (
+              <div className="space-y-3 border-t pt-3">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                  <span className="font-medium text-sm">{importResult.message}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="bg-muted rounded-lg p-2">
+                    <p className="text-lg font-bold">{importResult.total}</p>
+                    <p className="text-xs text-muted-foreground">کل ردیف‌ها</p>
+                  </div>
+                  <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-lg p-2">
+                    <p className="text-lg font-bold text-emerald-600">{importResult.updated}</p>
+                    <p className="text-xs text-muted-foreground">بروزرسانی شد</p>
+                  </div>
+                  <div className="bg-amber-50 dark:bg-amber-950/30 rounded-lg p-2">
+                    <p className="text-lg font-bold text-amber-600">{importResult.notFound.length + importResult.skipped.length}</p>
+                    <p className="text-xs text-muted-foreground">یافت نشد / رد شد</p>
+                  </div>
+                </div>
+                {importResult.detectedColumns && (
+                  <p className="text-xs text-muted-foreground">
+                    ستون‌های شناسایی شده: 
+                    {importResult.detectedColumns.id && <Badge variant="outline" className="mx-1 text-xs">id: {importResult.detectedColumns.id}</Badge>}
+                    {importResult.detectedColumns.name && <Badge variant="outline" className="mx-1 text-xs">نام: {importResult.detectedColumns.name}</Badge>}
+                    {importResult.detectedColumns.price && <Badge variant="outline" className="mx-1 text-xs">قیمت: {importResult.detectedColumns.price}</Badge>}
+                  </p>
+                )}
+                {importResult.notFound.length > 0 && (
+                  <div className="bg-amber-50 dark:bg-amber-950/30 rounded-lg p-2">
+                    <p className="text-xs font-medium text-amber-700 dark:text-amber-400 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> محصولات یافت نشد:</p>
+                    <p className="text-xs text-amber-600 mt-1 max-h-20 overflow-y-auto">{importResult.notFound.join("، ")}</p>
+                  </div>
+                )}
+                {importResult.skipped.length > 0 && (
+                  <div className="bg-muted rounded-lg p-2">
+                    <p className="text-xs font-medium text-muted-foreground">رد شده:</p>
+                    <p className="text-xs text-muted-foreground mt-1 max-h-20 overflow-y-auto">{importResult.skipped.join("؛ ")}</p>
+                  </div>
+                )}
+                {importResult.errors.length > 0 && (
+                  <div className="bg-red-50 dark:bg-red-950/30 rounded-lg p-2">
+                    <p className="text-xs font-medium text-red-700 dark:text-red-400">خطاها:</p>
+                    <p className="text-xs text-red-600 mt-1 max-h-20 overflow-y-auto">{importResult.errors.join("؛ ")}</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
