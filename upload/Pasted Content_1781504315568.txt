@@ -1,0 +1,1250 @@
+{
+  "status": 200,
+  "data": {
+    "product": {
+      "id": 9685855,
+      "title_fa": "کرم کاکائو فندقی سايرو - 900 گرم",
+      "title_en": "",
+      "url": {
+        "base": null,
+        "uri": "/product/dkp-9685855/کرم-کاکائو-فندقی-سايرو-900-گرم"
+      },
+      "status": "marketable",
+      "has_quick_view": false,
+      "data_layer": {
+        "brand": "سایرو",
+        "category": "[DF,صبحانه]",
+        "metric6": 6354,
+        "dimension2": 0,
+        "dimension6": 0,
+        "dimension7": "none",
+        "dimension9": 4.5,
+        "dimension11": 0,
+        "dimension20": "marketable",
+        "item_category2": "کالاهای سوپرمارکتی",
+        "item_category3": "صبحانه",
+        "item_category4": "شکلات صبحانه و کرم بیسکویت",
+        "item_category5": ""
+      },
+      "product_type": "product",
+      "test_title_fa": "",
+      "test_title_en": "",
+      "digiplus": {
+        "services": [
+          "۴ ارسال رایگان دیجیکالا",
+          "۲ ارسال سوپرمارکت",
+          "۴ ارسال رایگان ۴۵ دقیقه‌ای",
+          "پشتیبانی اختصاصی"
+        ],
+        "service_list": [
+          {
+            "title": "۴ ارسال رایگان دیجیکالا"
+          },
+          {
+            "title": "۲ ارسال سوپرمارکت"
+          },
+          {
+            "title": "۴ ارسال رایگان ۴۵ دقیقه‌ای"
+          },
+          {
+            "title": "پشتیبانی اختصاصی"
+          }
+        ],
+        "services_summary": [
+          "ارسال رایگان"
+        ],
+        "is_jet_eligible": false,
+        "cash_back": 0,
+        "is_general_location_jet_eligible": false,
+        "fast_shipping_text": null
+      },
+      "images": {
+        "main": {
+          "storage_ids": [],
+          "url": [
+            "https://dkstatics-public.digikala.com/digikala-products/e682954618499f2cd808b978bb72c70e051ab681_1777720815.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/quality,q_90"
+          ],
+          "thumbnail_url": null,
+          "temporary_id": null,
+          "webp_url": [
+            "https://dkstatics-public.digikala.com/digikala-products/e682954618499f2cd808b978bb72c70e051ab681_1777720815.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90"
+          ]
+        },
+        "list": [
+          {
+            "storage_ids": [],
+            "url": [
+              "https://dkstatics-public.digikala.com/digikala-products/ff699a016644284be5a13ff1c01629e748788072_1666425620.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/quality,q_90"
+            ],
+            "thumbnail_url": null,
+            "temporary_id": null,
+            "webp_url": [
+              "https://dkstatics-public.digikala.com/digikala-products/ff699a016644284be5a13ff1c01629e748788072_1666425620.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90"
+            ]
+          }
+        ]
+      },
+      "rating": {
+        "rate": 89.01,
+        "count": 6354
+      },
+      "gallery_variant": "grid",
+      "colors": [],
+      "has_price_chart": true,
+      "default_variant": {
+        "id": 59846331,
+        "lead_time": 1,
+        "rank": 99.916,
+        "rate": 91.6,
+        "statistics": {
+          "totally_satisfied": {
+            "rate_count": 15,
+            "rate": 78.95
+          },
+          "satisfied": {
+            "rate_count": 2,
+            "rate": 10.53
+          },
+          "neutral": {
+            "rate_count": 1,
+            "rate": 5.26
+          },
+          "dissatisfied": {
+            "rate_count": 0,
+            "rate": 0
+          },
+          "totally_dissatisfied": {
+            "rate_count": 1,
+            "rate": 5.26
+          },
+          "total_count": 19,
+          "total_rate": 91.6
+        },
+        "status": "marketable",
+        "properties": {
+          "is_fast_shipping": false,
+          "is_ship_by_seller": false,
+          "is_multi_warehouse": false,
+          "has_similar_variants": true,
+          "is_rural": false,
+          "in_digikala_warehouse": false,
+          "is_ship_from_user_state": false,
+          "nearby_seller_shipment": false,
+          "support_nearby_shipping_for_user": false,
+          "is_ship_by_seller_restricted": false
+        },
+        "warranty": {
+          "id": 272,
+          "title_fa": "گارانتی اصالت و سلامت فیزیکی کالا",
+          "title_en": "گارانتی اصالت و سلامت فیزیکی کالا"
+        },
+        "seller": {
+          "id": 134196,
+          "title": "آجیل و شکلات جانان",
+          "code": "AEGX2",
+          "url": "https://www.digikala.com/seller/AEGX2/",
+          "rating": {
+            "total_rate": 85,
+            "total_count": 11759,
+            "commitment": 99.7,
+            "no_return": 99.8,
+            "on_time_shipping": 96
+          },
+          "properties": {
+            "is_trusted": true,
+            "is_official": false,
+            "is_roosta": true,
+            "is_new": false
+          },
+          "stars": 4.85,
+          "grade": {
+            "label": "عالی",
+            "color": "#00a049"
+          },
+          "logo": null,
+          "registration_date": "7 سال و 2 ماه"
+        },
+        "digiclub": {
+          "point": 80
+        },
+        "price": {
+          "selling_price": 7950000,
+          "rrp_price": 7950000,
+          "order_limit": 30,
+          "is_incredible": false,
+          "is_promotion": false,
+          "is_locked_for_digiplus": false,
+          "bnpl_active": false,
+          "discount_percent": 0,
+          "is_plus_early_access": false,
+          "min_order_limit": 1
+        },
+        "shipment_methods": {
+          "description": "موجود در انبار فروشنده",
+          "has_lead_time": false,
+          "icon": "cube-shop-product",
+          "icon_color": "#424750",
+          "providers": [
+            {
+              "has_lead_time": true,
+              "type": "digikala",
+              "title": "ارسال دیجی‌کالا از 1 روز کاری دیگر",
+              "description": "این کالا پس از مدت زمان مشخص شده توسط فروشنده در انبار دیجی‌کالا تامین و آماده پردازش می‌گردد و توسط پیک دیجی‌کالا در بازه انتخابی ارسال خواهد شد.",
+              "label": {
+                "title": "توسط دیجی‌کالا",
+                "description": "تامین از 1 روز کاری دیگر"
+              },
+              "price": {
+                "text": "وابسته به سبد",
+                "value": null,
+                "is_free": false
+              },
+              "shipping_mode": "digikala",
+              "delivery_day": "tomorrow",
+              "image": "https://dkstatics-public.digikala.com/digikala-static/a850a0020b1f1d1241c35c8e9ef2b4a93e12a091_1667056289.png",
+              "svg_image": "https://dkstatics-public.digikala.com/digikala-static/562b91988f1beec9a5f13aee3cf31cfd7a1a25b1_1748679087.svg"
+            }
+          ]
+        },
+        "has_importer_price": false,
+        "manufacture_price_not_exist": false,
+        "has_best_price_in_last_month": false,
+        "buy_box_notices": [],
+        "digiplus": {
+          "services": [
+            "۴ ارسال رایگان دیجیکالا",
+            "۲ ارسال سوپرمارکت",
+            "۴ ارسال رایگان ۴۵ دقیقه‌ای",
+            "پشتیبانی اختصاصی"
+          ],
+          "service_list": [
+            {
+              "title": "۴ ارسال رایگان دیجیکالا"
+            },
+            {
+              "title": "۲ ارسال سوپرمارکت"
+            },
+            {
+              "title": "۴ ارسال رایگان ۴۵ دقیقه‌ای"
+            },
+            {
+              "title": "پشتیبانی اختصاصی"
+            }
+          ],
+          "services_summary": [
+            "ارسال رایگان"
+          ],
+          "is_jet_eligible": false,
+          "cash_back": 0,
+          "is_general_location_jet_eligible": false,
+          "fast_shipping_text": null
+        },
+        "variant_badges": []
+      },
+      "properties": {
+        "is_fast_shipping": false,
+        "is_ship_by_seller": false,
+        "free_shipping_badge": false,
+        "is_multi_warehouse": false,
+        "is_fake": false,
+        "has_gift": false,
+        "min_price_in_last_month": 0,
+        "is_non_inventory": false,
+        "is_jet_eligible": false,
+        "is_medical_supplement": false,
+        "is_ad": false,
+        "ad": [],
+        "has_printed_price": true
+      },
+      "badges": [],
+      "has_true_to_size": false,
+      "product_badges": [],
+      "variants_images": {
+        "main": {
+          "variant_id": null,
+          "variant_ids": [],
+          "storage_ids": [],
+          "url": [
+            "https://dkstatics-public.digikala.com/digikala-products/e682954618499f2cd808b978bb72c70e051ab681_1777720815.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/quality,q_90"
+          ],
+          "thumbnail_url": null,
+          "temporary_id": null,
+          "webp_url": [
+            "https://dkstatics-public.digikala.com/digikala-products/e682954618499f2cd808b978bb72c70e051ab681_1777720815.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90"
+          ]
+        },
+        "list": [
+          {
+            "variant_id": null,
+            "variant_ids": [],
+            "storage_ids": [],
+            "url": [
+              "https://dkstatics-public.digikala.com/digikala-products/ff699a016644284be5a13ff1c01629e748788072_1666425620.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/quality,q_90"
+            ],
+            "thumbnail_url": null,
+            "temporary_id": null,
+            "webp_url": [
+              "https://dkstatics-public.digikala.com/digikala-products/ff699a016644284be5a13ff1c01629e748788072_1666425620.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90"
+            ]
+          }
+        ]
+      },
+      "variants": [
+        {
+          "id": 59846331,
+          "lead_time": 1,
+          "rank": 209.832,
+          "rate": 91.6,
+          "statistics": {
+            "totally_satisfied": {
+              "rate_count": 15,
+              "rate": 78.95
+            },
+            "satisfied": {
+              "rate_count": 2,
+              "rate": 10.53
+            },
+            "neutral": {
+              "rate_count": 1,
+              "rate": 5.26
+            },
+            "dissatisfied": {
+              "rate_count": 0,
+              "rate": 0
+            },
+            "totally_dissatisfied": {
+              "rate_count": 1,
+              "rate": 5.26
+            },
+            "total_count": 19,
+            "total_rate": 91.6
+          },
+          "status": "marketable",
+          "properties": {
+            "is_fast_shipping": false,
+            "is_ship_by_seller": false,
+            "is_multi_warehouse": false,
+            "has_similar_variants": true,
+            "is_rural": false,
+            "in_digikala_warehouse": false,
+            "is_ship_from_user_state": false,
+            "nearby_seller_shipment": false,
+            "support_nearby_shipping_for_user": false,
+            "is_ship_by_seller_restricted": false
+          },
+          "warranty": {
+            "id": 272,
+            "title_fa": "گارانتی اصالت و سلامت فیزیکی کالا",
+            "title_en": "گارانتی اصالت و سلامت فیزیکی کالا"
+          },
+          "seller": {
+            "id": 134196,
+            "title": "آجیل و شکلات جانان",
+            "code": "AEGX2",
+            "url": "https://www.digikala.com/seller/AEGX2/",
+            "rating": {
+              "total_rate": 85,
+              "total_count": 11759,
+              "commitment": 99.7,
+              "no_return": 99.8,
+              "on_time_shipping": 96
+            },
+            "properties": {
+              "is_trusted": true,
+              "is_official": false,
+              "is_roosta": true,
+              "is_new": false
+            },
+            "stars": 4.85,
+            "grade": {
+              "label": "عالی",
+              "color": "#00a049"
+            },
+            "logo": null,
+            "registration_date": "7 سال و 2 ماه"
+          },
+          "digiclub": {
+            "point": 80
+          },
+          "price": {
+            "selling_price": 7950000,
+            "rrp_price": 7950000,
+            "order_limit": 30,
+            "is_incredible": false,
+            "is_promotion": false,
+            "is_locked_for_digiplus": false,
+            "bnpl_active": false,
+            "discount_percent": 0,
+            "is_plus_early_access": false,
+            "min_order_limit": 1
+          },
+          "shipment_methods": {
+            "description": "موجود در انبار فروشنده",
+            "has_lead_time": false,
+            "icon": "cube-shop-product",
+            "icon_color": "#424750",
+            "providers": [
+              {
+                "has_lead_time": true,
+                "type": "digikala",
+                "title": "ارسال دیجی‌کالا از 1 روز کاری دیگر",
+                "description": "این کالا پس از مدت زمان مشخص شده توسط فروشنده در انبار دیجی‌کالا تامین و آماده پردازش می‌گردد و توسط پیک دیجی‌کالا در بازه انتخابی ارسال خواهد شد.",
+                "label": {
+                  "title": "توسط دیجی‌کالا",
+                  "description": "تامین از 1 روز کاری دیگر"
+                },
+                "price": {
+                  "text": "وابسته به سبد",
+                  "value": null,
+                  "is_free": false
+                },
+                "shipping_mode": "digikala",
+                "delivery_day": "tomorrow",
+                "image": "https://dkstatics-public.digikala.com/digikala-static/a850a0020b1f1d1241c35c8e9ef2b4a93e12a091_1667056289.png",
+                "svg_image": "https://dkstatics-public.digikala.com/digikala-static/562b91988f1beec9a5f13aee3cf31cfd7a1a25b1_1748679087.svg"
+              }
+            ]
+          },
+          "has_importer_price": false,
+          "manufacture_price_not_exist": false,
+          "has_best_price_in_last_month": false,
+          "buy_box_notices": [],
+          "digiplus": {
+            "services": [
+              "۴ ارسال رایگان دیجیکالا",
+              "۲ ارسال سوپرمارکت",
+              "۴ ارسال رایگان ۴۵ دقیقه‌ای",
+              "پشتیبانی اختصاصی"
+            ],
+            "service_list": [
+              {
+                "title": "۴ ارسال رایگان دیجیکالا"
+              },
+              {
+                "title": "۲ ارسال سوپرمارکت"
+              },
+              {
+                "title": "۴ ارسال رایگان ۴۵ دقیقه‌ای"
+              },
+              {
+                "title": "پشتیبانی اختصاصی"
+              }
+            ],
+            "services_summary": [
+              "ارسال رایگان"
+            ],
+            "is_jet_eligible": false,
+            "cash_back": 0,
+            "is_general_location_jet_eligible": false,
+            "fast_shipping_text": null
+          },
+          "variant_badges": []
+        },
+        {
+          "id": 60556478,
+          "lead_time": 1,
+          "rank": 209.516,
+          "rate": 0,
+          "statistics": null,
+          "status": "marketable",
+          "properties": {
+            "is_fast_shipping": false,
+            "is_ship_by_seller": false,
+            "is_multi_warehouse": false,
+            "has_similar_variants": true,
+            "is_rural": false,
+            "in_digikala_warehouse": false,
+            "is_ship_from_user_state": false,
+            "nearby_seller_shipment": false,
+            "support_nearby_shipping_for_user": false,
+            "is_ship_by_seller_restricted": false
+          },
+          "warranty": {
+            "id": 272,
+            "title_fa": "گارانتی اصالت و سلامت فیزیکی کالا",
+            "title_en": "گارانتی اصالت و سلامت فیزیکی کالا"
+          },
+          "seller": {
+            "id": 863294,
+            "title": "فروشگاه نازیلا",
+            "code": "DYP29",
+            "url": "https://www.digikala.com/seller/DYP29/",
+            "rating": {
+              "total_rate": 83,
+              "total_count": 9357,
+              "commitment": 99.9,
+              "no_return": 99.5,
+              "on_time_shipping": 96.7
+            },
+            "properties": {
+              "is_trusted": true,
+              "is_official": false,
+              "is_roosta": true,
+              "is_new": false
+            },
+            "stars": 4.85,
+            "grade": {
+              "label": "عالی",
+              "color": "#00a049"
+            },
+            "logo": null,
+            "registration_date": "4 سال و 5 ماه"
+          },
+          "digiclub": {
+            "point": 80
+          },
+          "price": {
+            "selling_price": 7950000,
+            "rrp_price": 7950000,
+            "order_limit": 3,
+            "is_incredible": false,
+            "is_promotion": false,
+            "is_locked_for_digiplus": false,
+            "bnpl_active": false,
+            "discount_percent": 0,
+            "is_plus_early_access": false,
+            "min_order_limit": 1
+          },
+          "shipment_methods": {
+            "description": "موجود در انبار فروشنده",
+            "has_lead_time": false,
+            "icon": "cube-shop-product",
+            "icon_color": "#424750",
+            "providers": [
+              {
+                "has_lead_time": true,
+                "type": "digikala",
+                "title": "ارسال دیجی‌کالا از 1 روز کاری دیگر",
+                "description": "این کالا پس از مدت زمان مشخص شده توسط فروشنده در انبار دیجی‌کالا تامین و آماده پردازش می‌گردد و توسط پیک دیجی‌کالا در بازه انتخابی ارسال خواهد شد.",
+                "label": {
+                  "title": "توسط دیجی‌کالا",
+                  "description": "تامین از 1 روز کاری دیگر"
+                },
+                "price": {
+                  "text": "وابسته به سبد",
+                  "value": null,
+                  "is_free": false
+                },
+                "shipping_mode": "digikala",
+                "delivery_day": "tomorrow",
+                "image": "https://dkstatics-public.digikala.com/digikala-static/a850a0020b1f1d1241c35c8e9ef2b4a93e12a091_1667056289.png",
+                "svg_image": "https://dkstatics-public.digikala.com/digikala-static/562b91988f1beec9a5f13aee3cf31cfd7a1a25b1_1748679087.svg"
+              }
+            ]
+          },
+          "has_importer_price": false,
+          "manufacture_price_not_exist": false,
+          "has_best_price_in_last_month": false,
+          "buy_box_notices": [],
+          "digiplus": {
+            "services": [
+              "۴ ارسال رایگان دیجیکالا",
+              "۲ ارسال سوپرمارکت",
+              "۴ ارسال رایگان ۴۵ دقیقه‌ای",
+              "پشتیبانی اختصاصی"
+            ],
+            "service_list": [
+              {
+                "title": "۴ ارسال رایگان دیجیکالا"
+              },
+              {
+                "title": "۲ ارسال سوپرمارکت"
+              },
+              {
+                "title": "۴ ارسال رایگان ۴۵ دقیقه‌ای"
+              },
+              {
+                "title": "پشتیبانی اختصاصی"
+              }
+            ],
+            "services_summary": [
+              "ارسال رایگان"
+            ],
+            "is_jet_eligible": false,
+            "cash_back": 0,
+            "is_general_location_jet_eligible": false,
+            "fast_shipping_text": null
+          },
+          "variant_badges": []
+        }
+      ],
+      "videos": [],
+      "category": {
+        "id": 8948,
+        "title_fa": "شکلات صبحانه و کرم بیسکویت",
+        "title_en": "شکلات صبحانه",
+        "code": "breakfast-chocolates",
+        "content_description": "",
+        "content_box": "",
+        "return_reason_alert": "درخواست مرجوع کردن کالا در این گروه کالایی با دلیل \"انصراف از خرید\" تنها در صورتی قابل تایید است که کالا در شرایط اولیه باشد (در صورت پلمب بودن، کالا نباید باز شده باشد)."
+      },
+      "brand": {
+        "id": 11453,
+        "code": "sairoo",
+        "title_fa": "سایرو",
+        "title_en": "Sairoo",
+        "url": {
+          "base": null,
+          "uri": "/brand/sairoo/"
+        },
+        "visibility": true,
+        "logo": {
+          "storage_ids": [],
+          "url": [
+            "https://dkstatics-public.digikala.com/digikala-brands/6164af1f8aedd6bf67cee5bca508325cc1b00811_1643116640.png?x-oss-process=image/resize,m_lfit,h_120,w_120/quality,q_80"
+          ],
+          "thumbnail_url": null,
+          "temporary_id": null,
+          "webp_url": null
+        },
+        "is_premium": false,
+        "is_miscellaneous": false,
+        "is_name_similar": false
+      },
+      "review": {
+        "attributes": [
+          {
+            "title": "کشور تولید کننده",
+            "values": [
+              "ایران"
+            ]
+          }
+        ]
+      },
+      "pros_and_cons": {
+        "advantages": [],
+        "disadvantages": []
+      },
+      "suggestion": {
+        "count": 999,
+        "percentage": 89
+      },
+      "second_default_variant": {
+        "id": 59846331,
+        "lead_time": 1,
+        "rank": 99.916,
+        "rate": 91.6,
+        "statistics": {
+          "totally_satisfied": {
+            "rate_count": 15,
+            "rate": 78.95
+          },
+          "satisfied": {
+            "rate_count": 2,
+            "rate": 10.53
+          },
+          "neutral": {
+            "rate_count": 1,
+            "rate": 5.26
+          },
+          "dissatisfied": {
+            "rate_count": 0,
+            "rate": 0
+          },
+          "totally_dissatisfied": {
+            "rate_count": 1,
+            "rate": 5.26
+          },
+          "total_count": 19,
+          "total_rate": 91.6
+        },
+        "status": "marketable",
+        "properties": {
+          "is_fast_shipping": false,
+          "is_ship_by_seller": false,
+          "is_multi_warehouse": false,
+          "has_similar_variants": true,
+          "is_rural": false,
+          "in_digikala_warehouse": false,
+          "is_ship_from_user_state": false,
+          "nearby_seller_shipment": false,
+          "support_nearby_shipping_for_user": false,
+          "is_ship_by_seller_restricted": false
+        },
+        "warranty": {
+          "id": 272,
+          "title_fa": "گارانتی اصالت و سلامت فیزیکی کالا",
+          "title_en": "گارانتی اصالت و سلامت فیزیکی کالا"
+        },
+        "seller": {
+          "id": 134196,
+          "title": "آجیل و شکلات جانان",
+          "code": "AEGX2",
+          "url": "https://www.digikala.com/seller/AEGX2/",
+          "rating": {
+            "total_rate": 85,
+            "total_count": 11759,
+            "commitment": 99.7,
+            "no_return": 99.8,
+            "on_time_shipping": 96
+          },
+          "properties": {
+            "is_trusted": true,
+            "is_official": false,
+            "is_roosta": true,
+            "is_new": false
+          },
+          "stars": 4.85,
+          "grade": {
+            "label": "عالی",
+            "color": "#00a049"
+          },
+          "logo": null,
+          "registration_date": "7 سال و 2 ماه"
+        },
+        "digiclub": {
+          "point": 80
+        },
+        "price": {
+          "selling_price": 7950000,
+          "rrp_price": 7950000,
+          "order_limit": 30,
+          "is_incredible": false,
+          "is_promotion": false,
+          "is_locked_for_digiplus": false,
+          "bnpl_active": false,
+          "discount_percent": 0,
+          "is_plus_early_access": false,
+          "min_order_limit": 1
+        },
+        "shipment_methods": {
+          "description": "موجود در انبار فروشنده",
+          "has_lead_time": false,
+          "icon": "cube-shop-product",
+          "icon_color": "#424750",
+          "providers": [
+            {
+              "has_lead_time": true,
+              "type": "digikala",
+              "title": "ارسال دیجی‌کالا از 1 روز کاری دیگر",
+              "description": "این کالا پس از مدت زمان مشخص شده توسط فروشنده در انبار دیجی‌کالا تامین و آماده پردازش می‌گردد و توسط پیک دیجی‌کالا در بازه انتخابی ارسال خواهد شد.",
+              "label": {
+                "title": "توسط دیجی‌کالا",
+                "description": "تامین از 1 روز کاری دیگر"
+              },
+              "price": {
+                "text": "وابسته به سبد",
+                "value": null,
+                "is_free": false
+              },
+              "shipping_mode": "digikala",
+              "delivery_day": "tomorrow",
+              "image": "https://dkstatics-public.digikala.com/digikala-static/a850a0020b1f1d1241c35c8e9ef2b4a93e12a091_1667056289.png",
+              "svg_image": "https://dkstatics-public.digikala.com/digikala-static/562b91988f1beec9a5f13aee3cf31cfd7a1a25b1_1748679087.svg"
+            }
+          ]
+        },
+        "has_importer_price": false,
+        "manufacture_price_not_exist": false,
+        "has_best_price_in_last_month": false,
+        "buy_box_notices": [],
+        "digiplus": {
+          "services": [
+            "۴ ارسال رایگان دیجیکالا",
+            "۲ ارسال سوپرمارکت",
+            "۴ ارسال رایگان ۴۵ دقیقه‌ای",
+            "پشتیبانی اختصاصی"
+          ],
+          "service_list": [
+            {
+              "title": "۴ ارسال رایگان دیجیکالا"
+            },
+            {
+              "title": "۲ ارسال سوپرمارکت"
+            },
+            {
+              "title": "۴ ارسال رایگان ۴۵ دقیقه‌ای"
+            },
+            {
+              "title": "پشتیبانی اختصاصی"
+            }
+          ],
+          "services_summary": [
+            "ارسال رایگان"
+          ],
+          "is_jet_eligible": false,
+          "cash_back": 0,
+          "is_general_location_jet_eligible": false,
+          "fast_shipping_text": null
+        },
+        "variant_badges": []
+      },
+      "questions_count": 67,
+      "comments_count": 3796,
+      "comments_overview": {
+        "id": 17311,
+        "overview": "کرم کاکائو فندقی سایرو با طعم خوشمزه و کیفیت مناسب، به عنوان یک گزینه عالی برای مصرف روزانه معرفی شده است. کاربران از طعم فندق واقعی و شیرینی متعادل آن رضایت دارند و آن را به عنوان جایگزینی مناسب برای شکلات صبحانه می‌دانند. همچنین، قیمت آن نسبت به کیفیتش بسیار مناسب است و برای خانواده‌های پرجمعیت گزینه‌ای به صرفه محسوب می‌شود.\n\nبا این حال، برخی کاربران به شیرینی زیاد و چربی بالا اشاره کرده‌اند که ممکن است برای همه مناسب نباشد. همچنین، برخی از نظرات به شل شدن کرم در دماهای مختلف و احساس دانه‌های شکر اشاره کرده‌اند.\n\nدر کل، این محصول به عنوان یک کرم کاکائو خوشمزه و با کیفیت شناخته می‌شود که با توجه به قیمتش، ارزش خرید بالایی دارد.",
+        "advantages": [
+          "طعم خوشمزه و واقعی فندق",
+          "قیمت مناسب نسبت به کیفیت",
+          "مناسب برای خانواده‌های پرجمعیت"
+        ],
+        "disadvantages": [
+          "شیرینی زیاد",
+          "چربی بالا",
+          "احساس دانه‌های شکر در برخی موارد"
+        ]
+      },
+      "breadcrumb": [
+        {
+          "category_id": null,
+          "title": "دیجی‌کالا",
+          "url": {
+            "base": null,
+            "uri": "/"
+          }
+        },
+        {
+          "category_id": 8895,
+          "title": "کالاهای سوپرمارکتی",
+          "url": {
+            "base": null,
+            "uri": "/main/food-beverage/"
+          }
+        },
+        {
+          "category_id": 8915,
+          "title": "صبحانه",
+          "url": {
+            "base": null,
+            "uri": "/search/category-breakfast/"
+          }
+        },
+        {
+          "category_id": 8948,
+          "title": "شکلات صبحانه و کرم بیسکویت",
+          "url": {
+            "base": null,
+            "uri": "/search/category-breakfast-chocolates/"
+          }
+        },
+        {
+          "category_id": null,
+          "title": "کرم کاکائو فندقی سايرو - 900 گرم",
+          "url": {
+            "base": null,
+            "uri": "/product/dkp-9685855/%DA%A9%D8%B1%D9%85-%DA%A9%D8%A7%DA%A9%D8%A7%D8%A6%D9%88-%D9%81%D9%86%D8%AF%D9%82%DB%8C-%D8%B3%D8%A7%D9%8A%D8%B1%D9%88-900-%DA%AF%D8%B1%D9%85"
+          }
+        }
+      ],
+      "has_size_guide": false,
+      "specifications": [
+        {
+          "title": "مشخصات",
+          "attributes": [
+            {
+              "title": "نوع بسته‌بندی",
+              "values": [
+                "ظرف پلاستیکی "
+              ]
+            },
+            {
+              "title": "کشور تولید کننده",
+              "values": [
+                "ایران "
+              ]
+            },
+            {
+              "title": "وزن بسته‌بندی",
+              "values": [
+                "900 گرم"
+              ]
+            },
+            {
+              "title": "ابعاد بسته‌بندی",
+              "values": [
+                "13×13×9 سانتی‌متر"
+              ]
+            },
+            {
+              "title": "شماره پروانه بهداشت",
+              "values": [
+                "32/12137 "
+              ]
+            },
+            {
+              "title": "طعم",
+              "values": [
+                "فندق "
+              ]
+            },
+            {
+              "title": "سایر توضیحات",
+              "values": [
+                "- کرم کاکائو با پودر مغزهای خوراکی (فندقی)\r\n- ترکیبات: شکر، روغن مایع آفتابگردان، شیر خشک کم چرب، پودر کاکائو، فندق، لیستین، وانیلین "
+              ]
+            }
+          ]
+        }
+      ],
+      "expert_reviews": {
+        "attributes": [],
+        "description": "",
+        "short_review": "",
+        "admin_rates": [],
+        "review_sections": [
+          {
+            "title": "معرفی",
+            "sections": [
+              {
+                "template": "text",
+                "text": "شکلات صبحانه، همان لذت خاموش و آرامی که از لابه&zwnj;لای یک قاشق کوچک، خستگی صبح را کنار می&zwnj;زند. لحظه&zwnj;ای کوتاه اما دلنشین که در آن، گرمای کاکائو و عطر فندق روی نان تازه می&zwnj;نشیند و روزی پرانرژی را نوید می&zwnj;دهد.\r\n\r\nبرند سایرو سال&zwnj;هاست که این حس و حال دوست&zwnj;داشتنی را با محصولات متنوع و باکیفیت به خانه&zwnj;های ایرانی آورده است؛ برندی که زیرمجموعه شرکت &quot;کیان شکلات کیمیا&quot; است و از ابتدای فعالیت خود، کیفیت مواد اولیه، طعم اصیل و فرایند استاندارد تولید را در اولویت قرار داده. سایرو مجموعه&zwnj;ای از شکلات&zwnj;های تلخ، شیری، مغزدار، تابلت&zwnj;ها و کرم&zwnj;های کاکائویی را عرضه می&zwnj;کند که هرکدام برای سلیقه&zwnj;ای خاص طراحی شده&zwnj;اند و توانسته&zwnj;اند جای خود را در میان خانواده&zwnj;ها پیدا کنند. در میان این محصولات، شکلات صبحانه&zwnj;های سایرو به دلیل طعم دلپذیر، کیفیت بالا و بافت ابریشمی&zwnj;شان محبوبیت ویژه&zwnj;ای دارند.\r\n\r\nشکلات صبحانه فندقی سایرو ۱ کیلوگرم محصولی است با کیفیت بالا، طعم اصیل، مواد اولیه مرغوب و ارزش غذایی مناسب که می&zwnj;تواند لحظه&zwnj;های ساده صبحگاهی یا میان&zwnj;وعده&zwnj;های روزانه را به تجربه&zwnj;ای لذت&zwnj;بخش تبدیل کند. بسته&zwnj;بندی بزرگ و مقرون&zwnj;به&zwnj;صرفه آن نیز گزینه&zwnj;ای اقتصادی برای خانواده&zwnj;هاست. اگر به دنبال شکلات صبحانه&zwnj;ای هستید که هم خوش&zwnj;طعم باشد، هم بافتی روان و طبیعی داشته باشد و هم کیفیت آن خیال شما را از بابت انتخاب محصولی مطمئن راحت کند، این محصول سایرو می&zwnj;تواند بهترین همراه روزهای شما باشد."
+              }
+            ]
+          },
+          {
+            "title": "بررسی تخصصی",
+            "sections": [
+              {
+                "template": "text",
+                "text": "شکلات صبحانه فندقی سایرو ۱ کیلوگرم از پرفروش&zwnj;ترین محصولات سایرو است؛ یک انتخاب ایده&zwnj;آل برای خانواده&zwnj;هایی که یک کرم کاکائوی خوش&zwnj;عطر، طبیعی و غنی را برای وعده&zwnj;های صبحانه یا میان&zwnj;وعده&zwnj;های روزانه می&zwnj;خواهند. این محصول با ترکیبی دقیق و حساب&zwnj;شده از پودر کاکائو خالص و فندق برشته شده تهیه می&zwnj;شود؛ فندقی که پس از رست&zwnj;شدن، طعمی گرم و کاراملی پیدا می&zwnj;کند و در ترکیب با کاکائوی مرغوب، رایحه&zwnj;ای دلچسب و بافتی لطیف به وجود می&zwnj;آورد. طعم این شکلات صبحانه نه بیش از حد شیرین است و نه سنگین؛ تعادل طعمی&nbsp;آن باعث می&zwnj;شود هم برای کودکان لذت&zwnj;بخش باشد و هم برای بزرگسالانی که دنبال طعمی کلاسیک و طبیعی هستند.\r\n\r\nاز نظر ارزش غذایی هر ۱۵ گرم از شکلات صبحانه فندقی سایرو ۱ کیلوگرم، ۸۰ کالری انرژی دارد؛ &nbsp;مقداری که آن را به گزینه&zwnj;ای مناسب برای یک میان&zwnj;وعده کوچک یا وعده صبحانه تبدیل می&zwnj;کند. در همین مقدار، ۵ گرم چربی وجود دارد که نزدیک به ۷ درصد نیاز روزانه بدن را تأمین می&zwnj;کند. همچنین وجود ۷ گرم قند می&zwnj;تواند برای وعده صبحانه یا میان&zwnj;وعده گزینه&zwnj;ای مناسب باشد. با این حال، به دلیل وجود چربی و قند، مصرف این محصول باید متعادل باشد؛ بنابراین مصرف اصولی، هم لذت شکلات را حفظ می&zwnj;کند و هم سلامت را.\r\n\r\nاما جنبه مثبت ماجرا در ترکیب کاکائوی خالص این محصول است؛ کاکائوی طبیعی سرشار از آنتی&zwnj;اکسیدان&zwnj;هاست و نقش مهمی در سلامت قلب و عروق و کاهش استرس اکسیداتیو، بهبود خلق&zwnj;وخو و افزایش انرژی دارد. فندق نیز به&zwnj;طور طبیعی منبعی عالی از چربی&zwnj;های مفید، ویتامین E و مواد معدنی است. بنابراین شکلات صبحانه فندقی سایرو ۱ کیلوگرم در کنار لذت طعمی، ارزش تغذیه&zwnj;ای خوبی نیز ارائه می&zwnj;دهد.\r\n\r\nکاربردهای این محصول تنها به یک شکل محدود نمی&zwnj;شود و می&zwnj;توان آن را به شیوه&zwnj;های مختلفی به کار گرفت. شما می&zwnj;توانید آن را روی نان تست گرم پخش کنید تا بافت کرمی&zwnj;اش کاملاً نرم شود و طعم فندق به&zwnj;خوبی آزاد شود. ترکیب آن با میوه&zwnj;هایی مثل موز، توت&zwnj;فرنگی یا سیب یک میان&zwnj;وعده سالم، خوش&zwnj;عطر و هیجان&zwnj;انگیز می&zwnj;سازد. از شکلات صبحانه فندقی سایرو ۱ کیلوگرم می&zwnj;توان به عنوان دیپ شکلاتی برای آجیل&zwnj;ها و کراکرها استفاده کرد یا در کنار پنکیک و وافل سرو کرد. این شکلات باعث افزایش تمایل کودکان به خوردن صبحانه شده و انرژی لازم برای ادامه روز را فراهم می کند.\r\n\r\nسایرو این شکلات صبحانه را علاوه بر بسته ۱ کیلویی، در وزن&zwnj;های ۱۲۸ گرمی و ۱۰ کیلویی نیز عرضه می&zwnj;کند. بسته&zwnj;های کوچک&zwnj;تر برای افرادی مناسب است که می&zwnj;خواهند ابتدا طعم محصول را امتحان کنند یا مصرفشان را کنترل&zwnj;شده داشته باشند، در حالی که بسته ۱۰ کیلویی برای مصارف حرفه&zwnj;ای در قنادی&zwnj;ها و کافه&zwnj;ها طراحی شده است. به این ترتیب هر کس می&zwnj;تواند بسته به نیاز و سلیقه خود، گزینه&zwnj;ای مناسب انتخاب کند.\r\n\r\nبرای حفظ طعم و بافت شکلات، بهتر است آن را در محیطی خنک و خشک نگه دارید و از قرار دادن در معرض نور مستقیم خورشید یا حرارت زیاد، و همچنین یخچال خودداری کنید. بهترین دما برای حفظ کیفیت بافت و طعم، بین ۱۰ تا ۲۰ درجه سانتی&zwnj;گراد است. نگهداری صحیح کمک می&zwnj;کند بافت کرمی محصول ثابت بماند و روغن فندق از آن جدا نشود."
+              }
+            ]
+          }
+        ],
+        "technical_properties": {
+          "advantages": [],
+          "disadvantages": []
+        }
+      },
+      "meta": {
+        "brand_category_url": {
+          "base": null,
+          "uri": "/search/category-breakfast-chocolates/sairoo/"
+        }
+      },
+      "last_comments": [
+        {
+          "id": 87751994,
+          "title": null,
+          "body": "واقعا عالی خوشمزه ",
+          "created_at": "19 خرداد 1405",
+          "rate": 5,
+          "reactions": {
+            "likes": 0,
+            "dislikes": 0
+          },
+          "files": [],
+          "is_buyer": true,
+          "user_name": "سیده امینه نوزن",
+          "is_anonymous": false,
+          "purchased_item": [],
+          "advantages": [],
+          "disadvantages": [],
+          "relative_date": "6 روز پیش"
+        },
+        {
+          "id": 87617864,
+          "title": null,
+          "body": "بسیار خوشمزه",
+          "created_at": "13 خرداد 1405",
+          "rate": 5,
+          "reactions": {
+            "likes": 0,
+            "dislikes": 0
+          },
+          "files": [],
+          "is_buyer": true,
+          "user_name": "نغمه جلالوند",
+          "is_anonymous": false,
+          "purchased_item": [],
+          "advantages": [],
+          "disadvantages": [],
+          "relative_date": "13 خرداد 1405"
+        },
+        {
+          "id": 87484055,
+          "title": null,
+          "body": "واقعا خیلی خوشمزه اس فک نمیکردم انقد خوب باشه و اینکه یک کیلو وزنشه هربار میام چهار پنچ قاشق میخورم تموم نمشه دل آدمو میزنه زیاد بخوری مزه خیلی خوبی داره شانس خیلی وقته دیگه ناموجود شده موجودش کنید",
+          "created_at": "8 خرداد 1405",
+          "rate": 5,
+          "reactions": {
+            "likes": 0,
+            "dislikes": 1
+          },
+          "files": [],
+          "is_buyer": true,
+          "user_name": "پیام عالمی کمال پور",
+          "is_anonymous": false,
+          "purchased_item": [],
+          "advantages": [],
+          "disadvantages": [],
+          "relative_date": "8 خرداد 1405"
+        },
+        {
+          "id": 87342313,
+          "title": null,
+          "body": "بد نیست بچه ها دوست دارن",
+          "created_at": "3 خرداد 1405",
+          "rate": 5,
+          "reactions": {
+            "likes": 0,
+            "dislikes": 0
+          },
+          "files": [],
+          "is_buyer": true,
+          "user_name": "کاربر دیجی‌کالا",
+          "is_anonymous": true,
+          "purchased_item": [],
+          "advantages": [],
+          "disadvantages": [],
+          "relative_date": "3 خرداد 1405"
+        }
+      ],
+      "last_questions": [
+        {
+          "id": 9861579,
+          "status": "accepted",
+          "text": "مدت داره؟",
+          "answer_count": 3,
+          "sender": "مائده هدایتی",
+          "created_at": "12 خرداد 1405"
+        },
+        {
+          "id": 9842135,
+          "status": "accepted",
+          "text": "وزنش رو کم کردید ولی دیگه چرا تو سابقه خرید هم یک کیلوگرم رو کردید ۹۰۰ گرم",
+          "answer_count": 2,
+          "sender": "الهام السادات تقوی",
+          "created_at": "8 خرداد 1405"
+        },
+        {
+          "id": 9822423,
+          "status": "accepted",
+          "text": "سلام لطفا  تو شگفت انگیز بزارید  ما از رمان ۷۰ تومن مشتری این محصول هستیم خواهشا تخفیف بزارید🙏 ",
+          "answer_count": 0,
+          "sender": "حمید بابازادگان",
+          "created_at": "5 خرداد 1405"
+        }
+      ],
+      "tags": [],
+      "digify_touchpoint": "",
+      "show_type": "normal",
+      "cars_reservable": false,
+      "has_offline_shop_stock": false,
+      "has_style_try_on": false,
+      "st_cmp_tacker": {
+        "neo": "syu4JxGgQ0ObDYhCglHKg8vVedYkazJa5Q3c7Y42Jrq2PCJJeU8EpHQwcYsju5fTJSArgwQPyVaxsEpUmERUqZZhJNnYnl1JhNb8PuNEDdsCdjcyxWmdNWgNAMRrAduczpdCrG5DjIvnSx0FWL1nMAiJ8ly4pgdesLo1evU4nxjfN7m2jpqlmjoRQ2yOr6AKEyTJMyI",
+        "cx": "eyJjaXBoZXJ0ZXh0IjoibVFYbGVEelA4SjlqdHdHMVZJZkZtRTc0aUhjWjlcL2MwVW40cWhQSzJHQ3pnMVZjVG9sczI5TzdQYWJzOUlJU3IrUjNkUFNBT3llVlkrWTUxc1Z0UVRXRERiamZKQ1ZHN0pPSFRraXo2NVMxY01wWU5obXIx",
+        "dx": "WFJ1K0dLM3kzQlQ0Y0N6M2M1dVBwSnVnSUNZeDZkWUJUWkkrRFp0Qk5RRGUzaitQY08yQmdkRW9zakFCekVlUzZDOG5PaExkbTVtdUJkSUljYjUrTFwvOWdVRnZYVDU1TWRiUVNOQnkwdUdqemJuZkVZMFpTSTFVNys0UFRSNGJjS29k",
+        "data-fx": "MlQ1WklMdERVKzFlTEMydXdnajluUHBmWElmVk9FQU50cTVOMWEzM2VQcG9OckhBRm4yOVB5SUJhNlZxK1M0dVdqWkxwVHFrcVI3dDFtSEU5WGJ1dEJWdUI2VzNkWFVaWTVqbHA3dDQrV0hcL0pJTlh5YXhwVWtwZEhTZklOZ0Z1VzZN",
+        "zero": "bU1rZkMrSCtVQ09sZVh6NDlsRm5XalwvR29UMm9ZVWdKSk00MUpIQWc2Z3hLZzV4aHExOG9PajJyQ253d282RG50NlJCOW4iLCJpdiI6IjQ0OWVjZjQyOWQzODQ3OGMyZDFmNDc0MjNiMzIwNTBhIiwiaXRlcmF0aW9ucyI6OTk5fQ=="
+      }
+    },
+    "data_layer": {
+      "event": "eec.productDetail",
+      "ecommerce": {
+        "detail": {
+          "actionField": {
+            "list": "category-شکلات صبحانه و کرم بیسکویت"
+          },
+          "products": [
+            {
+              "brand": "سایرو",
+              "category": "[DF,صبحانه]",
+              "metric6": 6354,
+              "dimension2": 0,
+              "dimension6": 0,
+              "dimension7": "none",
+              "dimension9": 4.5,
+              "dimension11": 0,
+              "dimension20": "marketable",
+              "item_category2": "کالاهای سوپرمارکتی",
+              "item_category3": "صبحانه",
+              "item_category4": "شکلات صبحانه و کرم بیسکویت",
+              "item_category5": "",
+              "name": "کرم کاکائو فندقی سايرو - 900 گرم",
+              "id": 9685855,
+              "price": 7950000,
+              "variant_id": 59846331,
+              "metric8": 1,
+              "dimension3": "marketplace",
+              "dimension10": 1,
+              "dimension15": 0,
+              "metric15": 1,
+              "metric11": 3796,
+              "metric12": 999
+            }
+          ]
+        }
+      }
+    },
+    "seo": {
+      "title": "قیمت و خرید کرم کاکائو فندقی سايرو - 900 گرم",
+      "description": "خرید اینترنتی کرم کاکائو فندقی سايرو - 900 گرم به همراه مقایسه، بررسی مشخصات و لیست قیمت امروز در فروشگاه اینترنتی دیجی‌کالا",
+      "twitter_card": {
+        "title": "کرم کاکائو فندقی سايرو - 900 گرم",
+        "image": "https://dkstatics-public.digikala.com/digikala-products/e682954618499f2cd808b978bb72c70e051ab681_1777720815.jpg?x-oss-process=image/resize,m_lfit,h_350,w_350/quality,q_60",
+        "price": 0,
+        "description": "خرید اینترنتی کرم کاکائو فندقی سايرو - 900 گرم به همراه مقایسه، بررسی مشخصات و لیست قیمت امروز در فروشگاه اینترنتی دیجی‌کالا"
+      },
+      "open_graph": {
+        "title": "کرم کاکائو فندقی سايرو - 900 گرم",
+        "url": "https://www.digikala.com/product/dkp-9685855/کرم-کاکائو-فندقی-سايرو-900-گرم",
+        "image": "https://dkstatics-public.digikala.com/digikala-products/e682954618499f2cd808b978bb72c70e051ab681_1777720815.jpg?x-oss-process=image/resize,m_lfit,h_350,w_350/quality,q_60",
+        "availability": "in stock",
+        "type": "product",
+        "site": "دیجی‌کالا",
+        "price": 0,
+        "description": null
+      },
+      "header": {
+        "title": "کرم کاکائو فندقی سايرو - 900 گرم",
+        "description": "خرید اینترنتی کرم کاکائو فندقی سايرو - 900 گرم به همراه مقایسه، بررسی مشخصات و لیست قیمت امروز در فروشگاه اینترنتی دیجی‌کالا",
+        "canonical_url": "https://www.digikala.com/product/dkp-9685855/%DA%A9%D8%B1%D9%85-%DA%A9%D8%A7%DA%A9%D8%A7%D8%A6%D9%88-%D9%81%D9%86%D8%AF%D9%82%DB%8C-%D8%B3%D8%A7%D9%8A%D8%B1%D9%88-900-%DA%AF%D8%B1%D9%85"
+      },
+      "markup_schema": [
+        {
+          "@type": "Product",
+          "@context": "https://www.schema.org",
+          "name": "کرم کاکائو فندقی سايرو - 900 گرم",
+          "alternateName": "",
+          "image": [
+            "https://dkstatics-public.digikala.com/digikala-products/ff699a016644284be5a13ff1c01629e748788072_1666425620.jpg?x-oss-process=image/resize,h_1600/quality,q_80"
+          ],
+          "description": "خرید اینترنتی کرم کاکائو فندقی سايرو - 900 گرم به همراه مقایسه، بررسی مشخصات و لیست قیمت امروز در فروشگاه اینترنتی دیجی‌کالا",
+          "mpn": 9685855,
+          "sku": 9685855,
+          "category": "https://www.digikala.com/search/category-breakfast-chocolates/",
+          "brand": {
+            "@type": "Brand",
+            "name": "سایرو",
+            "url": "https://www.digikala.com/brand/sairoo/",
+            "@id": "https://www.digikala.com/brand/sairoo/#brand"
+          },
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": 4.45,
+            "reviewCount": 6354
+          },
+          "offers": {
+            "@type": "Offer",
+            "priceCurrency": "IRR",
+            "price": 7950000,
+            "itemCondition": "https://schema.org/NewCondition",
+            "availability": "https://schema.org/InStock"
+          },
+          "review": {
+            "@type": "Review",
+            "reviewRating": {
+              "@type": "Rating",
+              "bestRating": 5,
+              "ratingValue": 5
+            },
+            "author": {
+              "@type": "Person",
+              "name": "سیده امینه نوزن"
+            },
+            "datePublished": "2026-06-09",
+            "reviewBody": "واقعا عالی خوشمزه ",
+            "name": ""
+          }
+        },
+        [
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "فروشگاه اینترنتی دیجی‌کالا",
+                "item": {
+                  "@type": "Corporation",
+                  "@id": "https://www.digikala.com/#corporation"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "کالای خوراکی و اساسی",
+                "item": "https://www.digikala.com/main/food-beverage/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "صبحانه",
+                "item": "https://www.digikala.com/search/category-breakfast/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 4,
+                "name": "شکلات صبحانه و کرم بیسکویت",
+                "item": "https://www.digikala.com/search/category-breakfast-chocolates/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 5,
+                "name": "کرم کاکائو فندقی سايرو - 900 گرم"
+              }
+            ]
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "سایرو",
+                "item": {
+                  "@type": "Brand",
+                  "@id": "https://www.digikala.com/brand/sairoo/#brand"
+                }
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "شکلات صبحانه و کرم بیسکویت سایرو",
+                "item": "https://www.digikala.com/search/category-breakfast-chocolates/sairoo/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "کرم کاکائو فندقی سايرو - 900 گرم"
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    "intrack": {
+      "eventName": "product_detail_pageview",
+      "eventData": {
+        "currency": "IRR",
+        "deviceType": "desktop",
+        "name": "کرم کاکائو فندقی سايرو - 900 گرم",
+        "productId": 9685855,
+        "productImageUrl": [
+          "https://dkstatics-public.digikala.com/digikala-products/e682954618499f2cd808b978bb72c70e051ab681_1777720815.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/quality,q_90"
+        ],
+        "quantity": null,
+        "leafCategory": "شکلات صبحانه و کرم بیسکویت",
+        "unitPrice": 7950000,
+        "url": "/product/dkp-9685855/کرم-کاکائو-فندقی-سايرو-900-گرم",
+        "supplyCategory": "DF",
+        "categoryLevel1": "کالاهای سوپرمارکتی",
+        "categoryLevel2": "صبحانه",
+        "categoryLevel3": "شکلات صبحانه و کرم بیسکویت",
+        "categoryLevel4": "",
+        "categoryLevel5": ""
+      },
+      "userId": null
+    },
+    "landing_touchpoint": [],
+    "dynamic_touch_points": [],
+    "promotion_banner": {
+      "product_promotion": null,
+      "dkjet_promotion": null
+    },
+    "bigdata_tracker_data": {
+      "page_name": "product",
+      "page_info": {
+        "product_id": 9685855
+      }
+    },
+    "dynamic_pdp_carousel": [],
+    "dk_service": []
+  }
+}
+Explain
