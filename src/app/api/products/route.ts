@@ -1,13 +1,19 @@
 import { db } from '@/lib/db';
 import { NextResponse } from 'next/server';
 
-// GET /api/products - List all products with their links
+// GET /api/products - List all products with their links and groups
 export async function GET() {
   try {
     const products = await db.product.findMany({
       include: {
         links: {
           orderBy: { createdAt: 'asc' },
+        },
+        group: {
+          include: {
+            parent: true,
+            children: { orderBy: { order: 'asc' } },
+          },
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -19,11 +25,11 @@ export async function GET() {
   }
 }
 
-// POST /api/products - Create a new product
+// POST /api/products - Create a new product (admin only - checked by middleware or client)
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, description, price, imageUrl, category } = body;
+    const { name, description, price, imageUrl, groupId } = body;
 
     if (!name || price === undefined) {
       return NextResponse.json({ error: 'Name and price are required' }, { status: 400 });
@@ -35,10 +41,11 @@ export async function POST(request: Request) {
         description: description || null,
         price: parseFloat(String(price)),
         imageUrl: imageUrl || null,
-        category: category || null,
+        groupId: groupId || null,
       },
       include: {
         links: true,
+        group: { include: { parent: true } },
       },
     });
 

@@ -75,3 +75,32 @@ Stage Summary:
 - Price fetching button on each product card
 - Responsive design with mobile-first approach
 - Verified working with Agent Browser
+
+---
+Task ID: 6
+Agent: Main Agent
+Task: Add admin authentication, product grouping (main+sub), currency settings, and price multiplier
+
+Work Log:
+- Updated Prisma schema: added ProductGroup (self-referencing for main/sub groups), Settings (currency + password), priceMultiplier on CompetitorLink, lastAdjustedPrice fields
+- Created /api/auth/route.ts - POST (login), DELETE (logout), GET (check session)
+- Created /api/settings/route.ts - GET (read), PUT (update with password verification)
+- Created /api/groups/route.ts - GET (tree structure), POST (create with parent validation - no deeper than 2 levels)
+- Created /api/groups/[groupId]/route.ts - PUT (update), DELETE
+- Updated products/links/fetch-prices API routes for groupId, priceMultiplier, adjustedPrice
+- Updated price extraction to calculate adjustedPrice = rawPrice * multiplier
+- Updated frontend with:
+  - Admin login/logout system (cookie-based session, 24h expiry)
+  - Admin-only UI: add/edit/delete products, links, groups are hidden for non-admins
+  - Group management dialog with hierarchical tree (main groups + subgroups via Accordion)
+  - Settings dialog with currency unit selector (Toman/Rial/Dollar/Euro/Dirham) and password change
+  - Price multiplier on competitor links with HoverCard showing calculation
+  - Group filter in header, group selector in product form
+  - Fixed float precision for multiplier display (toFixed(4))
+
+Stage Summary:
+- Admin authentication: cookie-based, default password "admin123"
+- ProductGroup: 2-level hierarchy (main group → subgroup), no deeper nesting allowed
+- Settings: currency unit (5 options), admin password change with current password verification
+- Price multiplier: calculated as adjustedPrice = rawPrice × multiplier, displayed with HoverCard detail
+- All changes verified working with Agent Browser

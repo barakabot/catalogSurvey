@@ -2,7 +2,7 @@ import { db } from '@/lib/db';
 import { extractPrice } from '@/lib/price-extractor';
 import { NextResponse } from 'next/server';
 
-// POST /api/products/[id]/fetch-prices - Fetch all competitor prices for a product
+// POST /api/products/[id]/fetch-prices
 export async function POST(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -34,11 +34,14 @@ export async function POST(
       );
 
       if (extractionResult.success && extractionResult.price !== null) {
-        // Update the link with the new price
+        const adjustedPrice = extractionResult.price * link.priceMultiplier;
+
+        // Update the link with the new prices
         await db.competitorLink.update({
           where: { id: link.id },
           data: {
             lastPrice: extractionResult.price,
+            lastAdjustedPrice: adjustedPrice,
             lastFetchedAt: new Date(),
           },
         });
@@ -48,6 +51,7 @@ export async function POST(
           data: {
             competitorLinkId: link.id,
             price: extractionResult.price,
+            adjustedPrice: adjustedPrice,
           },
         });
 
@@ -55,7 +59,9 @@ export async function POST(
           linkId: link.id,
           linkName: link.name,
           success: true,
-          price: extractionResult.price,
+          rawPrice: extractionResult.price,
+          multiplier: link.priceMultiplier,
+          adjustedPrice: adjustedPrice,
           method: extractionResult.method,
         });
       } else {
@@ -63,7 +69,9 @@ export async function POST(
           linkId: link.id,
           linkName: link.name,
           success: false,
-          price: null,
+          rawPrice: null,
+          multiplier: link.priceMultiplier,
+          adjustedPrice: null,
           method: extractionResult.method,
           error: extractionResult.error,
         });
@@ -83,6 +91,7 @@ export async function POST(
           },
           orderBy: { createdAt: 'asc' },
         },
+        group: { include: { parent: true } },
       },
     });
 

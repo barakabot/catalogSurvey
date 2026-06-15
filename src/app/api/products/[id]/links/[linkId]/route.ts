@@ -1,7 +1,7 @@
 import { db } from '@/lib/db';
 import { NextResponse } from 'next/server';
 
-// PUT /api/products/[id]/links/[linkId] - Update a competitor link
+// PUT /api/products/[id]/links/[linkId]
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string; linkId: string }> }
@@ -9,7 +9,7 @@ export async function PUT(
   try {
     const { linkId } = await params;
     const body = await request.json();
-    const { name, url, linkType, priceSelector } = body;
+    const { name, url, linkType, priceSelector, priceMultiplier } = body;
 
     const link = await db.competitorLink.update({
       where: { id: linkId },
@@ -18,6 +18,7 @@ export async function PUT(
         ...(url !== undefined && { url }),
         ...(linkType !== undefined && { linkType }),
         ...(priceSelector !== undefined && { priceSelector }),
+        ...(priceMultiplier !== undefined && { priceMultiplier: parseFloat(String(priceMultiplier)) }),
       },
     });
 
@@ -28,7 +29,7 @@ export async function PUT(
   }
 }
 
-// DELETE /api/products/[id]/links/[linkId] - Delete a competitor link
+// DELETE /api/products/[id]/links/[linkId]
 export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string; linkId: string }> }

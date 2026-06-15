@@ -10,37 +10,59 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model ProductGroup {
+  id        String        @id @default(cuid())
+  name      String
+  parentId  String?       // null = main group, has value = subgroup
+  order     Int           @default(0)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  parent    ProductGroup? @relation("GroupHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children  ProductGroup[] @relation("GroupHierarchy")
+  products  Product[]
+}
+
 model Product {
   id          String           @id @default(cuid())
   name        String
   description String?
   price       Float
   imageUrl    String?
-  category    String?
+  groupId     String?
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
+  group       ProductGroup?    @relation(fields: [groupId], references: [id], onDelete: SetNull)
   links       CompetitorLink[]
 }
 
 model CompetitorLink {
-  id            String         @id @default(cuid())
-  productId     String
-  name          String
-  url           String
-  linkType      String         @default("WEBSITE") // API or WEBSITE
-  priceSelector String?        // CSS selector for website, JSON path for API (e.g. "data.price")
-  lastPrice     Float?
-  lastFetchedAt DateTime?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  product       Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
-  priceHistory  PriceHistory[]
+  id              String         @id @default(cuid())
+  productId       String
+  name            String
+  url             String
+  linkType        String         @default("WEBSITE") // API or WEBSITE
+  priceSelector   String?        // CSS selector for website, JSON path for API (e.g. "data.price")
+  priceMultiplier Float          @default(1.0) // ضریب قیمت: قیمت نهایی = قیمت استخراج شده × ضریب
+  lastPrice       Float?         // last raw extracted price
+  lastAdjustedPrice Float?       // last adjusted price = lastPrice * priceMultiplier
+  lastFetchedAt   DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  product         Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  priceHistory    PriceHistory[]
 }
 
 model PriceHistory {
   id               String         @id @default(cuid())
   competitorLinkId String
-  price            Float
+  price            Float          // raw extracted price
+  adjustedPrice    Float          // price * multiplier
   fetchedAt        DateTime       @default(now())
   link             CompetitorLink @relation(fields: [competitorLinkId], references: [id], onDelete: Cascade)
+}
+
+model Settings {
+  id       String @id @default("default")
+  currencyUnit  String @default("تومان")
+  adminPassword String @default("admin123")
 }

@@ -1,7 +1,7 @@
 import { db } from '@/lib/db';
 import { NextResponse } from 'next/server';
 
-// GET /api/products/[id]/links - List all competitor links for a product
+// GET /api/products/[id]/links
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -26,7 +26,7 @@ export async function GET(
   }
 }
 
-// POST /api/products/[id]/links - Add a new competitor link
+// POST /api/products/[id]/links
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -34,13 +34,12 @@ export async function POST(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { name, url, linkType, priceSelector } = body;
+    const { name, url, linkType, priceSelector, priceMultiplier } = body;
 
     if (!name || !url) {
       return NextResponse.json({ error: 'Name and URL are required' }, { status: 400 });
     }
 
-    // Verify product exists
     const product = await db.product.findUnique({ where: { id } });
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
@@ -53,6 +52,7 @@ export async function POST(
         url,
         linkType: linkType || 'WEBSITE',
         priceSelector: priceSelector || null,
+        priceMultiplier: priceMultiplier ? parseFloat(String(priceMultiplier)) : 1.0,
       },
     });
 

@@ -13,6 +13,15 @@ export async function GET(
       include: {
         links: {
           orderBy: { createdAt: 'asc' },
+          include: {
+            priceHistory: {
+              orderBy: { fetchedAt: 'desc' },
+              take: 10,
+            },
+          },
+        },
+        group: {
+          include: { parent: true },
         },
       },
     });
@@ -36,7 +45,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { name, description, price, imageUrl, category } = body;
+    const { name, description, price, imageUrl, groupId } = body;
 
     const product = await db.product.update({
       where: { id },
@@ -45,10 +54,11 @@ export async function PUT(
         ...(description !== undefined && { description }),
         ...(price !== undefined && { price: parseFloat(String(price)) }),
         ...(imageUrl !== undefined && { imageUrl }),
-        ...(category !== undefined && { category }),
+        ...(groupId !== undefined && { groupId: groupId || null }),
       },
       include: {
         links: true,
+        group: { include: { parent: true } },
       },
     });
 
