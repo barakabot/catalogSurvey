@@ -104,3 +104,27 @@ Stage Summary:
 - Settings: currency unit (5 options), admin password change with current password verification
 - Price multiplier: calculated as adjustedPrice = rawPrice × multiplier, displayed with HoverCard detail
 - All changes verified working with Agent Browser
+---
+Task ID: 1
+Agent: full-stack-developer
+Task: Add table view with margin and promotion columns to price display
+
+Work Log:
+- Read current page.tsx (1436 lines) to understand full structure
+- Added view mode toggle buttons (جدول/کارت) in the search/filter bar after the group filter Select
+- Toggle uses emerald-600 background for active state, with List and LayoutGrid icons
+- Added table view as alternative to card view when viewMode === "table"
+- Table columns: محصول (Product with image+name+description), دسته‌بندی (Category badge), قیمت (Price with best competitor price), مارژین (Margin with rose styling), پروموشن (Promotion with purple styling), رقبا (Competitors count badge), عملیات (Actions - admin only edit/delete)
+- Margin column shows rose-colored badge with Percent icon when margin exists, or "—" when null
+- Promotion column shows purple-colored badge with Gift icon when promotion exists, or "—" when null
+- Table rows are clickable to open product detail modal
+- Table has RTL direction for proper Persian text alignment
+- Preserved existing card view as the alternative when viewMode === "cards"
+- Default view mode is "table" (as already set in useState)
+- ESLint passed with no errors
+
+Stage Summary:
+- Table view with margin/promotion columns added successfully
+- Toggle between table and card views with emerald-600 active styling
+- Default view is table
+- All existing functionality preserved (dialogs, modals, CRUD operations)

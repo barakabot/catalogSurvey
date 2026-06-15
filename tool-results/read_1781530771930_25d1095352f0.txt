@@ -1,0 +1,1423 @@
+     1→"use client";
+     2→
+     3→import React, { useState, useCallback } from "react";
+     4→import {
+     5→  Plus,
+     6→  ExternalLink,
+     7→  Trash2,
+     8→  Edit3,
+     9→  Search,
+    10→  X,
+    11→  Loader2,
+    12→  RefreshCw,
+    13→  Settings2,
+    14→  LogIn,
+    15→  LogOut,
+    16→  Shield,
+    17→  FolderTree,
+    18→  FolderOpen,
+    19→  FolderPlus,
+    20→  Eye,
+    21→  Link2,
+    22→  Unlink,
+    23→  Globe,
+    24→  ShoppingCart,
+    25→  Tag,
+    26→  Package,
+    27→  ArrowRightLeft,
+    28→  FileSpreadsheet,
+    29→  Upload,
+    30→  Download,
+    31→  CheckCircle2,
+    32→  AlertCircle,
+    33→} from "lucide-react";
+    34→import { Button } from "@/components/ui/button";
+    35→import {
+    36→  Card,
+    37→  CardContent,
+    38→  CardHeader,
+    39→} from "@/components/ui/card";
+    40→import {
+    41→  Dialog,
+    42→  DialogContent,
+    43→  DialogHeader,
+    44→  DialogTitle,
+    45→} from "@/components/ui/dialog";
+    46→import {
+    47→  AlertDialog,
+    48→  AlertDialogAction,
+    49→  AlertDialogCancel,
+    50→  AlertDialogContent,
+    51→  AlertDialogDescription,
+    52→  AlertDialogFooter,
+    53→  AlertDialogHeader,
+    54→  AlertDialogTitle,
+    55→} from "@/components/ui/alert-dialog";
+    56→import { Input } from "@/components/ui/input";
+    57→import { Label } from "@/components/ui/label";
+    58→import { Textarea } from "@/components/ui/textarea";
+    59→import { Badge } from "@/components/ui/badge";
+    60→import { Separator } from "@/components/ui/separator";
+    61→import {
+    62→  Select,
+    63→  SelectContent,
+    64→  SelectItem,
+    65→  SelectTrigger,
+    66→  SelectValue,
+    67→} from "@/components/ui/select";
+    68→import {
+    69→  Accordion,
+    70→  AccordionContent,
+    71→  AccordionItem,
+    72→  AccordionTrigger,
+    73→} from "@/components/ui/accordion";
+    74→import { useToast } from "@/hooks/use-toast";
+    75→import { motion, AnimatePresence } from "framer-motion";
+    76→import * as XLSX from "xlsx";
+    77→
+    78→// ─── Types ────────────────────────────────────────────────────────
+    79→interface CompetitorPriceHistory {
+    80→  id: string;
+    81→  price: number;
+    82→  originalPrice: number | null;
+    83→  discountPercent: number;
+    84→  fetchedAt: string;
+    85→}
+    86→
+    87→interface CompetitorProduct {
+    88→  id: string;
+    89→  source: string;
+    90→  sourceId: string;
+    91→  name: string;
+    92→  imageUrl: string | null;
+    93→  weight: string | null;
+    94→  volume: string | null;
+    95→  price: number;
+    96→  originalPrice: number | null;
+    97→  discountPercent: number;
+    98→  brand: string | null;
+    99→  fetchedAt: string;
+   100→  catalogProductId: string | null;
+   101→  priceHistory?: CompetitorPriceHistory[];
+   102→}
+   103→
+   104→interface ProductGroupParent {
+   105→  id: string;
+   106→  name: string;
+   107→  parentId: string | null;
+   108→  order: number;
+   109→  children: ProductGroup[];
+   110→  productCount?: number;
+   111→}
+   112→
+   113→interface ProductGroup {
+   114→  id: string;
+   115→  name: string;
+   116→  parentId: string | null;
+   117→  order: number;
+   118→  parent?: { id: string; name: string } | null;
+   119→}
+   120→
+   121→interface Product {
+   122→  id: string;
+   123→  name: string;
+   124→  description: string | null;
+   125→  price: number;
+   126→  imageUrl: string | null;
+   127→  targetMarket: string | null;
+   128→  competitiveAdvantage: string | null;
+   129→  promotionDescription: string | null;
+   130→  margin: number | null;
+   131→  groupId: string | null;
+   132→  group?: ProductGroup & { parent?: { id: string; name: string } | null } | null;
+   133→  createdAt: string;
+   134→  updatedAt: string;
+   135→  competitorProducts?: CompetitorProduct[];
+   136→}
+   137→
+   138→// ─── Helpers ──────────────────────────────────────────────────────
+   139→function formatPrice(price: number, currencyUnit: string): string {
+   140→  return new Intl.NumberFormat("fa-IR").format(Math.round(price)) + " " + currencyUnit;
+   141→}
+   142→
+   143→// ─── Main Component ───────────────────────────────────────────────
+   144→export default function CatalogPage() {
+   145→  const { toast } = useToast();
+   146→  const [products, setProducts] = useState<Product[]>([]);
+   147→  const [groups, setGroups] = useState<ProductGroupParent[]>([]);
+   148→  const [currencyUnit, setCurrencyUnit] = useState("تومان");
+   149→  const [loading, setLoading] = useState(true);
+   150→  const [searchQuery, setSearchQuery] = useState("");
+   151→  const [selectedGroup, setSelectedGroup] = useState<string>("all");
+   152→
+   153→  // Auth state
+   154→  const [isAdmin, setIsAdmin] = useState(false);
+   155→  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
+   156→  const [loginPassword, setLoginPassword] = useState("");
+   157→
+   158→  // Dialog states
+   159→  const [productDialogOpen, setProductDialogOpen] = useState(false);
+   160→  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+   161→  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+   162→  const [deleteTarget, setDeleteTarget] = useState<{
+   163→    type: "product" | "group" | "competitor";
+   164→    id: string;
+   165→    name?: string;
+   166→  } | null>(null);
+   167→
+   168→  // Product detail modal
+   169→  const [detailProduct, setDetailProduct] = useState<Product | null>(null);
+   170→  const [detailCompetitors, setDetailCompetitors] = useState<CompetitorProduct[]>([]);
+   171→  const [loadingDetail, setLoadingDetail] = useState(false);
+   172→  const [refreshingCompetitor, setRefreshingCompetitor] = useState<string | null>(null);
+   173→
+   174→  // Add competitor dialog
+   175→  const [addCompetitorDialogOpen, setAddCompetitorDialogOpen] = useState(false);
+   176→  const [competitorSource, setCompetitorSource] = useState<string>("");
+   177→  const [competitorSourceId, setCompetitorSourceId] = useState<string>("");
+   178→  const [competitorLinkProductId, setCompetitorLinkProductId] = useState<string>("");
+   179→  const [scrapeLoading, setScrapeLoading] = useState(false);
+   180→
+   181→  // Link competitor dialog
+   182→  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+   183→  const [linkingCompetitor, setLinkingCompetitor] = useState<CompetitorProduct | null>(null);
+   184→  const [linkProductId, setLinkProductId] = useState<string>("");
+   185→
+   186→  // All competitors (unlinked) for management
+   187→  const [allCompetitors, setAllCompetitors] = useState<CompetitorProduct[]>([]);
+   188→  const [competitorManageOpen, setCompetitorManageOpen] = useState(false);
+   189→  const [competitorFilter, setCompetitorFilter] = useState<string>("all");
+   190→
+   191→  // Settings dialog
+   192→  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+   193→  const [settingsForm, setSettingsForm] = useState({
+   194→    currencyUnit: "تومان",
+   195→    adminPassword: "",
+   196→    currentPassword: "",
+   197→  });
+   198→
+   199→  // Group dialog
+   200→  const [groupDialogOpen, setGroupDialogOpen] = useState(false);
+   201→  const [groupForm, setGroupForm] = useState({ name: "", parentId: "" });
+   202→  const [editingGroup, setEditingGroup] = useState<ProductGroupParent | null>(null);
+   203→
+   204→  // Excel import
+   205→  const [importDialogOpen, setImportDialogOpen] = useState(false);
+   206→  const [importLoading, setImportLoading] = useState(false);
+   207→  const [importResult, setImportResult] = useState<{
+   208→    message: string;
+   209→    total: number;
+   210→    updated: number;
+   211→    notFound: string[];
+   212→    skipped: string[];
+   213→    errors: string[];
+   214→    detectedColumns: { id: string | null; name: string | null; price: string | null; description: string | null; targetMarket: string | null; competitiveAdvantage: string | null; promotionDescription: string | null; margin: string | null };
+   215→  } | null>(null);
+   216→
+   217→  // Baraka images
+   218→  const [barakaDialogOpen, setBarakaDialogOpen] = useState(false);
+   219→  const [barakaProducts, setBarakaProducts] = useState<{ name: string; imageUrl: string; productUrl: string }[]>([]);
+   220→  const [barakaLoading, setBarakaLoading] = useState(false);
+   221→
+   222→  // Form states
+   223→  const [productForm, setProductForm] = useState({
+   224→    name: "",
+   225→    description: "",
+   226→    price: "",
+   227→    imageUrl: "",
+   228→    groupId: "",
+   229→    targetMarket: "",
+   230→    competitiveAdvantage: "",
+   231→    promotionDescription: "",
+   232→    margin: "",
+   233→  });
+   234→
+   235→  // ─── Fetch Data ────────────────────────────────────────────────
+   236→  const fetchProducts = useCallback(async () => {
+   237→    try {
+   238→      setLoading(true);
+   239→      const res = await fetch("/api/products");
+   240→      if (!res.ok) throw new Error();
+   241→      setProducts(await res.json());
+   242→    } catch {
+   243→      toast({ title: "خطا", description: "دریافت محصولات ناموفق بود", variant: "destructive" });
+   244→    } finally {
+   245→      setLoading(false);
+   246→    }
+   247→  }, [toast]);
+   248→
+   249→  const fetchGroups = useCallback(async () => {
+   250→    try {
+   251→      const res = await fetch("/api/groups");
+   252→      if (!res.ok) throw new Error();
+   253→      setGroups(await res.json());
+   254→    } catch {
+   255→      toast({ title: "خطا", description: "دریافت گروه‌ها ناموفق بود", variant: "destructive" });
+   256→    }
+   257→  }, [toast]);
+   258→
+   259→  const fetchSettings = useCallback(async () => {
+   260→    try {
+   261→      const res = await fetch("/api/settings");
+   262→      if (!res.ok) return;
+   263→      const data = await res.json();
+   264→      setCurrencyUnit(data.currencyUnit || "تومان");
+   265→      setSettingsForm((f) => ({ ...f, currencyUnit: data.currencyUnit || "تومان" }));
+   266→    } catch {}
+   267→  }, []);
+   268→
+   269→  const checkAuth = useCallback(async () => {
+   270→    try {
+   271→      const res = await fetch("/api/auth");
+   272→      if (!res.ok) return;
+   273→      setIsAdmin((await res.json()).authenticated);
+   274→    } catch {}
+   275→  }, []);
+   276→
+   277→  React.useEffect(() => {
+   278→    fetchProducts();
+   279→    fetchGroups();
+   280→    fetchSettings();
+   281→    checkAuth();
+   282→  }, [fetchProducts, fetchGroups, fetchSettings, checkAuth]);
+   283→
+   284→  // ─── Group filter options ──────────────────────────────────────
+   285→  const groupFilterOptions = React.useMemo(() => {
+   286→    const opts: { id: string; name: string; depth: number }[] = [];
+   287→    groups.forEach((g) => {
+   288→      opts.push({ id: g.id, name: g.name, depth: 0 });
+   289→      g.children.forEach((sub) => opts.push({ id: sub.id, name: sub.name, depth: 1 }));
+   290→    });
+   291→    return opts;
+   292→  }, [groups]);
+   293→
+   294→  // ─── Filter products ───────────────────────────────────────────
+   295→  const filteredProducts = React.useMemo(() => {
+   296→    return products.filter((p) => {
+   297→      const mq = !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase()) || (p.description?.toLowerCase().includes(searchQuery.toLowerCase()));
+   298→      const mg = selectedGroup === "all" || p.groupId === selectedGroup;
+   299→      return mq && mg;
+   300→    });
+   301→  }, [products, searchQuery, selectedGroup]);
+   302→
+   303→  // ─── Auth ──────────────────────────────────────────────────────
+   304→  const handleLogin = async () => {
+   305→    try {
+   306→      const res = await fetch("/api/auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: loginPassword }) });
+   307→      const data = await res.json();
+   308→      if (!res.ok) { toast({ title: "خطا", description: data.error || "ورود ناموفق بود", variant: "destructive" }); return; }
+   309→      setIsAdmin(true);
+   310→      setLoginDialogOpen(false);
+   311→      setLoginPassword("");
+   312→      toast({ title: "ورود موفق", description: "به عنوان مدیر وارد شدید" });
+   313→    } catch { toast({ title: "خطا", description: "ورود ناموفق بود", variant: "destructive" }); }
+   314→  };
+   315→
+   316→  const handleLogout = async () => {
+   317→    try { await fetch("/api/auth", { method: "DELETE" }); setIsAdmin(false); toast({ title: "خروج" }); } catch {}
+   318→  };
+   319→
+   320→  // ─── Product CRUD ──────────────────────────────────────────────
+   321→  const handleSaveProduct = async () => {
+   322→    try {
+   323→      const url = editingProduct ? `/api/products/${editingProduct.id}` : "/api/products";
+   324→      const res = await fetch(url, { method: editingProduct ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: productForm.name, description: productForm.description || null, price: parseFloat(productForm.price), imageUrl: productForm.imageUrl || null, groupId: productForm.groupId || null, targetMarket: productForm.targetMarket || null, competitiveAdvantage: productForm.competitiveAdvantage || null, promotionDescription: productForm.promotionDescription || null, margin: productForm.margin ? parseFloat(productForm.margin) : null }) });
+   325→      if (!res.ok) throw new Error();
+   326→      toast({ title: editingProduct ? "محصول بروزرسانی شد" : "محصول اضافه شد" });
+   327→      setProductDialogOpen(false);
+   328→      setEditingProduct(null);
+   329→      resetProductForm();
+   330→      fetchProducts();
+   331→    } catch { toast({ title: "خطا", description: "ذخیره محصول ناموفق بود", variant: "destructive" }); }
+   332→  };
+   333→
+   334→  const handleDeleteProduct = async (id: string) => {
+   335→    try {
+   336→      if (!(await fetch(`/api/products/${id}`, { method: "DELETE" })).ok) throw new Error();
+   337→      toast({ title: "محصول حذف شد" }); fetchProducts();
+   338→    } catch { toast({ title: "خطا", description: "حذف ناموفق بود", variant: "destructive" }); }
+   339→  };
+   340→
+   341→  // ─── Baraka Images ────────────────────────────────────────────────
+   342→  const fetchBarakaImages = async () => {
+   343→    setBarakaLoading(true);
+   344→    try {
+   345→      const res = await fetch("/api/scrape-baraka");
+   346→      const data = await res.json();
+   347→      if (!res.ok) throw new Error(data.error);
+   348→      setBarakaProducts(data.products || []);
+   349→    } catch (err) {
+   350→      toast({ title: "خطا", description: err instanceof Error ? err.message : "خطا در دریافت عکس‌ها", variant: "destructive" });
+   351→    } finally {
+   352→      setBarakaLoading(false);
+   353→    }
+   354→  };
+   355→
+   356→  const applyBarakaImage = async (barakaName: string, imageUrl: string) => {
+   357→    // Try to find a product whose name matches the baraka product name
+   358→    const matched = products.find((p) => {
+   359→      const pName = p.name.toLowerCase().replace(/\s+/g, "");
+   360→      const bName = barakaName.toLowerCase().replace(/\s+/g, "");
+   361→      return pName.includes(bName) || bName.includes(pName);
+   362→    });
+   363→
+   364→    if (matched) {
+   365→      try {
+   366→        const res = await fetch(`/api/products/${matched.id}`, {
+   367→          method: "PUT",
+   368→          headers: { "Content-Type": "application/json" },
+   369→          body: JSON.stringify({ imageUrl }),
+   370→        });
+   371→        if (!res.ok) throw new Error();
+   372→        toast({ title: `عکس "${barakaName}" به "${matched.name}" اختصاص یافت` });
+   373→        fetchProducts();
+   374→      } catch {
+   375→        toast({ title: "خطا", description: "ذخیره عکس ناموفق بود", variant: "destructive" });
+   376→      }
+   377→    } else {
+   378→      // Copy URL to clipboard for manual use
+   379→      try {
+   380→        await navigator.clipboard.writeText(imageUrl);
+   381→        toast({ title: "لینک عکس کپی شد", description: `محصول "${barakaName}" در کاتالوگ یافت نشد. لینک کپی شد.` });
+   382→      } catch {
+   383→        toast({ title: "محصول یافت نشد", description: `"${barakaName}" در کاتالوگ وجود ندارد` });
+   384→      }
+   385→    }
+   386→  };
+   387→
+   388→  // ─── Excel Import ─────────────────────────────────────────────────
+   389→  const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
+   390→    const file = e.target.files?.[0];
+   391→    if (!file) return;
+   392→
+   393→    setImportLoading(true);
+   394→    setImportResult(null);
+   395→    try {
+   396→      const formData = new FormData();
+   397→      formData.append("file", file);
+   398→      const res = await fetch("/api/products/import-prices", { method: "POST", body: formData });
+   399→      const data = await res.json();
+   400→      if (!res.ok) throw new Error(data.error || "خطا در وارد کردن فایل");
+   401→      setImportResult(data);
+   402→      if (data.updated > 0) fetchProducts();
+   403→    } catch (err) {
+   404→      toast({ title: "خطا", description: err instanceof Error ? err.message : "خطا در پردازش فایل", variant: "destructive" });
+   405→    } finally {
+   406→      setImportLoading(false);
+   407→      // Reset file input
+   408→      e.target.value = "";
+   409→    }
+   410→  };
+   411→
+   412→  const handleDownloadTemplate = () => {
+   413→    // Create Excel with actual products data including description
+   414→    const wsData: (string | number)[][] = [
+   415→      ["id", "name", "price", "description", "targetMarket", "competitiveAdvantage", "promotionDescription", "margin"],
+   416→    ];
+   417→    // Add all current products with their IDs, names, prices, and descriptions
+   418→    for (const p of products) {
+   419→      wsData.push([p.id, p.name, Math.round(p.price), p.description || "", p.targetMarket || "", p.competitiveAdvantage || "", p.promotionDescription || "", p.margin !== null && p.margin !== undefined ? p.margin : ""]);
+   420→    }
+   421→    // If no products yet, add an example row
+   422→    if (products.length === 0) {
+   423→      wsData.push(["clx_example123", "نمونه محصول", 150000, "توضیحات محصول", "بازار مصرف‌کننده", "قیمت مناسب‌تر", "تخفیف ویژه", 25]);
+   424→    }
+   425→    const ws = XLSX.utils.aoa_to_sheet(wsData);
+   426→    // Set column widths
+   427→    ws["!cols"] = [{ wch: 25 }, { wch: 30 }, { wch: 15 }, { wch: 40 }, { wch: 25 }, { wch: 25 }, { wch: 30 }, { wch: 10 }];
+   428→    const wb = XLSX.utils.book_new();
+   429→    XLSX.utils.book_append_sheet(wb, ws, "قیمت‌ها");
+   430→    XLSX.writeFile(wb, "catalog-prices.xlsx");
+   431→  };
+   432→
+   433→  // ─── Product Detail ────────────────────────────────────────────
+   434→  const openProductDetail = async (product: Product) => {
+   435→    setDetailProduct(product);
+   436→    setLoadingDetail(true);
+   437→    try {
+   438→      const res = await fetch(`/api/competitors?catalogProductId=${product.id}`);
+   439→      if (res.ok) {
+   440→        const data = await res.json();
+   441→        setDetailCompetitors(data.competitors || []);
+   442→      } else {
+   443→        setDetailCompetitors([]);
+   444→      }
+   445→    } catch {
+   446→      setDetailCompetitors([]);
+   447→    }
+   448→    setLoadingDetail(false);
+   449→  };
+   450→
+   451→  const handleRefreshCompetitor = async (competitorId: string) => {
+   452→    setRefreshingCompetitor(competitorId);
+   453→    try {
+   454→      const res = await fetch(`/api/competitors/${competitorId}/refresh`, { method: "POST" });
+   455→      const data = await res.json();
+   456→      if (!res.ok) {
+   457→        toast({ title: "خطا", description: data.error || "بروزرسانی ناموفق بود", variant: "destructive" });
+   458→      } else {
+   459→        toast({ title: "بروزرسانی شد", description: data.priceChanged ? "قیمت تغییر کرد" : "قیمت بدون تغییر" });
+   460→        // Refresh the list
+   461→        if (detailProduct) {
+   462→          const refreshRes = await fetch(`/api/competitors?catalogProductId=${detailProduct.id}`);
+   463→          if (refreshRes.ok) {
+   464→            const refreshData = await refreshRes.json();
+   465→            setDetailCompetitors(refreshData.competitors || []);
+   466→          }
+   467→        }
+   468→        fetchProducts();
+   469→      }
+   470→    } catch {
+   471→      toast({ title: "خطا", description: "بروزرسانی ناموفق بود", variant: "destructive" });
+   472→    } finally {
+   473→      setRefreshingCompetitor(null);
+   474→    }
+   475→  };
+   476→
+   477→  const handleRefreshAllCompetitors = async () => {
+   478→    if (!detailProduct) return;
+   479→    setRefreshingCompetitor("all");
+   480→    try {
+   481→      let successCount = 0;
+   482→      for (const comp of detailCompetitors) {
+   483→        const res = await fetch(`/api/competitors/${comp.id}/refresh`, { method: "POST" });
+   484→        if (res.ok) successCount++;
+   485→      }
+   486→      toast({ title: "بروزرسانی انجام شد", description: `${successCount} از ${detailCompetitors.length} موفق` });
+   487→      // Refresh the list
+   488→      const refreshRes = await fetch(`/api/competitors?catalogProductId=${detailProduct.id}`);
+   489→      if (refreshRes.ok) {
+   490→        const refreshData = await refreshRes.json();
+   491→        setDetailCompetitors(refreshData.competitors || []);
+   492→      }
+   493→      fetchProducts();
+   494→    } catch {
+   495→      toast({ title: "خطا", description: "بروزرسانی ناموفق بود", variant: "destructive" });
+   496→    } finally {
+   497→      setRefreshingCompetitor(null);
+   498→    }
+   499→  };
+   500→
+   501→  // ─── Competitor CRUD ──────────────────────────────────────────
+   502→  const handleScrapeAndAdd = async () => {
+   503→    if (!competitorSource || !competitorSourceId) {
+   504→      toast({ title: "خطا", description: "منبع و شناسه محصول الزامی است", variant: "destructive" });
+   505→      return;
+   506→    }
+   507→    setScrapeLoading(true);
+   508→    try {
+   509→      const body: Record<string, string> = {
+   510→        source: competitorSource,
+   511→        sourceId: competitorSourceId,
+   512→      };
+   513→      if (competitorLinkProductId) body.catalogProductId = competitorLinkProductId;
+   514→
+   515→      const res = await fetch("/api/competitors/scrape", {
+   516→        method: "POST",
+   517→        headers: { "Content-Type": "application/json" },
+   518→        body: JSON.stringify(body),
+   519→      });
+   520→      const data = await res.json();
+   521→      if (!res.ok) {
+   522→        toast({ title: "خطا در اسکرپ", description: data.error || "خطای ناشناخته", variant: "destructive", duration: 6000 });
+   523→        return;
+   524→      }
+   525→      toast({
+   526→        title: data.action === "created" ? "محصول رقیب اضافه شد" : "محصول رقیب بروزرسانی شد",
+   527→        description: `${data.data?.name} — ${data.data?.price ? formatPrice(data.data.price, currencyUnit) : ""}`,
+   528→      });
+   529→      setAddCompetitorDialogOpen(false);
+   530→      setCompetitorSource("");
+   531→      setCompetitorSourceId("");
+   532→      setCompetitorLinkProductId("");
+   533→      // Refresh detail if open
+   534→      if (detailProduct) {
+   535→        const refreshRes = await fetch(`/api/competitors?catalogProductId=${detailProduct.id}`);
+   536→        if (refreshRes.ok) {
+   537→          const refreshData = await refreshRes.json();
+   538→          setDetailCompetitors(refreshData.competitors || []);
+   539→        }
+   540→      }
+   541→      fetchProducts();
+   542→    } catch {
+   543→      toast({ title: "خطا", description: "اسکرپ محصول ناموفق بود", variant: "destructive" });
+   544→    } finally {
+   545→      setScrapeLoading(false);
+   546→    }
+   547→  };
+   548→
+   549→  const handleDeleteCompetitor = async (id: string) => {
+   550→    try {
+   551→      const res = await fetch(`/api/competitors?id=${id}`, { method: "DELETE" });
+   552→      if (!res.ok) throw new Error();
+   553→      toast({ title: "محصول رقیب حذف شد" });
+   554→      if (detailProduct) {
+   555→        setDetailCompetitors((prev) => prev.filter((c) => c.id !== id));
+   556→      }
+   557→      fetchProducts();
+   558→    } catch {
+   559→      toast({ title: "خطا", description: "حذف ناموفق بود", variant: "destructive" });
+   560→    }
+   561→  };
+   562→
+   563→  const handleLinkCompetitor = async () => {
+   564→    if (!linkingCompetitor || !linkProductId) return;
+   565→    try {
+   566→      const res = await fetch(`/api/competitors/${linkingCompetitor.id}/link`, {
+   567→        method: "PUT",
+   568→        headers: { "Content-Type": "application/json" },
+   569→        body: JSON.stringify({ catalogProductId: linkProductId }),
+   570→      });
+   571→      if (!res.ok) throw new Error();
+   572→      toast({ title: "محصول رقیب به کاتالوگ متصل شد" });
+   573→      setLinkDialogOpen(false);
+   574→      setLinkingCompetitor(null);
+   575→      setLinkProductId("");
+   576→      // Refresh
+   577→      if (detailProduct) openProductDetail(detailProduct);
+   578→      fetchProducts();
+   579→    } catch {
+   580→      toast({ title: "خطا", description: "اتصال ناموفق بود", variant: "destructive" });
+   581→    }
+   582→  };
+   583→
+   584→  const handleUnlinkCompetitor = async (competitorId: string) => {
+   585→    try {
+   586→      const res = await fetch(`/api/competitors/${competitorId}/unlink`, { method: "PUT" });
+   587→      if (!res.ok) throw new Error();
+   588→      toast({ title: "اتصال لغو شد" });
+   589→      if (detailProduct) {
+   590→        setDetailCompetitors((prev) => prev.filter((c) => c.id !== competitorId));
+   591→      }
+   592→      fetchProducts();
+   593→    } catch {
+   594→      toast({ title: "خطا", description: "لغو اتصال ناموفق بود", variant: "destructive" });
+   595→    }
+   596→  };
+   597→
+   598→  const fetchAllCompetitors = async () => {
+   599→    try {
+   600→      const filterParam = competitorFilter === "unlinked" ? "&unlinked=true" : competitorFilter !== "all" ? `&source=${competitorFilter}` : "";
+   601→      const res = await fetch(`/api/competitors?${filterParam}`);
+   602→      if (res.ok) {
+   603→        const data = await res.json();
+   604→        setAllCompetitors(data.competitors || []);
+   605→      }
+   606→    } catch {}
+   607→  };
+   608→
+   609→  // ─── Group CRUD ────────────────────────────────────────────────
+   610→  const handleSaveGroup = async () => {
+   611→    try {
+   612→      const url = editingGroup ? `/api/groups/${editingGroup.id}` : "/api/groups";
+   613→      const body: Record<string, unknown> = { name: groupForm.name };
+   614→      if (!editingGroup) body.parentId = groupForm.parentId || null;
+   615→      if (!(await fetch(url, { method: editingGroup ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })).ok) throw new Error();
+   616→      toast({ title: editingGroup ? "گروه بروزرسانی شد" : "گروه اضافه شد" });
+   617→      setGroupDialogOpen(false); setEditingGroup(null); setGroupForm({ name: "", parentId: "" });
+   618→      fetchGroups(); fetchProducts();
+   619→    } catch { toast({ title: "خطا", description: "ذخیره گروه ناموفق بود", variant: "destructive" }); }
+   620→  };
+   621→
+   622→  const handleDeleteGroup = async (id: string) => {
+   623→    try {
+   624→      if (!(await fetch(`/api/groups/${id}`, { method: "DELETE" })).ok) throw new Error();
+   625→      toast({ title: "گروه حذف شد" }); fetchGroups(); fetchProducts();
+   626→    } catch { toast({ title: "خطا", description: "حذف ناموفق بود", variant: "destructive" }); }
+   627→  };
+   628→
+   629→  // ─── Settings ──────────────────────────────────────────────────
+   630→  const handleSaveSettings = async () => {
+   631→    try {
+   632→      const body: Record<string, string> = { currencyUnit: settingsForm.currencyUnit };
+   633→      if (settingsForm.adminPassword) { body.adminPassword = settingsForm.adminPassword; body.currentPassword = settingsForm.currentPassword; }
+   634→      const res = await fetch("/api/settings", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+   635→      const data = await res.json();
+   636→      if (!res.ok) { toast({ title: "خطا", description: data.error || "ذخیره ناموفق بود", variant: "destructive" }); return; }
+   637→      setCurrencyUnit(data.currencyUnit);
+   638→      setSettingsDialogOpen(false);
+   639→      setSettingsForm((f) => ({ ...f, adminPassword: "", currentPassword: "" }));
+   640→      toast({ title: "تنظیمات ذخیره شد" });
+   641→    } catch { toast({ title: "خطا", description: "ذخیره ناموفق بود", variant: "destructive" }); }
+   642→  };
+   643→
+   644→  // ─── Form helpers ──────────────────────────────────────────────
+   645→  const resetProductForm = () => setProductForm({ name: "", description: "", price: "", imageUrl: "", groupId: "", targetMarket: "", competitiveAdvantage: "", promotionDescription: "", margin: "" });
+   646→
+   647→  const openEditProduct = (product: Product) => {
+   648→    setEditingProduct(product);
+   649→    setProductForm({ name: product.name, description: product.description || "", price: String(product.price), imageUrl: product.imageUrl || "", groupId: product.groupId || "", targetMarket: product.targetMarket || "", competitiveAdvantage: product.competitiveAdvantage || "", promotionDescription: product.promotionDescription || "", margin: product.margin !== null && product.margin !== undefined ? String(product.margin) : "" });
+   650→    setProductDialogOpen(true);
+   651→  };
+   652→
+   653→  // ─── Computed ──────────────────────────────────────────────────
+   654→  const getBestCompetitorPrice = (product: Product) => {
+   655→    // This needs competitor data loaded
+   656→    const prices = (product.competitorProducts || []).filter((c) => c.price > 0).map((c) => c.price);
+   657→    return prices.length ? Math.min(...prices) : null;
+   658→  };
+   659→
+   660→  const getGroupName = (product: Product) => {
+   661→    if (!product.group) return null;
+   662→    return product.group.parent?.name ? `${product.group.parent.name} › ${product.group.name}` : product.group.name;
+   663→  };
+   664→
+   665→  const getSourceIcon = (source: string) => {
+   666→    if (source === "DIGIKALA") return "🟡";
+   667→    if (source === "SNAPPSHOP") return "🟣";
+   668→    return "⚪";
+   669→  };
+   670→
+   671→  const getSourceLabel = (source: string) => {
+   672→    if (source === "DIGIKALA") return "دیجیکالا";
+   673→    if (source === "SNAPPSHOP") return "اسنپ‌شاپ";
+   674→    return source;
+   675→  };
+   676→
+   677→  const getSourceUrl = (source: string, sourceId: string) => {
+   678→    if (source === "DIGIKALA") return `https://www.digikala.com/product/dkp-${sourceId}`;
+   679→    if (source === "SNAPPSHOP") return `https://snappshop.ir/product/snp-${sourceId}`;
+   680→    return "#";
+   681→  };
+   682→
+   683→  // ─── Render ────────────────────────────────────────────────────
+   684→  return (
+   685→    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+   686→      {/* Header */}
+   687→      <header className="sticky top-0 z-50 backdrop-blur-lg bg-white/80 dark:bg-slate-900/80 border-b border-border">
+   688→        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+   689→          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+   690→            <div className="flex items-center gap-3">
+   691→              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+   692→                <Package className="w-5 h-5 text-white" />
+   693→              </div>
+   694→              <div>
+   695→                <h1 className="text-xl font-bold text-foreground">کاتالوگ دیجیتال</h1>
+   696→                <p className="text-xs text-muted-foreground">مقایسه قیمت محصولات با رقبا</p>
+   697→              </div>
+   698→            </div>
+   699→            <div className="flex items-center gap-2 flex-wrap">
+   700→              {isAdmin && (
+   701→                <>
+   702→                  <Button variant="outline" size="sm" className="gap-2" onClick={() => { setEditingGroup(null); setGroupForm({ name: "", parentId: "" }); setGroupDialogOpen(true); }}>
+   703→                    <FolderPlus className="w-4 h-4" /> گروه‌بندی
+   704→                  </Button>
+   705→                  <Button variant="outline" size="sm" className="gap-2" onClick={() => { setCompetitorManageOpen(true); fetchAllCompetitors(); }}>
+   706→                    <ShoppingCart className="w-4 h-4" /> رقبای اسکرپ شده
+   707→                  </Button>
+   708→                  <Button variant="outline" size="sm" className="gap-2" onClick={() => { setImportResult(null); setImportDialogOpen(true); }}>
+   709→                    <FileSpreadsheet className="w-4 h-4" /> وارد کردن قیمت‌ها
+   710→                  </Button>
+   711→                  <Button variant="outline" size="sm" className="gap-2" onClick={() => { setBarakaDialogOpen(true); fetchBarakaImages(); }}>
+   712→                    <Globe className="w-4 h-4" /> عکس باراکا
+   713→                  </Button>
+   714→                  <Button variant="outline" size="sm" className="gap-2" onClick={() => { setSettingsForm((f) => ({ ...f, currencyUnit, adminPassword: "", currentPassword: "" })); setSettingsDialogOpen(true); }}>
+   715→                    <Settings2 className="w-4 h-4" /> تنظیمات
+   716→                  </Button>
+   717→                  <Button variant="default" size="sm" className="gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/20" onClick={() => { setEditingProduct(null); resetProductForm(); setProductDialogOpen(true); }}>
+   718→                    <Plus className="w-4 h-4" /> افزودن محصول
+   719→                  </Button>
+   720→                </>
+   721→              )}
+   722→              {isAdmin ? (
+   723→                <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground" onClick={handleLogout}><LogOut className="w-4 h-4" /> خروج مدیر</Button>
+   724→              ) : (
+   725→                <Button variant="outline" size="sm" className="gap-2" onClick={() => setLoginDialogOpen(true)}><LogIn className="w-4 h-4" /> ورود مدیر</Button>
+   726→              )}
+   727→            </div>
+   728→          </div>
+   729→          {/* Search & Filters */}
+   730→          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-4">
+   731→            <div className="relative flex-1">
+   732→              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+   733→              <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="جستجوی محصول..." className="pr-10" />
+   734→              {searchQuery && <button onClick={() => setSearchQuery("")} className="absolute left-3 top-1/2 -translate-y-1/2"><X className="w-4 h-4 text-muted-foreground hover:text-foreground" /></button>}
+   735→            </div>
+   736→            {groupFilterOptions.length > 0 && (
+   737→              <Select value={selectedGroup} onValueChange={setSelectedGroup}>
+   738→                <SelectTrigger className="w-full sm:w-56"><SelectValue placeholder="دسته‌بندی" /></SelectTrigger>
+   739→                <SelectContent>
+   740→                  <SelectItem value="all">همه دسته‌ها</SelectItem>
+   741→                  {groupFilterOptions.map((g) => <SelectItem key={g.id} value={g.id}>{g.depth === 0 ? g.name : `└ ${g.name}`}</SelectItem>)}
+   742→                </SelectContent>
+   743→              </Select>
+   744→            )}
+   745→          </div>
+   746→        </div>
+   747→      </header>
+   748→
+   749→      {/* Main Content */}
+   750→      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-8">
+   751→        {loading ? (
+   752→          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+   753→            {[1, 2, 3].map((i) => <Card key={i} className="animate-pulse"><div className="h-48 bg-muted rounded-t-lg" /><CardContent className="p-6"><div className="h-4 bg-muted rounded w-3/4 mb-3" /><div className="h-4 bg-muted rounded w-1/2" /></CardContent></Card>)}
+   754→          </div>
+   755→        ) : filteredProducts.length === 0 ? (
+   756→          <div className="flex flex-col items-center justify-center py-24 text-center">
+   757→            <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mb-6"><Package className="w-12 h-12 text-muted-foreground" /></div>
+   758→            <h3 className="text-lg font-semibold text-foreground mb-2">{products.length === 0 ? "هنوز محصولی اضافه نشده" : "محصولی یافت نشد"}</h3>
+   759→            <p className="text-muted-foreground mb-6 max-w-md">{products.length === 0 ? "برای شروع، ابتدا به عنوان مدیر وارد شوید." : "فیلترهای خود را تغییر دهید."}</p>
+   760→            {products.length === 0 && !isAdmin && <Button variant="outline" className="gap-2" onClick={() => setLoginDialogOpen(true)}><LogIn className="w-4 h-4" /> ورود مدیر</Button>}
+   761→          </div>
+   762→        ) : (
+   763→          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+   764→            <AnimatePresence mode="popLayout">
+   765→              {filteredProducts.map((product) => {
+   766→                const groupName = getGroupName(product);
+   767→                return (
+   768→                  <motion.div key={product.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+   769→                    <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-border/50 group cursor-pointer" onClick={() => openProductDetail(product)}>
+   770→                      {product.imageUrl && (
+   771→                        <div className="relative h-48 overflow-hidden bg-muted">
+   772→                          <img src={product.imageUrl} alt={product.name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+   773→                          {groupName && <Badge className="absolute top-3 right-3 bg-white/90 dark:bg-slate-800/90 text-foreground backdrop-blur-sm"><FolderTree className="w-3 h-3 ml-1" />{groupName}</Badge>}
+   774→                        </div>
+   775→                      )}
+   776→                      <CardHeader className="pb-2">
+   777→                        <div className="flex items-start justify-between">
+   778→                          <div className="flex-1 min-w-0">
+   779→                            <h3 className="font-bold text-base leading-snug text-foreground line-clamp-2" title={product.name}>{product.name}</h3>
+   780→                            {product.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{product.description}</p>}
+   781→                            {!product.imageUrl && groupName && <Badge className="mt-2" variant="secondary"><FolderTree className="w-3 h-3 ml-1" />{groupName}</Badge>}
+   782→                          </div>
+   783→                          {isAdmin && (
+   784→                            <div className="flex gap-1 mr-2" onClick={(e) => e.stopPropagation()}>
+   785→                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditProduct(product)}><Edit3 className="w-4 h-4" /></Button>
+   786→                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ type: "product", id: product.id, name: product.name })}><Trash2 className="w-4 h-4" /></Button>
+   787→                            </div>
+   788→                          )}
+   789→                        </div>
+   790→                      </CardHeader>
+   791→                      <CardContent className="pb-4">
+   792→                        <div>
+   793→                          <span className="text-xs text-muted-foreground">قیمت شما:</span>
+   794→                          <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{formatPrice(product.price, currencyUnit)}</p>
+   795→                        </div>
+   796→                        {(product.margin !== null && product.margin !== undefined) && (
+   797→                          <div className="mt-1 flex items-center gap-1">
+   798→                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-rose-600 border-rose-200 dark:text-rose-400 dark:border-rose-800">
+   799→                              مارجین: {product.margin}٪
+   800→                            </Badge>
+   801→                          </div>
+   802→                        )}
+   803→                        {product.promotionDescription && (
+   804→                          <div className="mt-1.5 flex items-center gap-1">
+   805→                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-purple-600 border-purple-200 dark:text-purple-400 dark:border-purple-800">
+   806→                              <Package className="w-2.5 h-2.5 ml-0.5" />
+   807→                              پروموشن
+   808→                            </Badge>
+   809→                          </div>
+   810→                        )}
+   811→                        <div className="mt-3 flex items-center justify-center gap-1 text-xs text-muted-foreground/60">
+   812→                          <Eye className="w-3 h-3" />
+   813→                          <span>برای مشاهده رقبا کلیک کنید</span>
+   814→                        </div>
+   815→                      </CardContent>
+   816→                    </Card>
+   817→                  </motion.div>
+   818→                );
+   819→              })}
+   820→            </AnimatePresence>
+   821→          </div>
+   822→        )}
+   823→      </main>
+   824→
+   825→      {/* Footer */}
+   826→      <footer className="mt-auto border-t border-border bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+   827→        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 text-center">
+   828→          <p className="text-sm text-muted-foreground">کاتالوگ دیجیتال — مقایسه هوشمند قیمت با رقبا</p>
+   829→          <p className="text-xs text-muted-foreground mt-1">{products.length} محصول{isAdmin && <span className="text-emerald-600"> • مدیر</span>}</p>
+   830→        </div>
+   831→      </footer>
+   832→
+   833→      {/* ═══ Product Detail Modal ═══ */}
+   834→      <Dialog open={!!detailProduct} onOpenChange={(open) => { if (!open) setDetailProduct(null); }}>
+   835→        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto" dir="rtl">
+   836→          {detailProduct && (
+   837→            <>
+   838→              <DialogHeader>
+   839→                <DialogTitle className="flex items-center gap-2 text-lg">
+   840→                  <Package className="w-5 h-5 text-emerald-600 shrink-0" />
+   841→                  <span className="line-clamp-2">{detailProduct.name}</span>
+   842→                </DialogTitle>
+   843→              </DialogHeader>
+   844→              <div className="space-y-5 mt-4">
+   845→                {/* Product Info */}
+   846→                <div className="flex items-start gap-4 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+   847→                  {detailProduct.imageUrl && <img src={detailProduct.imageUrl} alt={detailProduct.name} className="w-20 h-20 rounded-lg object-contain shrink-0 bg-muted" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />}
+   848→                  <div className="flex-1 min-w-0">
+   849→                    <p className="text-sm text-muted-foreground">قیمت شما:</p>
+   850→                    <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatPrice(detailProduct.price, currencyUnit)}</p>
+   851→                    {detailProduct.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{detailProduct.description}</p>}
+   852→                    {(() => { const gn = getGroupName(detailProduct); return gn ? <Badge className="mt-2" variant="secondary"><FolderTree className="w-3 h-3 ml-1" />{gn}</Badge> : null; })()}
+   853→                  </div>
+   854→                  {(detailProduct.margin !== null && detailProduct.margin !== undefined) && (
+   855→                    <div className="shrink-0 text-center p-2 rounded-lg bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 min-w-[70px]">
+   856→                      <p className="text-xs text-rose-600 dark:text-rose-400 font-medium">مارجین</p>
+   857→                      <p className="text-xl font-bold text-rose-700 dark:text-rose-300">{detailProduct.margin}٪</p>
+   858→                    </div>
+   859→                  )}
+   860→                </div>
+   861→
+   862→                {/* New Info Fields */}
+   863→                {(detailProduct.targetMarket || detailProduct.competitiveAdvantage || detailProduct.promotionDescription) && (
+   864→                  <div className="space-y-3">
+   865→                    {detailProduct.targetMarket && (
+   866→                      <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
+   867→                        <Globe className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+   868→                        <div>
+   869→                          <p className="text-xs font-medium text-blue-700 dark:text-blue-400">بازار هدف</p>
+   870→                          <p className="text-sm text-blue-900 dark:text-blue-200 mt-0.5">{detailProduct.targetMarket}</p>
+   871→                        </div>
+   872→                      </div>
+   873→                    )}
+   874→                    {detailProduct.competitiveAdvantage && (
+   875→                      <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">
+   876→                        <Tag className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+   877→                        <div>
+   878→                          <p className="text-xs font-medium text-amber-700 dark:text-amber-400">مزیت رقابتی</p>
+   879→                          <p className="text-sm text-amber-900 dark:text-amber-200 mt-0.5">{detailProduct.competitiveAdvantage}</p>
+   880→                        </div>
+   881→                      </div>
+   882→                    )}
+   883→                    {detailProduct.promotionDescription && (
+   884→                      <div className="flex items-start gap-3 p-3 rounded-lg bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800">
+   885→                        <Package className="w-5 h-5 text-purple-500 shrink-0 mt-0.5" />
+   886→                        <div>
+   887→                          <p className="text-xs font-medium text-purple-700 dark:text-purple-400">توضیحات پروموشن</p>
+   888→                          <p className="text-sm text-purple-900 dark:text-purple-200 mt-0.5">{detailProduct.promotionDescription}</p>
+   889→                        </div>
+   890→                      </div>
+   891→                    )}
+   892→                  </div>
+   893→                )}
+   894→
+   895→                {/* Competitor Products */}
+   896→                <div>
+   897→                  <div className="flex items-center justify-between mb-3">
+   898→                    <h3 className="font-semibold flex items-center gap-2"><Link2 className="w-4 h-4" /> قیمت رقبا</h3>
+   899→                    <div className="flex gap-2">
+   900→                      {detailCompetitors.length > 0 && (
+   901→                        <Button variant="outline" size="sm" className="gap-1" onClick={handleRefreshAllCompetitors} disabled={refreshingCompetitor === "all"}>
+   902→                          {refreshingCompetitor === "all" ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+   903→                          بروزرسانی همه
+   904→                        </Button>
+   905→                      )}
+   906→                      {isAdmin && (
+   907→                        <Button variant="default" size="sm" className="gap-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white" onClick={() => { setCompetitorLinkProductId(detailProduct.id); setAddCompetitorDialogOpen(true); }}>
+   908→                          <Plus className="w-3 h-3" /> افزودن رقیب
+   909→                        </Button>
+   910→                      )}
+   911→                    </div>
+   912→                  </div>
+   913→
+   914→                  {loadingDetail ? (
+   915→                    <div className="flex items-center justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /><span className="mr-2 text-muted-foreground">در حال بارگذاری...</span></div>
+   916→                  ) : detailCompetitors.length === 0 ? (
+   917→                    <div className="text-center py-8 text-muted-foreground">
+   918→                      <Globe className="w-10 h-10 mx-auto mb-3 opacity-30" />
+   919→                      <p className="text-sm">هنوز رقیبی برای این محصول ثبت نشده</p>
+   920→                      {isAdmin && <p className="text-xs mt-1">از دکمه «افزودن رقیب» محصولی از دیجیکالا یا اسنپ‌شاپ اضافه کنید</p>}
+   921→                    </div>
+   922→                  ) : (
+   923→                    <div className="space-y-3 max-h-96 overflow-y-auto">
+   924→                      {detailCompetitors.map((comp) => {
+   925→                        const isCheaper = comp.price > 0 && comp.price < detailProduct.price;
+   926→                        const isMoreExpensive = comp.price > 0 && comp.price > detailProduct.price;
+   927→                        return (
+   928→                          <div key={comp.id} className={`flex items-center justify-between p-4 rounded-xl border transition-colors ${isCheaper ? "bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800" : isMoreExpensive ? "bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800" : "bg-muted/50 border-border"}`}>
+   929→                            <div className="flex items-center gap-3 min-w-0 flex-1">
+   930→                              <div className="relative shrink-0">
+   931→                                {comp.imageUrl ? (
+   932→                                  <img src={comp.imageUrl} alt={comp.name} className="w-12 h-12 rounded-lg object-contain bg-muted" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+   933→                                ) : (
+   934→                                  <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center text-lg">
+   935→                                    {getSourceIcon(comp.source)}
+   936→                                  </div>
+   937→                                )}
+   938→                              </div>
+   939→                              <div className="min-w-0">
+   940→                                <div className="flex items-center gap-2">
+   941→                                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{getSourceLabel(comp.source)}</Badge>
+   942→                                  {comp.brand && <span className="text-[10px] text-muted-foreground">{comp.brand}</span>}
+   943→                                </div>
+   944→                                <p className="font-medium line-clamp-1 text-sm">{comp.name}</p>
+   945→                                <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+   946→                                  {(comp.weight || comp.volume) && <span>{comp.weight || comp.volume}</span>}
+   947→                                  <a href={getSourceUrl(comp.source, comp.sourceId)} target="_blank" rel="noopener noreferrer" className="hover:text-primary inline-flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+   948→                                    مشاهده <ExternalLink className="w-2.5 h-2.5" />
+   949→                                  </a>
+   950→                                </div>
+   951→                              </div>
+   952→                            </div>
+   953→                            <div className="flex items-center gap-2 shrink-0">
+   954→                              <div className="text-left">
+   955→                                {comp.price > 0 ? (
+   956→                                  <>
+   957→                                    <p className="font-bold text-base">{formatPrice(comp.price, currencyUnit)}</p>
+   958→                                    {comp.discountPercent > 0 && comp.originalPrice && (
+   959→                                      <div className="flex items-center gap-1">
+   960→                                        <Badge variant="destructive" className="text-[10px] px-1 py-0">
+   961→                                          <Tag className="w-2.5 h-2.5 ml-0.5" />
+   962→                                          {comp.discountPercent}%
+   963→                                        </Badge>
+   964→                                        <span className="text-[10px] text-muted-foreground line-through">{formatPrice(comp.originalPrice, currencyUnit)}</span>
+   965→                                      </div>
+   966→                                    )}
+   967→                                    {isCheaper && <Badge variant="destructive" className="text-[10px] mt-1">رقیب ارزان‌تر</Badge>}
+   968→                                    {isMoreExpensive && <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] mt-1">شما ارزان‌تر!</Badge>}
+   969→                                    <p className="text-[10px] text-muted-foreground mt-0.5">{new Date(comp.fetchedAt).toLocaleDateString("fa-IR")}</p>
+   970→                                  </>
+   971→                                ) : (
+   972→                                  <p className="text-xs text-muted-foreground">ناموجود</p>
+   973→                                )}
+   974→                              </div>
+   975→                              {isAdmin && (
+   976→                                <div className="flex flex-col gap-1" onClick={(e) => e.stopPropagation()}>
+   977→                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRefreshCompetitor(comp.id)} disabled={refreshingCompetitor === comp.id}>
+   978→                                    {refreshingCompetitor === comp.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+   979→                                  </Button>
+   980→                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleUnlinkCompetitor(comp.id)}>
+   981→                                    <Unlink className="w-3 h-3" />
+   982→                                  </Button>
+   983→                                </div>
+   984→                              )}
+   985→                            </div>
+   986→                          </div>
+   987→                        );
+   988→                      })}
+   989→                    </div>
+   990→                  )}
+   991→                </div>
+   992→              </div>
+   993→            </>
+   994→          )}
+   995→        </DialogContent>
+   996→      </Dialog>
+   997→
+   998→      {/* ═══ Add Competitor Dialog ═══ */}
+   999→      <Dialog open={addCompetitorDialogOpen} onOpenChange={(open) => { setAddCompetitorDialogOpen(open); if (!open) { setCompetitorSource(""); setCompetitorSourceId(""); setCompetitorLinkProductId(""); } }}>
+  1000→        <DialogContent className="sm:max-w-md" dir="rtl">
+  1001→          <DialogHeader><DialogTitle className="flex items-center gap-2"><ShoppingCart className="w-5 h-5 text-emerald-600" /> افزودن محصول رقیب از فروشگاه آنلاین</DialogTitle></DialogHeader>
+  1002→          <div className="space-y-4 mt-4">
+  1003→            <div className="space-y-2">
+  1004→              <Label>فروشگاه منبع *</Label>
+  1005→              <Select value={competitorSource} onValueChange={setCompetitorSource}>
+  1006→                <SelectTrigger><SelectValue placeholder="فروشگاه را انتخاب کنید" /></SelectTrigger>
+  1007→                <SelectContent>
+  1008→                  <SelectItem value="DIGIKALA">🟡 دیجیکالا</SelectItem>
+  1009→                  <SelectItem value="SNAPPSHOP">🟣 اسنپ‌شاپ</SelectItem>
+  1010→                </SelectContent>
+  1011→              </Select>
+  1012→            </div>
+  1013→            <div className="space-y-2">
+  1014→              <Label>شناسه محصول *</Label>
+  1015→              <Input value={competitorSourceId} onChange={(e) => setCompetitorSourceId(e.target.value)} placeholder={competitorSource === "DIGIKALA" ? "مثلاً: 16349888" : competitorSource === "SNAPPSHOP" ? "مثلاً: 717225954" : "شناسه محصول در فروشگاه"} dir="ltr" />
+  1016→              {competitorSource && (
+  1017→                <p className="text-xs text-muted-foreground">
+  1018→                  {competitorSource === "DIGIKALA" ? "شناسه عددی محصول در دیجیکالا (قسمت dkp- از URL)" : "شناسه عددی محصول در اسنپ‌شاپ"}
+  1019→                </p>
+  1020→              )}
+  1021→            </div>
+  1022→            {!competitorLinkProductId && (
+  1023→              <div className="space-y-2">
+  1024→                <Label>اتصال به محصول کاتالوگ (اختیاری)</Label>
+  1025→                <Select value={competitorLinkProductId} onValueChange={setCompetitorLinkProductId}>
+  1026→                  <SelectTrigger><SelectValue placeholder="محصول کاتالوگ را انتخاب کنید" /></SelectTrigger>
+  1027→                  <SelectContent className="max-h-48">
+  1028→                    {products.map((p) => <SelectItem key={p.id} value={p.id}><span className="line-clamp-1">{p.name}</span></SelectItem>)}
+  1029→                  </SelectContent>
+  1030→                </Select>
+  1031→              </div>
+  1032→            )}
+  1033→            {competitorLinkProductId && (
+  1034→              <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+  1035→                <p className="text-xs text-emerald-700 dark:text-emerald-400">اتصال به: {products.find((p) => p.id === competitorLinkProductId)?.name}</p>
+  1036→              </div>
+  1037→            )}
+  1038→            <Button onClick={handleScrapeAndAdd} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white" disabled={!competitorSource || !competitorSourceId || scrapeLoading}>
+  1039→              {scrapeLoading ? <><Loader2 className="w-4 h-4 ml-2 animate-spin" /> در حال اسکرپ...</> : <><Globe className="w-4 h-4 ml-2" /> اسکرپ و ذخیره</>}
+  1040→            </Button>
+  1041→          </div>
+  1042→        </DialogContent>
+  1043→      </Dialog>
+  1044→
+  1045→      {/* ═══ Link Competitor Dialog ═══ */}
+  1046→      <Dialog open={linkDialogOpen} onOpenChange={(open) => { setLinkDialogOpen(open); if (!open) { setLinkingCompetitor(null); setLinkProductId(""); } }}>
+  1047→        <DialogContent className="sm:max-w-md" dir="rtl">
+  1048→          <DialogHeader><DialogTitle className="flex items-center gap-2"><ArrowRightLeft className="w-5 h-5" /> اتصال محصول رقیب به کاتالوگ</DialogTitle></DialogHeader>
+  1049→          <div className="space-y-4 mt-4">
+  1050→            {linkingCompetitor && (
+  1051→              <div className="p-3 rounded-lg bg-muted">
+  1052→                <p className="text-sm font-medium">{linkingCompetitor.name}</p>
+  1053→                <p className="text-xs text-muted-foreground">{getSourceLabel(linkingCompetitor.source)} — {linkingCompetitor.sourceId}</p>
+  1054→              </div>
+  1055→            )}
+  1056→            <div className="space-y-2">
+  1057→              <Label>محصول کاتالوگ *</Label>
+  1058→              <Select value={linkProductId} onValueChange={setLinkProductId}>
+  1059→                <SelectTrigger><SelectValue placeholder="محصول کاتالوگ را انتخاب کنید" /></SelectTrigger>
+  1060→                <SelectContent className="max-h-48">
+  1061→                  {products.map((p) => <SelectItem key={p.id} value={p.id}><span className="line-clamp-1">{p.name}</span></SelectItem>)}
+  1062→                </SelectContent>
+  1063→              </Select>
+  1064→            </div>
+  1065→            <Button onClick={handleLinkCompetitor} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white" disabled={!linkProductId}>
+  1066→              <Link2 className="w-4 h-4 ml-2" /> اتصال
+  1067→            </Button>
+  1068→          </div>
+  1069→        </DialogContent>
+  1070→      </Dialog>
+  1071→
+  1072→      {/* ═══ Competitor Management Dialog ═══ */}
+  1073→      <Dialog open={competitorManageOpen} onOpenChange={setCompetitorManageOpen}>
+  1074→        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto" dir="rtl">
+  1075→          <DialogHeader>
+  1076→            <DialogTitle className="flex items-center gap-2"><ShoppingCart className="w-5 h-5" /> مدیریت محصولات رقیب اسکرپ شده</DialogTitle>
+  1077→          </DialogHeader>
+  1078→          <div className="space-y-4 mt-4">
+  1079→            <div className="flex items-center gap-2">
+  1080→              <Select value={competitorFilter} onValueChange={(v) => { setCompetitorFilter(v); }}>
+  1081→                <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+  1082→                <SelectContent>
+  1083→                  <SelectItem value="all">همه</SelectItem>
+  1084→                  <SelectItem value="unlinked">بدون اتصال</SelectItem>
+  1085→                  <SelectItem value="DIGIKALA">دیجیکالا</SelectItem>
+  1086→                  <SelectItem value="SNAPPSHOP">اسنپ‌شاپ</SelectItem>
+  1087→                </SelectContent>
+  1088→              </Select>
+  1089→              <Button variant="outline" size="sm" onClick={fetchAllCompetitors}><RefreshCw className="w-3 h-3" /></Button>
+  1090→              <Button variant="default" size="sm" className="gap-1 mr-auto bg-gradient-to-r from-emerald-500 to-teal-600 text-white" onClick={() => { setCompetitorLinkProductId(""); setAddCompetitorDialogOpen(true); }}>
+  1091→                <Plus className="w-3 h-3" /> افزودن
+  1092→              </Button>
+  1093→            </div>
+  1094→
+  1095→            {allCompetitors.length === 0 ? (
+  1096→              <div className="text-center py-8 text-muted-foreground">
+  1097→                <ShoppingCart className="w-10 h-10 mx-auto mb-3 opacity-30" />
+  1098→                <p className="text-sm">هنوز محصول رقیبی اسکرپ نشده</p>
+  1099→              </div>
+  1100→            ) : (
+  1101→              <div className="space-y-2 max-h-96 overflow-y-auto">
+  1102→                {allCompetitors.map((comp) => (
+  1103→                  <div key={comp.id} className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
+  1104→                    {comp.imageUrl ? (
+  1105→                      <img src={comp.imageUrl} alt="" className="w-10 h-10 rounded object-contain shrink-0 bg-muted" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+  1106→                    ) : (
+  1107→                      <div className="w-10 h-10 rounded bg-muted flex items-center justify-center text-sm shrink-0">{getSourceIcon(comp.source)}</div>
+  1108→                    )}
+  1109→                    <div className="flex-1 min-w-0">
+  1110→                      <p className="text-sm font-medium line-clamp-1">{comp.name}</p>
+  1111→                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+  1112→                        <Badge variant="secondary" className="text-[9px] px-1 py-0">{getSourceLabel(comp.source)}</Badge>
+  1113→                        {comp.brand && <span>{comp.brand}</span>}
+  1114→                        {comp.catalogProductId && <span className="text-emerald-600">✓ متصل</span>}
+  1115→                      </div>
+  1116→                    </div>
+  1117→                    <div className="text-left shrink-0">
+  1118→                      <p className="text-sm font-bold">{comp.price > 0 ? formatPrice(comp.price, currencyUnit) : "—"}</p>
+  1119→                    </div>
+  1120→                    <div className="flex gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+  1121→                      {!comp.catalogProductId && (
+  1122→                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setLinkingCompetitor(comp); setLinkProductId(""); setLinkDialogOpen(true); }}>
+  1123→                          <Link2 className="w-3 h-3" />
+  1124→                        </Button>
+  1125→                      )}
+  1126→                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ type: "competitor", id: comp.id, name: comp.name })}>
+  1127→                        <Trash2 className="w-3 h-3" />
+  1128→                      </Button>
+  1129→                    </div>
+  1130→                  </div>
+  1131→                ))}
+  1132→              </div>
+  1133→            )}
+  1134→          </div>
+  1135→        </DialogContent>
+  1136→      </Dialog>
+  1137→
+  1138→      {/* Login Dialog */}
+  1139→      <Dialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen}>
+  1140→        <DialogContent className="sm:max-w-sm" dir="rtl">
+  1141→          <DialogHeader><DialogTitle className="flex items-center gap-2"><Shield className="w-5 h-5 text-emerald-600" /> ورود مدیر سیستم</DialogTitle></DialogHeader>
+  1142→          <div className="space-y-4 mt-4">
+  1143→            <div className="space-y-2"><Label htmlFor="password">رمز عبور</Label><Input id="password" type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} placeholder="رمز عبور مدیر را وارد کنید" onKeyDown={(e) => e.key === "Enter" && handleLogin()} /><p className="text-xs text-muted-foreground">رمز عبور پیش‌فرض: admin123</p></div>
+  1144→            <Button onClick={handleLogin} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white" disabled={!loginPassword}>ورود</Button>
+  1145→          </div>
+  1146→        </DialogContent>
+  1147→      </Dialog>
+  1148→
+  1149→      {/* Product Dialog */}
+  1150→      <Dialog open={productDialogOpen} onOpenChange={(open) => { setProductDialogOpen(open); if (!open) { setEditingProduct(null); resetProductForm(); } }}>
+  1151→        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto" dir="rtl">
+  1152→          <DialogHeader><DialogTitle>{editingProduct ? "ویرایش محصول" : "افزودن محصول جدید"}</DialogTitle></DialogHeader>
+  1153→          <div className="space-y-4 mt-4">
+  1154→            <div className="space-y-2"><Label>نام محصول *</Label><Input value={productForm.name} onChange={(e) => setProductForm((f) => ({ ...f, name: e.target.value }))} placeholder="مثلاً: گوشی موبایل سامسونگ" /></div>
+  1155→            <div className="space-y-2"><Label>قیمت ({currencyUnit}) *</Label><Input type="number" value={productForm.price} onChange={(e) => setProductForm((f) => ({ ...f, price: e.target.value }))} placeholder="مثلاً: 25000000" /></div>
+  1156→            <div className="space-y-2"><Label>توضیحات</Label><Textarea value={productForm.description} onChange={(e) => setProductForm((f) => ({ ...f, description: e.target.value }))} placeholder="توضیحات محصول..." rows={2} /></div>
+  1157→            <div className="space-y-2"><Label>آدرس تصویر</Label><Input value={productForm.imageUrl} onChange={(e) => setProductForm((f) => ({ ...f, imageUrl: e.target.value }))} placeholder="https://example.com/image.jpg" dir="ltr" /></div>
+  1158→            <Separator />
+  1159→            <div className="space-y-2"><Label className="flex items-center gap-2"><Globe className="w-4 h-4 text-blue-500" /> بازار هدف</Label><Textarea value={productForm.targetMarket} onChange={(e) => setProductForm((f) => ({ ...f, targetMarket: e.target.value }))} placeholder="مثلاً: بازار مصرف‌کننده نهایی، بازار سازمانی..." rows={2} /></div>
+  1160→            <div className="space-y-2"><Label className="flex items-center gap-2"><Tag className="w-4 h-4 text-amber-500" /> مزیت رقابتی</Label><Textarea value={productForm.competitiveAdvantage} onChange={(e) => setProductForm((f) => ({ ...f, competitiveAdvantage: e.target.value }))} placeholder="مثلاً: قیمت مناسب‌تر، کیفیت بالاتر..." rows={2} /></div>
+  1161→            <div className="space-y-2"><Label className="flex items-center gap-2"><Package className="w-4 h-4 text-purple-500" /> توضیحات پروموشن</Label><Textarea value={productForm.promotionDescription} onChange={(e) => setProductForm((f) => ({ ...f, promotionDescription: e.target.value }))} placeholder="مثلاً: تخفیف ویژه تابستانه، هدیه رایگان..." rows={2} /></div>
+  1162→            <div className="space-y-2"><Label className="flex items-center gap-2"><Tag className="w-4 h-4 text-rose-500" /> مارجین (٪)</Label><Input type="number" step="0.1" value={productForm.margin} onChange={(e) => setProductForm((f) => ({ ...f, margin: e.target.value }))} placeholder="مثلاً: 25" dir="ltr" /><p className="text-xs text-muted-foreground">درصد حاشیه سود (اختیاری)</p></div>
+  1163→            <Separator />
+  1164→            <div className="space-y-2"><Label>گروه / دسته‌بندی</Label><Select value={productForm.groupId || "__none__"} onValueChange={(v) => setProductForm((f) => ({ ...f, groupId: v === "__none__" ? "" : v }))}><SelectTrigger><SelectValue placeholder="بدون گروه" /></SelectTrigger><SelectContent><SelectItem value="__none__">بدون گروه</SelectItem>{groups.map((g) => <React.Fragment key={g.id}><SelectItem value={g.id}><span className="font-medium">{g.name}</span></SelectItem>{g.children.map((sub) => <SelectItem key={sub.id} value={sub.id}><span className="text-muted-foreground">└ {sub.name}</span></SelectItem>)}</React.Fragment>)}</SelectContent></Select></div>
+  1165→            <Button onClick={handleSaveProduct} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white" disabled={!productForm.name || !productForm.price}>{editingProduct ? "بروزرسانی" : "افزودن محصول"}</Button>
+  1166→          </div>
+  1167→        </DialogContent>
+  1168→      </Dialog>
+  1169→
+  1170→      {/* Group Dialog */}
+  1171→      <Dialog open={groupDialogOpen} onOpenChange={(open) => { setGroupDialogOpen(open); if (!open) { setEditingGroup(null); setGroupForm({ name: "", parentId: "" }); } }}>
+  1172→        <DialogContent className="sm:max-w-md" dir="rtl">
+  1173→          <DialogHeader><DialogTitle className="flex items-center gap-2"><FolderTree className="w-5 h-5" /> {editingGroup ? "ویرایش گروه" : "مدیریت گروه‌ها"}</DialogTitle></DialogHeader>
+  1174→          <div className="space-y-4 mt-4">
+  1175→            {!editingGroup && (
+  1176→              <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+  1177→                <p className="text-sm font-medium">افزودن گروه جدید</p>
+  1178→                <div className="space-y-2"><Label>نام گروه *</Label><Input value={groupForm.name} onChange={(e) => setGroupForm((f) => ({ ...f, name: e.target.value }))} placeholder="مثلاً: موبایل، لپ‌تاپ" /></div>
+  1179→                <div className="space-y-2"><Label>گروه والد (برای زیرگروه)</Label><Select value={groupForm.parentId || "__none__"} onValueChange={(v) => setGroupForm((f) => ({ ...f, parentId: v === "__none__" ? "" : v }))}><SelectTrigger><SelectValue placeholder="گروه اصلی (بدون والد)" /></SelectTrigger><SelectContent><SelectItem value="__none__">گروه اصلی (بدون والد)</SelectItem>{groups.map((g) => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}</SelectContent></Select></div>
+  1180→                <Button onClick={handleSaveGroup} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white" disabled={!groupForm.name}><FolderPlus className="w-4 h-4 ml-2" /> افزودن {groupForm.parentId ? "زیرگروه" : "گروه اصلی"}</Button>
+  1181→              </div>
+  1182→            )}
+  1183→            {editingGroup && (
+  1184→              <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+  1185→                <p className="text-sm font-medium">ویرایش: {editingGroup.name}</p>
+  1186→                <Input value={groupForm.name} onChange={(e) => setGroupForm((f) => ({ ...f, name: e.target.value }))} placeholder="نام گروه" />
+  1187→                <div className="flex gap-2"><Button onClick={handleSaveGroup} className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white" disabled={!groupForm.name}>بروزرسانی</Button><Button variant="outline" onClick={() => { setEditingGroup(null); setGroupForm({ name: "", parentId: "" }); }}>انصراف</Button></div>
+  1188→              </div>
+  1189→            )}
+  1190→            <div className="space-y-2">
+  1191→              <p className="text-sm font-medium text-muted-foreground">گروه‌های موجود</p>
+  1192→              {groups.length === 0 ? <p className="text-sm text-muted-foreground text-center py-4">هنوز گروهی ایجاد نشده</p> : (
+  1193→                <Accordion type="multiple" className="w-full">
+  1194→                  {groups.map((group) => (
+  1195→                    <AccordionItem key={group.id} value={group.id}>
+  1196→                      <AccordionTrigger className="hover:no-underline py-2">
+  1197→                        <div className="flex items-center gap-2 flex-1"><FolderOpen className="w-4 h-4 text-emerald-600" /><span className="font-medium text-sm">{group.name}</span><Badge variant="secondary" className="text-xs">{group.children.length} زیرگروه</Badge></div>
+  1198→                        <div className="flex gap-1 ml-2" onClick={(e) => e.stopPropagation()}>
+  1199→                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setEditingGroup(group); setGroupForm({ name: group.name, parentId: "" }); }}><Edit3 className="w-3 h-3" /></Button>
+  1200→                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ type: "group", id: group.id, name: group.name })}><Trash2 className="w-3 h-3" /></Button>
+  1201→                        </div>
+  1202→                      </AccordionTrigger>
+  1203→                      <AccordionContent>
+  1204→                        {group.children.length === 0 ? <p className="text-xs text-muted-foreground pr-8 py-1">زیرگروهی ندارد</p> : (
+  1205→                          <div className="space-y-1 pr-6">{group.children.map((sub) => (
+  1206→                            <div key={sub.id} className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-muted">
+  1207→                              <div className="flex items-center gap-2"><FolderTree className="w-3 h-3 text-muted-foreground" /><span className="text-sm">{sub.name}</span></div>
+  1208→                              <div className="flex gap-1"><Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setEditingGroup(sub as unknown as ProductGroupParent); setGroupForm({ name: sub.name, parentId: group.id }); }}><Edit3 className="w-3 h-3" /></Button><Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => setDeleteTarget({ type: "group", id: sub.id, name: sub.name })}><Trash2 className="w-3 h-3" /></Button></div>
+  1209→                            </div>))}</div>
+  1210→                        )}
+  1211→                      </AccordionContent>
+  1212→                    </AccordionItem>
+  1213→                  ))}
+  1214→                </Accordion>
+  1215→              )}
+  1216→            </div>
+  1217→          </div>
+  1218→        </DialogContent>
+  1219→      </Dialog>
+  1220→
+  1221→      {/* Baraka Images Dialog */}
+  1222→      <Dialog open={barakaDialogOpen} onOpenChange={setBarakaDialogOpen}>
+  1223→        <DialogContent className="sm:max-w-3xl max-h-[85vh]" dir="rtl">
+  1224→          <DialogHeader>
+  1225→            <DialogTitle className="flex items-center gap-2">
+  1226→              <Globe className="w-5 h-5" /> عکس محصولات باراکا
+  1227→            </DialogTitle>
+  1228→          </DialogHeader>
+  1229→          <div className="space-y-3">
+  1230→            <p className="text-sm text-muted-foreground">عکس‌های محصولات از سایت barakachocolate.com — کلیک روی عکس برای اختصاص به محصول مشابه کاتالوگ</p>
+  1231→            {barakaLoading ? (
+  1232→              <div className="flex items-center justify-center py-12">
+  1233→                <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+  1234→                <span className="ml-3 text-muted-foreground">در حال دریافت...</span>
+  1235→              </div>
+  1236→            ) : barakaProducts.length === 0 ? (
+  1237→              <p className="text-center text-muted-foreground py-8">محصولی یافت نشد</p>
+  1238→            ) : (
+  1239→              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto">
+  1240→                {barakaProducts.map((bp, i) => {
+  1241→                  // Check if a catalog product matches
+  1242→                  const matched = products.find((p) => {
+  1243→                    const pName = p.name.toLowerCase().replace(/\s+/g, "");
+  1244→                    const bName = bp.name.toLowerCase().replace(/\s+/g, "");
+  1245→                    return pName.includes(bName) || bName.includes(pName);
+  1246→                  });
+  1247→                  return (
+  1248→                    <div
+  1249→                      key={i}
+  1250→                      className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer group"
+  1251→                      onClick={() => applyBarakaImage(bp.name, bp.imageUrl)}
+  1252→                    >
+  1253→                      <div className="aspect-square bg-muted overflow-hidden">
+  1254→                        <img
+  1255→                          src={bp.imageUrl}
+  1256→                          alt={bp.name}
+  1257→                          className="w-full h-full object-contain group-hover:scale-105 transition-transform"
+  1258→                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+  1259→                        />
+  1260→                      </div>
+  1261→                      <div className="p-2">
+  1262→                        <p className="text-xs font-medium truncate">{bp.name}</p>
+  1263→                        {matched ? (
+  1264→                          <Badge className="mt-1 text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
+  1265→                            ✓ {matched.name}
+  1266→                          </Badge>
+  1267→                        ) : (
+  1268→                          <Badge variant="secondary" className="mt-1 text-[10px]">کپی لینک</Badge>
+  1269→                        )}
+  1270→                      </div>
+  1271→                    </div>
+  1272→                  );
+  1273→                })}
+  1274→              </div>
+  1275→            )}
+  1276→          </div>
+  1277→        </DialogContent>
+  1278→      </Dialog>
+  1279→
+  1280→      {/* Excel Import Dialog */}
+  1281→      <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+  1282→        <DialogContent className="sm:max-w-lg" dir="rtl">
+  1283→          <DialogHeader>
+  1284→            <DialogTitle className="flex items-center gap-2">
+  1285→              <FileSpreadsheet className="w-5 h-5" /> وارد کردن قیمت‌ها از اکسل
+  1286→            </DialogTitle>
+  1287→          </DialogHeader>
+  1288→          <div className="space-y-4">
+  1289→            {/* Instructions */}
+  1290→            <div className="bg-muted/50 rounded-lg p-3 space-y-2 text-sm">
+  1291→              <p className="font-medium">راهنمای فایل اکسل:</p>
+  1292→              <ul className="list-disc list-inside space-y-1 text-muted-foreground text-xs">
+  1293→                <li>ستون <Badge variant="secondary" className="text-xs mx-1">id</Badge> یا <Badge variant="secondary" className="text-xs mx-1">شناسه</Badge> — شناسه محصول کاتالوگ</li>
+  1294→                <li>ستون <Badge variant="secondary" className="text-xs mx-1">name</Badge> یا <Badge variant="secondary" className="text-xs mx-1">نام</Badge> — نام محصول (اگر id ندارید)</li>
+  1295→                <li>ستون <Badge variant="secondary" className="text-xs mx-1">price</Badge> یا <Badge variant="secondary" className="text-xs mx-1">قیمت</Badge> — قیمت جدید (ریال)</li>
+  1296→                <li>ستون <Badge variant="secondary" className="text-xs mx-1">description</Badge> یا <Badge variant="secondary" className="text-xs mx-1">توضیحات</Badge> — توضیحات محصول</li>
+  1297→                <li>ستون <Badge variant="secondary" className="text-xs mx-1">targetMarket</Badge> یا <Badge variant="secondary" className="text-xs mx-1">بازار هدف</Badge> — بازار هدف</li>
+  1298→                <li>ستون <Badge variant="secondary" className="text-xs mx-1">competitiveAdvantage</Badge> یا <Badge variant="secondary" className="text-xs mx-1">مزیت رقابتی</Badge> — مزیت رقابتی</li>
+  1299→                <li>ستون <Badge variant="secondary" className="text-xs mx-1">promotionDescription</Badge> یا <Badge variant="secondary" className="text-xs mx-1">پروموشن</Badge> — توضیحات پروموشن</li>
+  1300→                <li>ستون <Badge variant="secondary" className="text-xs mx-1">margin</Badge> یا <Badge variant="secondary" className="text-xs mx-1">مارجین</Badge> — درصد حاشیه سود</li>
+  1301→              </ul>
+  1302→              <p className="text-muted-foreground text-xs">اگر ستون id باشد، تطبیق دقیق‌تر است. هر ستونی که در فایل نباشد، تغییر نمی‌کند.</p>
+  1303→            </div>
+  1304→
+  1305→            {/* Download Template */}
+  1306→            <Button variant="outline" className="w-full gap-2" onClick={handleDownloadTemplate}>
+  1307→              <Download className="w-4 h-4" /> دانلود لیست قیمت‌ها (اکسل)
+  1308→            </Button>
+  1309→
+  1310→            {/* File Upload */}
+  1311→            <div className="relative">
+  1312→              <input
+  1313→                type="file"
+  1314→                accept=".xlsx,.xls,.csv"
+  1315→                onChange={handleImportExcel}
+  1316→                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+  1317→                disabled={importLoading}
+  1318→              />
+  1319→              <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-emerald-400 transition-colors cursor-pointer">
+  1320→                {importLoading ? (
+  1321→                  <div className="flex flex-col items-center gap-2">
+  1322→                    <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+  1323→                    <p className="text-sm text-muted-foreground">در حال پردازش فایل...</p>
+  1324→                  </div>
+  1325→                ) : (
+  1326→                  <div className="flex flex-col items-center gap-2">
+  1327→                    <Upload className="w-8 h-8 text-muted-foreground" />
+  1328→                    <p className="text-sm text-muted-foreground">فایل اکسل را بکشید و رها کنید یا کلیک کنید</p>
+  1329→                    <p className="text-xs text-muted-foreground">.xlsx, .xls, .csv</p>
+  1330→                  </div>
+  1331→                )}
+  1332→              </div>
+  1333→            </div>
+  1334→
+  1335→            {/* Results */}
+  1336→            {importResult && (
+  1337→              <div className="space-y-3 border-t pt-3">
+  1338→                <div className="flex items-center gap-2">
+  1339→                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+  1340→                  <span className="font-medium text-sm">{importResult.message}</span>
+  1341→                </div>
+  1342→                <div className="grid grid-cols-3 gap-2 text-center">
+  1343→                  <div className="bg-muted rounded-lg p-2">
+  1344→                    <p className="text-lg font-bold">{importResult.total}</p>
+  1345→                    <p className="text-xs text-muted-foreground">کل ردیف‌ها</p>
+  1346→                  </div>
+  1347→                  <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-lg p-2">
+  1348→                    <p className="text-lg font-bold text-emerald-600">{importResult.updated}</p>
+  1349→                    <p className="text-xs text-muted-foreground">بروزرسانی شد</p>
+  1350→                  </div>
+  1351→                  <div className="bg-amber-50 dark:bg-amber-950/30 rounded-lg p-2">
+  1352→                    <p className="text-lg font-bold text-amber-600">{importResult.notFound.length + importResult.skipped.length}</p>
+  1353→                    <p className="text-xs text-muted-foreground">یافت نشد / رد شد</p>
+  1354→                  </div>
+  1355→                </div>
+  1356→                {importResult.detectedColumns && (
+  1357→                  <p className="text-xs text-muted-foreground flex flex-wrap gap-1">
+  1358→                    ستون‌ها: 
+  1359→                    {importResult.detectedColumns.id && <Badge variant="outline" className="text-xs">id: {importResult.detectedColumns.id}</Badge>}
+  1360→                    {importResult.detectedColumns.name && <Badge variant="outline" className="text-xs">نام: {importResult.detectedColumns.name}</Badge>}
+  1361→                    {importResult.detectedColumns.price && <Badge variant="outline" className="text-xs">قیمت: {importResult.detectedColumns.price}</Badge>}
+  1362→                    {importResult.detectedColumns.description && <Badge variant="outline" className="text-xs">توضیحات: {importResult.detectedColumns.description}</Badge>}
+  1363→                    {importResult.detectedColumns.targetMarket && <Badge variant="outline" className="text-xs">بازار هدف: {importResult.detectedColumns.targetMarket}</Badge>}
+  1364→                    {importResult.detectedColumns.competitiveAdvantage && <Badge variant="outline" className="text-xs">مزیت: {importResult.detectedColumns.competitiveAdvantage}</Badge>}
+  1365→                    {importResult.detectedColumns.promotionDescription && <Badge variant="outline" className="text-xs">پروموشن: {importResult.detectedColumns.promotionDescription}</Badge>}
+  1366→                    {importResult.detectedColumns.margin && <Badge variant="outline" className="text-xs">مارجین: {importResult.detectedColumns.margin}</Badge>}
+  1367→                  </p>
+  1368→                )}
+  1369→                {importResult.notFound.length > 0 && (
+  1370→                  <div className="bg-amber-50 dark:bg-amber-950/30 rounded-lg p-2">
+  1371→                    <p className="text-xs font-medium text-amber-700 dark:text-amber-400 flex items-center gap-1"><AlertCircle className="w-3 h-3" /> محصولات یافت نشد:</p>
+  1372→                    <p className="text-xs text-amber-600 mt-1 max-h-20 overflow-y-auto">{importResult.notFound.join("، ")}</p>
+  1373→                  </div>
+  1374→                )}
+  1375→                {importResult.skipped.length > 0 && (
+  1376→                  <div className="bg-muted rounded-lg p-2">
+  1377→                    <p className="text-xs font-medium text-muted-foreground">رد شده:</p>
+  1378→                    <p className="text-xs text-muted-foreground mt-1 max-h-20 overflow-y-auto">{importResult.skipped.join("؛ ")}</p>
+  1379→                  </div>
+  1380→                )}
+  1381→                {importResult.errors.length > 0 && (
+  1382→                  <div className="bg-red-50 dark:bg-red-950/30 rounded-lg p-2">
+  1383→                    <p className="text-xs font-medium text-red-700 dark:text-red-400">خطاها:</p>
+  1384→                    <p className="text-xs text-red-600 mt-1 max-h-20 overflow-y-auto">{importResult.errors.join("؛ ")}</p>
+  1385→                  </div>
+  1386→                )}
+  1387→              </div>
+  1388→            )}
+  1389→          </div>
+  1390→        </DialogContent>
+  1391→      </Dialog>
+  1392→
+  1393→      {/* Settings Dialog */}
+  1394→      <Dialog open={settingsDialogOpen} onOpenChange={setSettingsDialogOpen}>
+  1395→        <DialogContent className="sm:max-w-md" dir="rtl">
+  1396→          <DialogHeader><DialogTitle className="flex items-center gap-2"><Settings2 className="w-5 h-5" /> تنظیمات سیستم</DialogTitle></DialogHeader>
+  1397→          <div className="space-y-4 mt-4">
+  1398→            <div className="space-y-2"><Label>واحد پول</Label><Select value={settingsForm.currencyUnit} onValueChange={(v) => setSettingsForm((f) => ({ ...f, currencyUnit: v }))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="تومان">تومان</SelectItem><SelectItem value="ریال">ریال</SelectItem><SelectItem value="دلار">$ دلار</SelectItem><SelectItem value="یورو">€ یورو</SelectItem><SelectItem value="درهم">درهم</SelectItem></SelectContent></Select></div>
+  1399→            <Separator />
+  1400→            <div className="space-y-3"><p className="text-sm font-medium">تغییر رمز عبور</p><div className="space-y-2"><Label>رمز عبور فعلی</Label><Input type="password" value={settingsForm.currentPassword} onChange={(e) => setSettingsForm((f) => ({ ...f, currentPassword: e.target.value }))} placeholder="رمز فعلی را وارد کنید" /></div><div className="space-y-2"><Label>رمز عبور جدید</Label><Input type="password" value={settingsForm.adminPassword} onChange={(e) => setSettingsForm((f) => ({ ...f, adminPassword: e.target.value }))} placeholder="رمز جدید را وارد کنید" /></div><p className="text-xs text-muted-foreground">اگر نمی‌خواهید رمز را تغییر دهید، این بخش را خالی بگذارید.</p></div>
+  1401→            <Button onClick={handleSaveSettings} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white">ذخیره تنظیمات</Button>
+  1402→          </div>
+  1403→        </DialogContent>
+  1404→      </Dialog>
+  1405→
+  1406→      {/* Delete Confirmation */}
+  1407→      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+  1408→        <AlertDialogContent dir="rtl">
+  1409→          <AlertDialogHeader><AlertDialogTitle>آیا مطمئن هستید؟</AlertDialogTitle>
+  1410→            <AlertDialogDescription>
+  1411→              {deleteTarget?.type === "product" ? <span>محصول &laquo;{deleteTarget.name && deleteTarget.name.length > 50 ? deleteTarget.name.slice(0, 50) + "…" : deleteTarget.name}&raquo; حذف خواهد شد.</span> : deleteTarget?.type === "group" ? <span>گروه &laquo;{deleteTarget.name}&raquo; همراه با زیرگروه‌ها حذف خواهد شد. محصولات این گروه بدون گروه می‌شوند.</span> : deleteTarget?.type === "competitor" ? <span>محصول رقیب &laquo;{deleteTarget.name && deleteTarget.name.length > 50 ? deleteTarget.name.slice(0, 50) + "…" : deleteTarget.name}&raquo; حذف خواهد شد.</span> : ""}
+  1412→            </AlertDialogDescription>
+  1413→          </AlertDialogHeader>
+  1414→          <AlertDialogFooter>
+  1415→            <AlertDialogCancel>انصراف</AlertDialogCancel>
+  1416→            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => { if (deleteTarget) { if (deleteTarget.type === "product") handleDeleteProduct(deleteTarget.id); else if (deleteTarget.type === "group") handleDeleteGroup(deleteTarget.id); else if (deleteTarget.type === "competitor") handleDeleteCompetitor(deleteTarget.id); } setDeleteTarget(null); }}>حذف</AlertDialogAction>
+  1417→          </AlertDialogFooter>
+  1418→        </AlertDialogContent>
+  1419→      </AlertDialog>
+  1420→    </div>
+  1421→  );
+  1422→}
+  1423→

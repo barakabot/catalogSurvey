@@ -30,6 +30,10 @@ import {
   Download,
   CheckCircle2,
   AlertCircle,
+  LayoutGrid,
+  List,
+  Percent,
+  Gift,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -74,6 +78,14 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import * as XLSX from "xlsx";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 
 // ─── Types ────────────────────────────────────────────────────────
 interface CompetitorPriceHistory {
@@ -149,6 +161,7 @@ export default function CatalogPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGroup, setSelectedGroup] = useState<string>("all");
+  const [viewMode, setViewMode] = useState<"cards" | "table">("table");
 
   // Auth state
   const [isAdmin, setIsAdmin] = useState(false);
@@ -742,6 +755,22 @@ export default function CatalogPage() {
                 </SelectContent>
               </Select>
             )}
+            <div className="flex items-center border rounded-lg overflow-hidden shrink-0">
+              <button
+                onClick={() => setViewMode("table")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "table" ? "bg-emerald-600 text-white" : "bg-background text-muted-foreground hover:bg-muted"}`}
+              >
+                <List className="w-4 h-4" />
+                جدول
+              </button>
+              <button
+                onClick={() => setViewMode("cards")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors ${viewMode === "cards" ? "bg-emerald-600 text-white" : "bg-background text-muted-foreground hover:bg-muted"}`}
+              >
+                <LayoutGrid className="w-4 h-4" />
+                کارت
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -758,6 +787,110 @@ export default function CatalogPage() {
             <h3 className="text-lg font-semibold text-foreground mb-2">{products.length === 0 ? "هنوز محصولی اضافه نشده" : "محصولی یافت نشد"}</h3>
             <p className="text-muted-foreground mb-6 max-w-md">{products.length === 0 ? "برای شروع، ابتدا به عنوان مدیر وارد شوید." : "فیلترهای خود را تغییر دهید."}</p>
             {products.length === 0 && !isAdmin && <Button variant="outline" className="gap-2" onClick={() => setLoginDialogOpen(true)}><LogIn className="w-4 h-4" /> ورود مدیر</Button>}
+          </div>
+        ) : viewMode === "table" ? (
+          <div className="border rounded-xl overflow-hidden bg-card" dir="rtl">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50 hover:bg-muted/50">
+                  <TableHead className="text-right font-semibold">محصول</TableHead>
+                  <TableHead className="text-right font-semibold">دسته‌بندی</TableHead>
+                  <TableHead className="text-right font-semibold">قیمت</TableHead>
+                  <TableHead className="text-right font-semibold">مارژین</TableHead>
+                  <TableHead className="text-right font-semibold">پروموشن</TableHead>
+                  <TableHead className="text-center font-semibold">رقبا</TableHead>
+                  {isAdmin && <TableHead className="text-center font-semibold">عملیات</TableHead>}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredProducts.map((product) => {
+                  const groupName = getGroupName(product);
+                  const bestCompPrice = getBestCompetitorPrice(product);
+                  const competitorCount = (product.competitorProducts || []).length;
+                  return (
+                    <TableRow
+                      key={product.id}
+                      className="cursor-pointer hover:bg-muted/30 transition-colors"
+                      onClick={() => openProductDetail(product)}
+                    >
+                      <TableCell>
+                        <div className="flex items-center gap-3 py-1">
+                          {product.imageUrl ? (
+                            <img
+                              src={product.imageUrl}
+                              alt={product.name}
+                              className="w-10 h-10 rounded-lg object-contain shrink-0 bg-muted"
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                              <Package className="w-5 h-5 text-muted-foreground" />
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm line-clamp-1" title={product.name}>{product.name}</p>
+                            {product.description && <p className="text-xs text-muted-foreground line-clamp-1">{product.description}</p>}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {groupName ? (
+                          <Badge variant="secondary" className="text-xs">
+                            <FolderTree className="w-3 h-3 ml-1" />
+                            {groupName}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <p className="font-bold text-sm text-emerald-600 dark:text-emerald-400">{formatPrice(product.price, currencyUnit)}</p>
+                          {bestCompPrice && (
+                            <p className={`text-xs mt-0.5 ${bestCompPrice < product.price ? "text-rose-500" : "text-muted-foreground"}`}>
+                              ارزان‌ترین رقیب: {formatPrice(bestCompPrice, currencyUnit)}
+                            </p>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {(product.margin !== null && product.margin !== undefined) ? (
+                          <Badge className="bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-900/20 dark:text-rose-400 dark:border-rose-800 hover:bg-rose-50">
+                            <Percent className="w-3 h-3 ml-1" />
+                            {product.margin}٪
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {product.promotionDescription ? (
+                          <Badge className="bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800 hover:bg-purple-50 max-w-[200px] truncate">
+                            <Gift className="w-3 h-3 ml-1 shrink-0" />
+                            <span className="truncate">{product.promotionDescription}</span>
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant="secondary" className="text-xs">
+                          {competitorCount}
+                        </Badge>
+                      </TableCell>
+                      {isAdmin && (
+                        <TableCell className="text-center">
+                          <div className="flex items-center justify-center gap-1" onClick={(e) => e.stopPropagation()}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditProduct(product)}><Edit3 className="w-3.5 h-3.5" /></Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteTarget({ type: "product", id: product.id, name: product.name })}><Trash2 className="w-3.5 h-3.5" /></Button>
+                          </div>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
