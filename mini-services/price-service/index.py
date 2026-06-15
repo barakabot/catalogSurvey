@@ -138,7 +138,7 @@ async def smart_fetch_manual(url: str, timeout: int = 20) -> httpx.Response:
 # ─── Digikala Scraper ─────────────────────────────────────────────
 async def scrape_digikala(product_id: str) -> dict:
     """Scrape product data from Digikala API."""
-    url = f"https://api.digikala.com/v2/product/{product_id}"
+    url = f"https://api.digikala.com/v2/product/{product_id}/"
     
     try:
         # Try with auto-redirect first
@@ -485,7 +485,7 @@ async def test_scrape(source: str = Query(...), sourceId: str = Query(...)):
         raise HTTPException(status_code=400, detail="منبع باید DIGIKALA یا SNAPPSHOP باشد")
     
     if source_upper == "DIGIKALA":
-        url = f"https://api.digikala.com/v2/product/{sourceId}"
+        url = f"https://api.digikala.com/v2/product/{sourceId}/"
     else:
         url = f"https://apix.snappshop.ir/products/v2/{sourceId}"
     

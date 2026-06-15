@@ -87,7 +87,7 @@ async function scrapeDigikala(productId: string): Promise<{
   data?: Record<string, unknown>;
 }> {
   try {
-    const url = `https://api.digikala.com/v2/product/${productId}`;
+    const url = `https://api.digikala.com/v2/product/${productId}/`;
     const response = await smartFetch(url);
 
     if (response.status !== 200) {
