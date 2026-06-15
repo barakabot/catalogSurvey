@@ -777,7 +777,7 @@ export default function CatalogPage() {
                       <CardHeader className="pb-2">
                         <div className="flex items-start justify-between">
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-lg text-foreground truncate">
+                            <h3 className="font-bold text-base leading-snug text-foreground line-clamp-2" title={product.name}>
                               {product.name}
                             </h3>
                             {product.description && (
@@ -912,12 +912,12 @@ export default function CatalogPage() {
                                         )}
                                       </div>
                                       <div className="min-w-0">
-                                        <p className="text-sm font-medium truncate">{link.name}</p>
+                                        <p className="text-sm font-medium line-clamp-1" title={link.name}>{link.name}</p>
                                         <a
                                           href={link.url}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className="text-xs text-muted-foreground hover:text-primary truncate block max-w-48"
+                                          className="text-xs text-muted-foreground hover:text-primary line-clamp-1 block max-w-[180px]"
                                         >
                                           {link.url}
                                           <ExternalLink className="w-2.5 h-2.5 inline mr-1" />
@@ -1458,9 +1458,9 @@ export default function CatalogPage() {
             <AlertDialogTitle>آیا مطمئن هستید؟</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteTarget?.type === "product"
-                ? `محصول "${deleteTarget.name}" همراه با تمام لینک‌ها و تاریخچه قیمت‌ها حذف خواهد شد.`
+                ? <span>محصول &laquo;{deleteTarget.name.length > 50 ? deleteTarget.name.slice(0, 50) + '…' : deleteTarget.name}&raquo; همراه با تمام لینک‌ها و تاریخچه قیمت‌ها حذف خواهد شد.</span>
                 : deleteTarget?.type === "group"
-                ? `گروه "${deleteTarget.name}" همراه با زیرگروه‌ها حذف خواهد شد. محصولات این گروه بدون گروه می‌شوند.`
+                ? <span>گروه &laquo;{deleteTarget.name}&raquo; همراه با زیرگروه‌ها حذف خواهد شد. محصولات این گروه بدون گروه می‌شوند.</span>
                 : "این لینک رقیب همراه با تاریخچه قیمت‌ها حذف خواهد شد."}
             </AlertDialogDescription>
           </AlertDialogHeader>

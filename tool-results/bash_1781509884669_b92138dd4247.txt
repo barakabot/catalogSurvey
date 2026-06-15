@@ -1,0 +1,815 @@
+- generic
+  - banner
+    - heading "کاتالوگ دیجیتال" [level=1, ref=e2]
+    - paragraph
+    - button "ورود مدیر" [ref=e3]
+    - textbox "جستجوی محصول..." [ref=e142]
+    - combobox [expanded=false, ref=e4]: همه دسته‌ها
+      - generic [ref=e143] clickable [onclick]
+  - main
+    - heading "سيروپ توت فرنگي (9 ظرف 500 گرمي)" [level=3, ref=e5]
+    - paragraph
+      - StaticText "کد کالا: 4121022117"
+    - StaticText "محصولات باراکا › کرم کاکائو"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "سيروپ توت فرنگي (9 ظرف 500 گرمي)" [level=3, ref=e6]
+    - paragraph
+      - StaticText "کد کالا: 4121022117"
+    - StaticText "محصولات باراکا › کرم کاکائو"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "سيروپ شکلاتي (9 ظرف 500 گرمي)" [level=3, ref=e7]
+    - paragraph
+      - StaticText "کد کالا: 4121022116"
+    - StaticText "محصولات باراکا › کرم کاکائو"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "سيروپ شکلاتي (9 ظرف 500 گرمي)" [level=3, ref=e8]
+    - paragraph
+      - StaticText "کد کالا: 4121022116"
+    - StaticText "محصولات باراکا › کرم کاکائو"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "باراکا - سيروپ کارامل (9 ظرف 500 گرمي)" [level=3, ref=e9]
+    - paragraph
+      - StaticText "کد کالا: 4121022115"
+    - StaticText "محصولات باراکا › کرم کاکائو"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "باراکا - سيروپ کارامل (9 ظرف 500 گرمي)" [level=3, ref=e10]
+    - paragraph
+      - StaticText "کد کالا: 4121022115"
+    - StaticText "محصولات باراکا › کرم کاکائو"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکومجيک شکلاتي 40 گرمي (8 استند 12 عددي )" [level=3, ref=e11]
+    - paragraph
+      - StaticText "کد کالا: 4112004137"
+    - StaticText "محصولات باراکا › شکو کراکر"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "بيوتي ( 4 بسته 225 گرمي )" [level=3, ref=e12]
+    - paragraph
+      - StaticText "کد کالا: 4111005156"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "بلژيک ( 4 بسته 170 گرمي )" [level=3, ref=e13]
+    - paragraph
+      - StaticText "کد کالا: 4111005155"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "آبرنگ ( 4 بسته 225 گرمي )" [level=3, ref=e14]
+    - paragraph
+      - StaticText "کد کالا: 4111005154"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "مونتکارلو ( 4 بسته 170 گرمي )" [level=3, ref=e15]
+    - paragraph
+      - StaticText "کد کالا: 4111005153"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "رز فلزي (4 بسته 300 گرمي)" [level=3, ref=e16]
+    - paragraph
+      - StaticText "کد کالا: 4111005151"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "هندميد رز فله" [level=3, ref=e17]
+    - paragraph
+      - StaticText "کد کالا: 4111005112"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "باراکيدز - شکلات تيوپي جرقه اي ملتو فندوقي 30 گرمي(4 استند24 عددي)" [level=3, ref=e18]
+    - paragraph
+      - StaticText "کد کالا: 4111004308"
+    - StaticText "محصولات باراکا › کرم کاکائو"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکلات صبحانه تلخ (6 شيشه 300 گرمي)" [level=3, ref=e19]
+    - paragraph
+      - StaticText "کد کالا: 4111004271"
+    - StaticText "محصولات باراکا › کرم کاکائو"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکلات صبحانه تلخ (6 شيشه 180 گرمي )" [level=3, ref=e20]
+    - paragraph
+      - StaticText "کد کالا: 4111004269"
+    - StaticText "محصولات باراکا › کرم کاکائو"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "اسمارتيز رنگي 80 گرمي Drajito (18 عددي)" [level=3, ref=e21]
+    - paragraph
+      - StaticText "کد کالا: 4111004265"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "کرم جرقه ايي 30 گرمي Melto تيوپي ( 4 استند 24 عددي)" [level=3, ref=e22]
+    - paragraph
+      - StaticText "کد کالا: 4111004264"
+    - StaticText "محصولات باراکا › کرم کاکائو"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پرالوس ويفر شيري 32 گرمي (6 استند 20 عددي )" [level=3, ref=e23]
+    - paragraph
+      - StaticText "کد کالا: 4111004263"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پرالوس ويفر دارک 32 گرمي ( 6 استند 20 عددي )" [level=3, ref=e24]
+    - paragraph
+      - StaticText "کد کالا: 4111004262"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکلات صبحانه شيري فندوقي (6 شيشه 300 گرمي)" [level=3, ref=e25]
+    - paragraph
+      - StaticText "کد کالا: 4111004261"
+    - StaticText "محصولات باراکا › کرم کاکائو"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکلات صبحانه فندوقي (6 شيشه 300 گرمي)" [level=3, ref=e26]
+    - paragraph
+      - StaticText "کد کالا: 4111004260"
+    - StaticText "محصولات باراکا › کرم کاکائو"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "بستني خشک Freezji (12 بسته 60 گرمي)" [level=3, ref=e27]
+    - paragraph
+      - StaticText "کد کالا: 4111004242"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "اسمارتيز رنگي 25 گرمي Drajito ( 4 استند 24 عددي)" [level=3, ref=e28]
+    - paragraph
+      - StaticText "کد کالا: 4111004241"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "نوترابار 28 گرم ( 4 استند 24 عددي )" [level=3, ref=e29]
+    - paragraph
+      - StaticText "کد کالا: 4111004231"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکلات دارکوب 36 گرمي شيري(3بسته24 عددي)" [level=3, ref=e30]
+    - paragraph
+      - StaticText "کد کالا: 4111004228"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکلات دارکوب 36 گرمي دارک (3بسته 24 عددي )" [level=3, ref=e31]
+    - paragraph
+      - StaticText "کد کالا: 4111004227"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "Murt کاکائويي 45 گرمي ( 6 استند 24 عددي )" [level=3, ref=e32]
+    - paragraph
+      - StaticText "کد کالا: 4111004226"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "کريسپ بار 23 گرم SOCORRO (4 استند 24 عددي )" [level=3, ref=e33]
+    - paragraph
+      - StaticText "کد کالا: 4111004225"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "کره دار 80 گرمي 58درصد باراکا ( 6 استند 6 عددي )" [level=3, ref=e34]
+    - paragraph
+      - StaticText "کد کالا: 4111004222"
+    - StaticText "محصولات باراکا › تابلت-مینی تابلت"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکلات دارکوب25گرمي شيري(3بسته40عددي)" [level=3, ref=e35]
+    - paragraph
+      - StaticText "کد کالا: 4111004206"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکلات دارکوب25گرمي دارک(3بسته40عددي)" [level=3, ref=e36]
+    - paragraph
+      - StaticText "کد کالا: 4111004205"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "دراژه 45 گرمي-جديد(24عددي)" [level=3, ref=e37]
+    - paragraph
+      - StaticText "کد کالا: 4111004201"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکلات صبحانه شيري فندقي 330 گرمي 6 عددي" [level=3, ref=e38]
+    - paragraph
+      - StaticText "کد کالا: 4111004148"
+    - StaticText "محصولات باراکا › کرم کاکائو"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکلات صبحانه شيري فندقي 180 گرمي 6 عددي" [level=3, ref=e39]
+    - paragraph
+      - StaticText "کد کالا: 4111004146"
+    - StaticText "محصولات باراکا › کرم کاکائو"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکلات صبحانه فندقي 180 گرمي 6 عددي" [level=3, ref=e40]
+    - paragraph
+      - StaticText "کد کالا: 4111004145"
+    - StaticText "محصولات باراکا › کرم کاکائو"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکلات صبحانه فندقي 180 گرمي 6 عددي" [level=3, ref=e41]
+    - paragraph
+      - StaticText "کد کالا: 4111004145"
+    - StaticText "محصولات باراکا › کرم کاکائو"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شوکو کراکر با روکش شيري + 5 عدد شوکو کراکر دارک هديه (8 پت 245 گرمي)" [level=3, ref=e42]
+    - paragraph
+      - StaticText "کد کالا: 4111003299"
+    - StaticText "محصولات باراکا › شکو کراکر"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شوکو کراکر با روکش شکلات دارک + 5 عدد شوکو کراکر شيري هديه (8 پت 245 گرمي )" [level=3, ref=e43]
+    - paragraph
+      - StaticText "کد کالا: 4111003298"
+    - StaticText "محصولات باراکا › شکو کراکر"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکو کراکر شيري (8 بسته 220 گرمي)" [level=3, ref=e44]
+    - paragraph
+      - StaticText "کد کالا: 4111003277"
+    - StaticText "محصولات باراکا › شکو کراکر"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکو کراکر دارک (8 بسته 220 گرمي)" [level=3, ref=e45]
+    - paragraph
+      - StaticText "کد کالا: 4111003276"
+    - StaticText "محصولات باراکا › شکو کراکر"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پشمک دو سرپيچ مخلوط ( 8 پت 350 گرمي )" [level=3, ref=e46]
+    - paragraph
+      - StaticText "کد کالا: 4111003256"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پشمک دو سرپيچ وانيل با روکش سفيد ( 8 پت 350 گرم )" [level=3, ref=e47]
+    - paragraph
+      - StaticText "کد کالا: 4111003255"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پشمک دو سرپيچ وانيل با روکش کاکائو ( 8 پت 350 گرم )" [level=3, ref=e48]
+    - paragraph
+      - StaticText "کد کالا: 4111003254"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پرالوس ويفر شيري 12 گرمي(6 بسته 500 گرمي)" [level=3, ref=e49]
+    - paragraph
+      - StaticText "کد کالا: 4111003251"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پرالوس ويفر دارک 12 گرمي(6 بسته 500 گرمي)" [level=3, ref=e50]
+    - paragraph
+      - StaticText "کد کالا: 4111003250"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "دوسرپيچ طلايي ( 8 بسته 350 گرمي )" [level=3, ref=e51]
+    - paragraph
+      - StaticText "کد کالا: 4111003245"
+    - StaticText "محصولات باراکا › دوسرپیچ"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شيراز ( 8 بسته 350 گرمي )" [level=3, ref=e52]
+    - paragraph
+      - StaticText "کد کالا: 4111003244"
+    - StaticText "محصولات باراکا › دوسرپیچ"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "ايران باستان ( 8 بسته 350 گرمي )" [level=3, ref=e53]
+    - paragraph
+      - StaticText "کد کالا: 4111003243"
+    - StaticText "محصولات باراکا › دوسرپیچ"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "آيلا شيري (20 بسته 200 گرمي )" [level=3, ref=e54]
+    - paragraph
+      - StaticText "کد کالا: 4111003237"
+    - StaticText "محصولات باراکا › تابلت-مینی تابلت"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "آيلا دارک باراکا ( 20 بسته 200 گرمي )" [level=3, ref=e55]
+    - paragraph
+      - StaticText "کد کالا: 4111003236"
+    - StaticText "محصولات باراکا › تابلت-مینی تابلت"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکوبار طلايي جديد ( 8 بسته 350 گرمي )" [level=3, ref=e56]
+    - paragraph
+      - StaticText "کد کالا: 4111003216"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "دو سر پيچ شيري پذيرايي ( 20 بسته 200 گرمي )" [level=3, ref=e57]
+    - paragraph
+      - StaticText "کد کالا: 4111003172"
+    - StaticText "محصولات باراکا › دوسرپیچ"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "دوسرپيچ دارک پذيرايي (20 بسته 200 گرمي)" [level=3, ref=e58]
+    - paragraph
+      - StaticText "کد کالا: 4111003171"
+    - StaticText "محصولات باراکا › دوسرپیچ"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "فان وي ( 6 بسته 140 گرمي )" [level=3, ref=e59]
+    - paragraph
+      - StaticText "کد کالا: 4111002242"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "آرميش (8 بسته 210 گرمي)" [level=3, ref=e60]
+    - paragraph
+      - StaticText "کد کالا: 4111002237"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "کادويي ويکتوريا (6 يسته 143گرمي )" [level=3, ref=e61]
+    - paragraph
+      - StaticText "کد کالا: 4111002235"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "کادويي نيلو (6 بسته 170 گرمي)" [level=3, ref=e62]
+    - paragraph
+      - StaticText "کد کالا: 4111002232"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "کادويي پرستيژ(6 بسته 120 گرمي)" [level=3, ref=e63]
+    - paragraph
+      - StaticText "کد کالا: 4111002231"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "کادويي رزابلا ( 6 بسته 120 گرمي)" [level=3, ref=e64]
+    - paragraph
+      - StaticText "کد کالا: 4111002230"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "الناز ( 8 بسته 210 گرم )" [level=3, ref=e65]
+    - paragraph
+      - StaticText "کد کالا: 4111002196"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شايلي ( 6 بسته 125 گرمي )" [level=3, ref=e66]
+    - paragraph
+      - StaticText "کد کالا: 4111002193"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "هليا ( 6 بسته 250 گرم)" [level=3, ref=e67]
+    - paragraph
+      - StaticText "کد کالا: 4111002191"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پرستيژ ( 6 بسته 156 گرم )" [level=3, ref=e68]
+    - paragraph
+      - StaticText "کد کالا: 4111002190"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "رزابلا ( 6 بسته 156 گرم )" [level=3, ref=e69]
+    - paragraph
+      - StaticText "کد کالا: 4111002189"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شمس ( 6 بسته 160 گرم )" [level=3, ref=e70]
+    - paragraph
+      - StaticText "کد کالا: 4111002187"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "دانه دار طلايي ( 6 بسته 225 گرمي )" [level=3, ref=e71]
+    - paragraph
+      - StaticText "کد کالا: 4111002186"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "نيلو ( 6 بسته 144 گرم )" [level=3, ref=e72]
+    - paragraph
+      - StaticText "کد کالا: 4111002185"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "لايف ( 6 بسته 180 گرمي )" [level=3, ref=e73]
+    - paragraph
+      - StaticText "کد کالا: 4111002183"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "لاجورد ( 6 بسته 170 گرمي )" [level=3, ref=e74]
+    - paragraph
+      - StaticText "کد کالا: 4111002182"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "لاو ( 6 بسته 180 گرمي )" [level=3, ref=e75]
+    - paragraph
+      - StaticText "کد کالا: 4111002181"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پرنسس ( 6 بسته 100 گرمي )" [level=3, ref=e76]
+    - paragraph
+      - StaticText "کد کالا: 4111002180"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "درخت عشق (6بسته 130گرمي)" [level=3, ref=e77]
+    - paragraph
+      - StaticText "کد کالا: 4111002178"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "طناز ( 8 بسته 210 گرمي )" [level=3, ref=e78]
+    - paragraph
+      - StaticText "کد کالا: 4111002177"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "برليان ( 6 بسته 210 گرمي )" [level=3, ref=e79]
+    - paragraph
+      - StaticText "کد کالا: 4111002176"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "گلستان ( 6 بسته 120 گرمي )" [level=3, ref=e80]
+    - paragraph
+      - StaticText "کد کالا: 4111002175"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکلات کادويي تانيا ( 6 بسته 120 گرمي )" [level=3, ref=e81]
+    - paragraph
+      - StaticText "کد کالا: 4111002174"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکلات کادويي درخت آرزو ( 6 بسته 140 گرمي )" [level=3, ref=e82]
+    - paragraph
+      - StaticText "کد کالا: 4111002173"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکلات کادويي تيراژه ( 6 بسته 140 گرمي )" [level=3, ref=e83]
+    - paragraph
+      - StaticText "کد کالا: 4111002172"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "کادويي فان وي ( 6 بسته 168 گرمي )" [level=3, ref=e84]
+    - paragraph
+      - StaticText "کد کالا: 4111002171"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "کادويي ماهور ( 6 بسته 120 گرمي )" [level=3, ref=e85]
+    - paragraph
+      - StaticText "کد کالا: 4111002168"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکلات کادويي بالون" [level=3, ref=e86]
+    - paragraph
+      - StaticText "کد کالا: 4111002166"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکلات کادويي ارغوان" [level=3, ref=e87]
+    - paragraph
+      - StaticText "کد کالا: 4111002164"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "هندميد کنسول ( 4 بسته 300 گرمي )" [level=3, ref=e88]
+    - paragraph
+      - StaticText "کد کالا: 4111002134"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "کادوئي گرند ( 6 بسته 143 گرمي )" [level=3, ref=e89]
+    - paragraph
+      - StaticText "کد کالا: 4111002103"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "دوسرپيچ شيري (12بسته400+50گرمي)- فروش ويژه" [level=3, ref=e90]
+    - paragraph
+      - StaticText "کد کالا: 4111001407"
+    - StaticText "محصولات باراکا › دوسرپیچ"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "دوسرپيچ دارک (12 بسته 400+50گرمي) - فروش ويژه" [level=3, ref=e91]
+    - paragraph
+      - StaticText "کد کالا: 4111001406"
+    - StaticText "محصولات باراکا › دوسرپیچ"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "دوسرپيچ شيري (12 بسته 400گرمي)" [level=3, ref=e92]
+    - paragraph
+      - StaticText "کد کالا: 4111001405"
+    - StaticText "محصولات باراکا › دوسرپیچ"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "دوسرپيچ شيري (3بسته 2کيلويي +200گرم)- فروش ويژه" [level=3, ref=e93]
+    - paragraph
+      - StaticText "کد کالا: 4111001404"
+    - StaticText "محصولات باراکا › دوسرپیچ"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "دوسرپيچ دارک (3بسته 2 کيلويي +200گرم)-فروش ويژه" [level=3, ref=e94]
+    - paragraph
+      - StaticText "کد کالا: 4111001403"
+    - StaticText "محصولات باراکا › دوسرپیچ"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "دوسرپيچ دارک (12بسته 400گرمي)" [level=3, ref=e95]
+    - paragraph
+      - StaticText "کد کالا: 4111001402"
+    - StaticText "محصولات باراکا › دوسرپیچ"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "دوسرپيچ شيري (6بسته900+100گرمي)- فروش ويژه" [level=3, ref=e96]
+    - paragraph
+      - StaticText "کد کالا: 4111001399"
+    - StaticText "محصولات باراکا › دوسرپیچ"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "دوسرپيچ شيري(6بسته900گرمي)" [level=3, ref=e97]
+    - paragraph
+      - StaticText "کد کالا: 4111001397"
+    - StaticText "محصولات باراکا › دوسرپیچ"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "دوسرپيچ دارک (6بسته 900گرمي)" [level=3, ref=e98]
+    - paragraph
+      - StaticText "کد کالا: 4111001396"
+    - StaticText "محصولات باراکا › دوسرپیچ"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "دوسر پيچ شيري (10 بسته 400 گرمي)" [level=3, ref=e99]
+    - paragraph
+      - StaticText "کد کالا: 4111001380"
+    - StaticText "محصولات باراکا › دوسرپیچ"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "دوسر پيچ دارک (10 بسته 400 گرمي)" [level=3, ref=e100]
+    - paragraph
+      - StaticText "کد کالا: 4111001379"
+    - StaticText "محصولات باراکا › دوسرپیچ"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "دلارز (6 بسته 190 گرم)" [level=3, ref=e101]
+    - paragraph
+      - StaticText "کد کالا: 4111001363"
+    - StaticText "محصولات باراکا › کادویی"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پرالوس ويفر شيري 12 گرمي( 4 بسته 1 کيلويي )" [level=3, ref=e102]
+    - paragraph
+      - StaticText "کد کالا: 4111001345"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پرالوس ويفر دارک 12 گرمي( 4 بسته 1 کيلويي )" [level=3, ref=e103]
+    - paragraph
+      - StaticText "کد کالا: 4111001344"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پرالوس ويفر دارک 12 گرمي( 4 بسته 1 کيلويي )" [level=3, ref=e104]
+    - paragraph
+      - StaticText "کد کالا: 4111001344"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "ميني murt ( 4 بسته 1 کيلويي )" [level=3, ref=e105]
+    - paragraph
+      - StaticText "کد کالا: 4111001337"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "ميني murt (6 بسته 500 گرمي)" [level=3, ref=e106]
+    - paragraph
+      - StaticText "کد کالا: 4111001336"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "ميني socorro ( 4 بسته 1 کيلويي )" [level=3, ref=e107]
+    - paragraph
+      - StaticText "کد کالا: 4111001335"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "ميني نوترابار ( 4 بسته 1 کيلويي )" [level=3, ref=e108]
+    - paragraph
+      - StaticText "کد کالا: 4111001334"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "ميني socorro ( 6 بسته 500 گرمي )" [level=3, ref=e109]
+    - paragraph
+      - StaticText "کد کالا: 4111001333"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "ميني نوترابار ( 6 بسته 500 گرمي )" [level=3, ref=e110]
+    - paragraph
+      - StaticText "کد کالا: 4111001332"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "آيلا دارک ( 4 بسته 1 کيلويي )" [level=3, ref=e111]
+    - paragraph
+      - StaticText "کد کالا: 4111001327"
+    - StaticText "محصولات باراکا › تابلت-مینی تابلت"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "کره دار 58 درصد ( 6 بسته 300 گرمي )" [level=3, ref=e112]
+    - paragraph
+      - StaticText "کد کالا: 4111001323"
+    - StaticText "محصولات باراکا › تابلت-مینی تابلت"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "آيلا شيري (4بسته 1کيلويي)" [level=3, ref=e113]
+    - paragraph
+      - StaticText "کد کالا: 4111001317"
+    - StaticText "محصولات باراکا › تابلت-مینی تابلت"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پشمک دوسرپيچ زعفراني با روکش زعفران(10بسته 450گرمي)" [level=3, ref=e114]
+    - paragraph
+      - StaticText "کد کالا: 4111001289"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پشمک دوسرپيچ زعفراني با روکش زعفران(10بسته 450گرمي)" [level=3, ref=e115]
+    - paragraph
+      - StaticText "کد کالا: 4111001289"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پشمک دو سر پيچ کاپوچينو با روکش کاکائو ( 10 بسته 450 گرمي ) ( NEW )" [level=3, ref=e116]
+    - paragraph
+      - StaticText "کد کالا: 4111001288"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پشمک دوسرپيچ زعفراني با روکش زعفران(4بسته 900گرمي)" [level=3, ref=e117]
+    - paragraph
+      - StaticText "کد کالا: 4111001287"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پشمک دوسرپيچ کاپوچينو با روکش کاکائويي (4بسته 900گر مي )" [level=3, ref=e118]
+    - paragraph
+      - StaticText "کد کالا: 4111001286"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پشمک دوسرپيچ کاپوچينو با روکش کاکائويي (4بسته 900گر مي )" [level=3, ref=e119]
+    - paragraph
+      - StaticText "کد کالا: 4111001286"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پشمک بارشين دو سر پيچ با رو کش سفيد ( 4 بسته 900گرمي )" [level=3, ref=e120]
+    - paragraph
+      - StaticText "کد کالا: 4111001285"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پشمک بارشين دو سر پيچ با رو کش سفيد ( 10 بسته 450 گرمي )" [level=3, ref=e121]
+    - paragraph
+      - StaticText "کد کالا: 4111001284"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پشمک بارشين دوسر پيچ با روکش شکلات ( 4 بسته 900 گرمي )" [level=3, ref=e122]
+    - paragraph
+      - StaticText "کد کالا: 4111001283"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پشمک بارشين دوسر پيچ با روکش شکلات ( 4 بسته 900 گرمي )" [level=3, ref=e123]
+    - paragraph
+      - StaticText "کد کالا: 4111001283"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پشمک بارشين دوسر پيچ با روکش شکلات ( 10 بسته 450 گرمي )" [level=3, ref=e124]
+    - paragraph
+      - StaticText "کد کالا: 4111001282"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکلات فله فان وي (4 بسته 900 گرمي )" [level=3, ref=e125]
+    - paragraph
+      - StaticText "کد کالا: 4111001278"
+    - StaticText "محصولات باراکا › تابلت-مینی تابلت"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "ميني تابلت دارک وين تايم فله ( 4 بسته 900 گرمي )" [level=3, ref=e126]
+    - paragraph
+      - StaticText "کد کالا: 4111001275"
+    - StaticText "محصولات باراکا › تابلت-مینی تابلت"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "دوسرپيچ شيري فله (4 بسته 900 گرمي)" [level=3, ref=e127]
+    - paragraph
+      - StaticText "کد کالا: 4111001271"
+    - StaticText "محصولات باراکا › دوسرپیچ"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پشمک دوسر پيچ ماسالا با روکش کاکائو (10 بسته 450 گرمي)" [level=3, ref=e128]
+    - paragraph
+      - StaticText "کد کالا: 4111001262"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "پشمک دوسر پيچ ماسالا با روکش کاکائو (10 بسته 450 گرمي)" [level=3, ref=e129]
+    - paragraph
+      - StaticText "کد کالا: 4111001262"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکلات ميني تابلت وين تايم دارک (10 سلفون بالشتي 450 گرمي)" [level=3, ref=e130]
+    - paragraph
+      - StaticText "کد کالا: 4111001211"
+    - StaticText "محصولات باراکا › تابلت-مینی تابلت"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکلات ميني تابلت وين تايم دارک (10 سلفون بالشتي 450 گرمي)" [level=3, ref=e131]
+    - paragraph
+      - StaticText "کد کالا: 4111001211"
+    - StaticText "محصولات باراکا › تابلت-مینی تابلت"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکو بار مغزدار پاکتي ( 10 بسته 450گرمي )" [level=3, ref=e132]
+    - paragraph
+      - StaticText "کد کالا: 4111001203"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکو کراکر فله" [level=3, ref=e133]
+    - paragraph
+      - StaticText "کد کالا: 4111001133"
+    - StaticText "محصولات باراکا › شکو کراکر"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "ميني تابلت دارک فله 2 کيلوئي" [level=3, ref=e134]
+    - paragraph
+      - StaticText "کد کالا: 4111001115"
+    - StaticText "محصولات باراکا › تابلت-مینی تابلت"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "رنگارنگ فله" [level=3, ref=e135]
+    - paragraph
+      - StaticText "کد کالا: 4111001110"
+    - StaticText "محصولات باراکا › دوسرپیچ"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "شکوبار نارگيلي 10 گرمي فله" [level=3, ref=e136]
+    - paragraph
+      - StaticText "کد کالا: 4111001103"
+    - StaticText "محصولات باراکا › بار-مینی بار"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "دوسرپيچ شيري پاکتي (2کيلويي)" [level=3, ref=e137]
+    - paragraph
+      - StaticText "کد کالا: 4111001102"
+    - StaticText "محصولات باراکا › دوسرپیچ"
+    - StaticText "قیمت شما:"
+    - paragraph
+    - heading "دوسرپيچ دارک پاکتي (2کيلويي)" [level=3, ref=e138]
+    - paragraph
+      - StaticText "کد کالا: 4111001101"
+    - heading "کرم کاکائو فندقی سایرو - 900 گرم" [level=3, ref=e139]
+    - button "استخراج قیمت" [ref=e140]
+    - button [ref=e141]
+  - region "Notifications (F8)" [ref=e1]
+  - button "Open Next.js Dev Tools" [expanded=false, ref=e144]
