@@ -1,0 +1,2002 @@
+     1→Groups: [
+     2→  {
+     3→    "id": "cmqet8dbd0001qabecnl3h4ch",
+     4→    "name": "موبایل",
+     5→    "parentId": null,
+     6→    "order": 0,
+     7→    "createdAt": "2026-06-15T06:06:16.682Z",
+     8→    "updatedAt": "2026-06-15T06:06:16.682Z"
+     9→  },
+    10→  {
+    11→    "id": "cmqet8dcu0003qabe6mzdjg5z",
+    12→    "name": "سامسونگ",
+    13→    "parentId": "cmqet8dbd0001qabecnl3h4ch",
+    14→    "order": 0,
+    15→    "createdAt": "2026-06-15T06:06:16.735Z",
+    16→    "updatedAt": "2026-06-15T06:06:16.735Z"
+    17→  },
+    18→  {
+    19→    "id": "cmqevg25d0009qahvrnkc129z",
+    20→    "name": "محصولات باراکا",
+    21→    "parentId": null,
+    22→    "order": 1,
+    23→    "createdAt": "2026-06-15T07:08:14.689Z",
+    24→    "updatedAt": "2026-06-15T07:08:14.689Z"
+    25→  },
+    26→  {
+    27→    "id": "cmqevg269000bqahv1o801afm",
+    28→    "name": "بار-مینی بار",
+    29→    "parentId": "cmqevg25d0009qahvrnkc129z",
+    30→    "order": 0,
+    31→    "createdAt": "2026-06-15T07:08:14.721Z",
+    32→    "updatedAt": "2026-06-15T07:08:14.721Z"
+    33→  },
+    34→  {
+    35→    "id": "cmqevg26l000dqahv8uqinjav",
+    36→    "name": "تابلت-مینی تابلت",
+    37→    "parentId": "cmqevg25d0009qahvrnkc129z",
+    38→    "order": 1,
+    39→    "createdAt": "2026-06-15T07:08:14.734Z",
+    40→    "updatedAt": "2026-06-15T07:08:14.734Z"
+    41→  },
+    42→  {
+    43→    "id": "cmqevg26y000fqahvgn0p0663",
+    44→    "name": "دوسرپیچ",
+    45→    "parentId": "cmqevg25d0009qahvrnkc129z",
+    46→    "order": 2,
+    47→    "createdAt": "2026-06-15T07:08:14.746Z",
+    48→    "updatedAt": "2026-06-15T07:08:14.746Z"
+    49→  },
+    50→  {
+    51→    "id": "cmqevg27b000hqahv60i9xtih",
+    52→    "name": "شکو کراکر",
+    53→    "parentId": "cmqevg25d0009qahvrnkc129z",
+    54→    "order": 3,
+    55→    "createdAt": "2026-06-15T07:08:14.759Z",
+    56→    "updatedAt": "2026-06-15T07:08:14.759Z"
+    57→  },
+    58→  {
+    59→    "id": "cmqevg27n000jqahvqdlaa5pq",
+    60→    "name": "کادویی",
+    61→    "parentId": "cmqevg25d0009qahvrnkc129z",
+    62→    "order": 4,
+    63→    "createdAt": "2026-06-15T07:08:14.771Z",
+    64→    "updatedAt": "2026-06-15T07:08:14.771Z"
+    65→  },
+    66→  {
+    67→    "id": "cmqevg27z000lqahvzubq9pjx",
+    68→    "name": "کرم کاکائو",
+    69→    "parentId": "cmqevg25d0009qahvrnkc129z",
+    70→    "order": 5,
+    71→    "createdAt": "2026-06-15T07:08:14.783Z",
+    72→    "updatedAt": "2026-06-15T07:08:14.783Z"
+    73→  }
+    74→]
+    75→Products: [
+    76→  {
+    77→    "id": "cmqeuzliw0001qahvrbes9sjb",
+    78→    "name": "کرم کاکائو فندقی سایرو - 900 گرم",
+    79→    "description": null,
+    80→    "price": 8000000,
+    81→    "imageUrl": null,
+    82→    "groupId": null,
+    83→    "createdAt": "2026-06-15T06:55:26.648Z",
+    84→    "updatedAt": "2026-06-15T06:55:26.648Z",
+    85→    "group": null,
+    86→    "links": [
+    87→      {
+    88→        "id": "cmqev0vfw0003qahvdpb5rju7",
+    89→        "productId": "cmqeuzliw0001qahvrbes9sjb",
+    90→        "name": "دیجی‌کالا",
+    91→        "url": "https://api.digikala.com/v2/product/9685855/",
+    92→        "linkType": "API",
+    93→        "priceSelector": "data.product.default_variant.price.selling_price",
+    94→        "priceMultiplier": 1,
+    95→        "lastPrice": 7950000,
+    96→        "lastAdjustedPrice": 7950000,
+    97→        "lastFetchedAt": "2026-06-15T07:06:56.986Z",
+    98→        "createdAt": "2026-06-15T06:56:26.157Z",
+    99→        "updatedAt": "2026-06-15T07:06:56.987Z"
+   100→      }
+   101→    ]
+   102→  },
+   103→  {
+   104→    "id": "cmqevggx1000nqahv21551969",
+   105→    "name": "دوسرپيچ دارک پاکتي (2کيلويي)",
+   106→    "description": "کد کالا: 4111001101",
+   107→    "price": 25588118,
+   108→    "imageUrl": null,
+   109→    "groupId": "cmqevg26y000fqahvgn0p0663",
+   110→    "createdAt": "2026-06-15T07:08:33.830Z",
+   111→    "updatedAt": "2026-06-15T07:08:33.830Z",
+   112→    "group": {
+   113→      "id": "cmqevg26y000fqahvgn0p0663",
+   114→      "name": "دوسرپیچ",
+   115→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   116→      "order": 2,
+   117→      "createdAt": "2026-06-15T07:08:14.746Z",
+   118→      "updatedAt": "2026-06-15T07:08:14.746Z"
+   119→    },
+   120→    "links": []
+   121→  },
+   122→  {
+   123→    "id": "cmqevggx8000pqahvo6nvxekt",
+   124→    "name": "دوسرپيچ شيري پاکتي (2کيلويي)",
+   125→    "description": "کد کالا: 4111001102",
+   126→    "price": 22388357,
+   127→    "imageUrl": null,
+   128→    "groupId": "cmqevg26y000fqahvgn0p0663",
+   129→    "createdAt": "2026-06-15T07:08:33.837Z",
+   130→    "updatedAt": "2026-06-15T07:08:33.837Z",
+   131→    "group": {
+   132→      "id": "cmqevg26y000fqahvgn0p0663",
+   133→      "name": "دوسرپیچ",
+   134→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   135→      "order": 2,
+   136→      "createdAt": "2026-06-15T07:08:14.746Z",
+   137→      "updatedAt": "2026-06-15T07:08:14.746Z"
+   138→    },
+   139→    "links": []
+   140→  },
+   141→  {
+   142→    "id": "cmqevggxf000rqahvco0pmz6p",
+   143→    "name": "شکوبار نارگيلي 10 گرمي فله",
+   144→    "description": "کد کالا: 4111001103",
+   145→    "price": 20398724,
+   146→    "imageUrl": null,
+   147→    "groupId": "cmqevg269000bqahv1o801afm",
+   148→    "createdAt": "2026-06-15T07:08:33.844Z",
+   149→    "updatedAt": "2026-06-15T07:08:33.844Z",
+   150→    "group": {
+   151→      "id": "cmqevg269000bqahv1o801afm",
+   152→      "name": "بار-مینی بار",
+   153→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   154→      "order": 0,
+   155→      "createdAt": "2026-06-15T07:08:14.721Z",
+   156→      "updatedAt": "2026-06-15T07:08:14.721Z"
+   157→    },
+   158→    "links": []
+   159→  },
+   160→  {
+   161→    "id": "cmqevggxl000tqahvwopkdopx",
+   162→    "name": "رنگارنگ فله",
+   163→    "description": "کد کالا: 4111001110",
+   164→    "price": 19188596,
+   165→    "imageUrl": null,
+   166→    "groupId": "cmqevg26y000fqahvgn0p0663",
+   167→    "createdAt": "2026-06-15T07:08:33.850Z",
+   168→    "updatedAt": "2026-06-15T07:08:33.850Z",
+   169→    "group": {
+   170→      "id": "cmqevg26y000fqahvgn0p0663",
+   171→      "name": "دوسرپیچ",
+   172→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   173→      "order": 2,
+   174→      "createdAt": "2026-06-15T07:08:14.746Z",
+   175→      "updatedAt": "2026-06-15T07:08:14.746Z"
+   176→    },
+   177→    "links": []
+   178→  },
+   179→  {
+   180→    "id": "cmqevggxr000vqahv7nukh85x",
+   181→    "name": "ميني تابلت دارک فله 2 کيلوئي",
+   182→    "description": "کد کالا: 4111001115",
+   183→    "price": 14338118,
+   184→    "imageUrl": null,
+   185→    "groupId": "cmqevg26l000dqahv8uqinjav",
+   186→    "createdAt": "2026-06-15T07:08:33.856Z",
+   187→    "updatedAt": "2026-06-15T07:08:33.856Z",
+   188→    "group": {
+   189→      "id": "cmqevg26l000dqahv8uqinjav",
+   190→      "name": "تابلت-مینی تابلت",
+   191→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   192→      "order": 1,
+   193→      "createdAt": "2026-06-15T07:08:14.734Z",
+   194→      "updatedAt": "2026-06-15T07:08:14.734Z"
+   195→    },
+   196→    "links": []
+   197→  },
+   198→  {
+   199→    "id": "cmqevggxy000xqahv42sywol2",
+   200→    "name": "شکو کراکر فله",
+   201→    "description": "کد کالا: 4111001133",
+   202→    "price": 8799841,
+   203→    "imageUrl": null,
+   204→    "groupId": "cmqevg27b000hqahv60i9xtih",
+   205→    "createdAt": "2026-06-15T07:08:33.863Z",
+   206→    "updatedAt": "2026-06-15T07:08:33.863Z",
+   207→    "group": {
+   208→      "id": "cmqevg27b000hqahv60i9xtih",
+   209→      "name": "شکو کراکر",
+   210→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   211→      "order": 3,
+   212→      "createdAt": "2026-06-15T07:08:14.759Z",
+   213→      "updatedAt": "2026-06-15T07:08:14.759Z"
+   214→    },
+   215→    "links": []
+   216→  },
+   217→  {
+   218→    "id": "cmqevggy4000zqahvz0wygjc7",
+   219→    "name": "شکو بار مغزدار پاکتي ( 10 بسته 450گرمي  )",
+   220→    "description": "کد کالا: 4111001203",
+   221→    "price": 1754386,
+   222→    "imageUrl": null,
+   223→    "groupId": "cmqevg269000bqahv1o801afm",
+   224→    "createdAt": "2026-06-15T07:08:33.869Z",
+   225→    "updatedAt": "2026-06-15T07:08:33.869Z",
+   226→    "group": {
+   227→      "id": "cmqevg269000bqahv1o801afm",
+   228→      "name": "بار-مینی بار",
+   229→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   230→      "order": 0,
+   231→      "createdAt": "2026-06-15T07:08:14.721Z",
+   232→      "updatedAt": "2026-06-15T07:08:14.721Z"
+   233→    },
+   234→    "links": []
+   235→  },
+   236→  {
+   237→    "id": "cmqevggye0011qahvw8yj4sdq",
+   238→    "name": "شکلات ميني تابلت وين تايم دارک (10 سلفون بالشتي 450 گرمي)",
+   239→    "description": "کد کالا: 4111001211",
+   240→    "price": 4864434,
+   241→    "imageUrl": null,
+   242→    "groupId": "cmqevg26l000dqahv8uqinjav",
+   243→    "createdAt": "2026-06-15T07:08:33.878Z",
+   244→    "updatedAt": "2026-06-15T07:08:33.878Z",
+   245→    "group": {
+   246→      "id": "cmqevg26l000dqahv8uqinjav",
+   247→      "name": "تابلت-مینی تابلت",
+   248→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   249→      "order": 1,
+   250→      "createdAt": "2026-06-15T07:08:14.734Z",
+   251→      "updatedAt": "2026-06-15T07:08:14.734Z"
+   252→    },
+   253→    "links": []
+   254→  },
+   255→  {
+   256→    "id": "cmqevggyn0013qahvvsns5hso",
+   257→    "name": "شکلات ميني تابلت وين تايم دارک (10 سلفون بالشتي 450 گرمي)",
+   258→    "description": "کد کالا: 4111001211",
+   259→    "price": 5263158,
+   260→    "imageUrl": null,
+   261→    "groupId": "cmqevg26l000dqahv8uqinjav",
+   262→    "createdAt": "2026-06-15T07:08:33.887Z",
+   263→    "updatedAt": "2026-06-15T07:08:33.887Z",
+   264→    "group": {
+   265→      "id": "cmqevg26l000dqahv8uqinjav",
+   266→      "name": "تابلت-مینی تابلت",
+   267→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   268→      "order": 1,
+   269→      "createdAt": "2026-06-15T07:08:14.734Z",
+   270→      "updatedAt": "2026-06-15T07:08:14.734Z"
+   271→    },
+   272→    "links": []
+   273→  },
+   274→  {
+   275→    "id": "cmqevggyt0015qahvnewnol1l",
+   276→    "name": "پشمک دوسر پيچ ماسالا با روکش کاکائو (10 بسته 450 گرمي)",
+   277→    "description": "کد کالا: 4111001262",
+   278→    "price": 773525,
+   279→    "imageUrl": null,
+   280→    "groupId": "cmqevg269000bqahv1o801afm",
+   281→    "createdAt": "2026-06-15T07:08:33.893Z",
+   282→    "updatedAt": "2026-06-15T07:08:33.893Z",
+   283→    "group": {
+   284→      "id": "cmqevg269000bqahv1o801afm",
+   285→      "name": "بار-مینی بار",
+   286→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   287→      "order": 0,
+   288→      "createdAt": "2026-06-15T07:08:14.721Z",
+   289→      "updatedAt": "2026-06-15T07:08:14.721Z"
+   290→    },
+   291→    "links": []
+   292→  },
+   293→  {
+   294→    "id": "cmqevggze0017qahv4ixjypht",
+   295→    "name": "پشمک دوسر پيچ ماسالا با روکش کاکائو (10 بسته 450 گرمي)",
+   296→    "description": "کد کالا: 4111001262",
+   297→    "price": 1315789,
+   298→    "imageUrl": null,
+   299→    "groupId": "cmqevg269000bqahv1o801afm",
+   300→    "createdAt": "2026-06-15T07:08:33.915Z",
+   301→    "updatedAt": "2026-06-15T07:08:33.915Z",
+   302→    "group": {
+   303→      "id": "cmqevg269000bqahv1o801afm",
+   304→      "name": "بار-مینی بار",
+   305→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   306→      "order": 0,
+   307→      "createdAt": "2026-06-15T07:08:14.721Z",
+   308→      "updatedAt": "2026-06-15T07:08:14.721Z"
+   309→    },
+   310→    "links": []
+   311→  },
+   312→  {
+   313→    "id": "cmqevggzk0019qahvrsd3jhz5",
+   314→    "name": "دوسرپيچ شيري فله (4 بسته 900 گرمي)",
+   315→    "description": "کد کالا: 4111001271",
+   316→    "price": 4864434,
+   317→    "imageUrl": null,
+   318→    "groupId": "cmqevg26y000fqahvgn0p0663",
+   319→    "createdAt": "2026-06-15T07:08:33.920Z",
+   320→    "updatedAt": "2026-06-15T07:08:33.920Z",
+   321→    "group": {
+   322→      "id": "cmqevg26y000fqahvgn0p0663",
+   323→      "name": "دوسرپیچ",
+   324→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   325→      "order": 2,
+   326→      "createdAt": "2026-06-15T07:08:14.746Z",
+   327→      "updatedAt": "2026-06-15T07:08:14.746Z"
+   328→    },
+   329→    "links": []
+   330→  },
+   331→  {
+   332→    "id": "cmqevggzp001bqahv5jmd56wk",
+   333→    "name": "ميني تابلت دارک وين تايم فله ( 4 بسته 900 گرمي )",
+   334→    "description": "کد کالا: 4111001275",
+   335→    "price": 10366826,
+   336→    "imageUrl": null,
+   337→    "groupId": "cmqevg26l000dqahv8uqinjav",
+   338→    "createdAt": "2026-06-15T07:08:33.925Z",
+   339→    "updatedAt": "2026-06-15T07:08:33.925Z",
+   340→    "group": {
+   341→      "id": "cmqevg26l000dqahv8uqinjav",
+   342→      "name": "تابلت-مینی تابلت",
+   343→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   344→      "order": 1,
+   345→      "createdAt": "2026-06-15T07:08:14.734Z",
+   346→      "updatedAt": "2026-06-15T07:08:14.734Z"
+   347→    },
+   348→    "links": []
+   349→  },
+   350→  {
+   351→    "id": "cmqevggzu001dqahvmnllkq4f",
+   352→    "name": "شکلات فله فان وي  (4 بسته 900 گرمي )",
+   353→    "description": "کد کالا: 4111001278",
+   354→    "price": 12759171,
+   355→    "imageUrl": null,
+   356→    "groupId": "cmqevg26l000dqahv8uqinjav",
+   357→    "createdAt": "2026-06-15T07:08:33.931Z",
+   358→    "updatedAt": "2026-06-15T07:08:33.931Z",
+   359→    "group": {
+   360→      "id": "cmqevg26l000dqahv8uqinjav",
+   361→      "name": "تابلت-مینی تابلت",
+   362→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   363→      "order": 1,
+   364→      "createdAt": "2026-06-15T07:08:14.734Z",
+   365→      "updatedAt": "2026-06-15T07:08:14.734Z"
+   366→    },
+   367→    "links": []
+   368→  },
+   369→  {
+   370→    "id": "cmqevgh00001fqahv5x2i4njw",
+   371→    "name": "پشمک بارشين دوسر پيچ با روکش شکلات ( 10 بسته 450 گرمي )",
+   372→    "description": "کد کالا: 4111001282",
+   373→    "price": 1555024,
+   374→    "imageUrl": null,
+   375→    "groupId": "cmqevg269000bqahv1o801afm",
+   376→    "createdAt": "2026-06-15T07:08:33.936Z",
+   377→    "updatedAt": "2026-06-15T07:08:33.936Z",
+   378→    "group": {
+   379→      "id": "cmqevg269000bqahv1o801afm",
+   380→      "name": "بار-مینی بار",
+   381→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   382→      "order": 0,
+   383→      "createdAt": "2026-06-15T07:08:14.721Z",
+   384→      "updatedAt": "2026-06-15T07:08:14.721Z"
+   385→    },
+   386→    "links": []
+   387→  },
+   388→  {
+   389→    "id": "cmqevgh05001hqahv9vhisbv0",
+   390→    "name": "پشمک بارشين دوسر پيچ با روکش شکلات ( 4 بسته 900 گرمي )",
+   391→    "description": "کد کالا: 4111001283",
+   392→    "price": 3229665,
+   393→    "imageUrl": null,
+   394→    "groupId": "cmqevg269000bqahv1o801afm",
+   395→    "createdAt": "2026-06-15T07:08:33.941Z",
+   396→    "updatedAt": "2026-06-15T07:08:33.941Z",
+   397→    "group": {
+   398→      "id": "cmqevg269000bqahv1o801afm",
+   399→      "name": "بار-مینی بار",
+   400→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   401→      "order": 0,
+   402→      "createdAt": "2026-06-15T07:08:14.721Z",
+   403→      "updatedAt": "2026-06-15T07:08:14.721Z"
+   404→    },
+   405→    "links": []
+   406→  },
+   407→  {
+   408→    "id": "cmqevgh0a001jqahvaliss06c",
+   409→    "name": "پشمک بارشين دوسر پيچ با روکش شکلات ( 4 بسته 900 گرمي )",
+   410→    "description": "کد کالا: 4111001283",
+   411→    "price": 4266347,
+   412→    "imageUrl": null,
+   413→    "groupId": "cmqevg269000bqahv1o801afm",
+   414→    "createdAt": "2026-06-15T07:08:33.947Z",
+   415→    "updatedAt": "2026-06-15T07:08:33.947Z",
+   416→    "group": {
+   417→      "id": "cmqevg269000bqahv1o801afm",
+   418→      "name": "بار-مینی بار",
+   419→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   420→      "order": 0,
+   421→      "createdAt": "2026-06-15T07:08:14.721Z",
+   422→      "updatedAt": "2026-06-15T07:08:14.721Z"
+   423→    },
+   424→    "links": []
+   425→  },
+   426→  {
+   427→    "id": "cmqevgh0h001lqahv8p8tu10l",
+   428→    "name": "پشمک بارشين دو سر پيچ با رو کش سفيد ( 10 بسته 450 گرمي )",
+   429→    "description": "کد کالا: 4111001284",
+   430→    "price": 1555024,
+   431→    "imageUrl": null,
+   432→    "groupId": "cmqevg269000bqahv1o801afm",
+   433→    "createdAt": "2026-06-15T07:08:33.953Z",
+   434→    "updatedAt": "2026-06-15T07:08:33.953Z",
+   435→    "group": {
+   436→      "id": "cmqevg269000bqahv1o801afm",
+   437→      "name": "بار-مینی بار",
+   438→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   439→      "order": 0,
+   440→      "createdAt": "2026-06-15T07:08:14.721Z",
+   441→      "updatedAt": "2026-06-15T07:08:14.721Z"
+   442→    },
+   443→    "links": []
+   444→  },
+   445→  {
+   446→    "id": "cmqevgh0m001nqahvbsp8q847",
+   447→    "name": "پشمک بارشين دو سر پيچ با رو کش سفيد ( 4 بسته 900گرمي )",
+   448→    "description": "کد کالا: 4111001285",
+   449→    "price": 5422648,
+   450→    "imageUrl": null,
+   451→    "groupId": "cmqevg269000bqahv1o801afm",
+   452→    "createdAt": "2026-06-15T07:08:33.958Z",
+   453→    "updatedAt": "2026-06-15T07:08:33.958Z",
+   454→    "group": {
+   455→      "id": "cmqevg269000bqahv1o801afm",
+   456→      "name": "بار-مینی بار",
+   457→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   458→      "order": 0,
+   459→      "createdAt": "2026-06-15T07:08:14.721Z",
+   460→      "updatedAt": "2026-06-15T07:08:14.721Z"
+   461→    },
+   462→    "links": []
+   463→  },
+   464→  {
+   465→    "id": "cmqevgh0r001pqahvyln5hj1v",
+   466→    "name": "پشمک دوسرپيچ کاپوچينو با روکش کاکائويي (4بسته 900گر مي )",
+   467→    "description": "کد کالا: 4111001286",
+   468→    "price": 3588516,
+   469→    "imageUrl": null,
+   470→    "groupId": "cmqevg269000bqahv1o801afm",
+   471→    "createdAt": "2026-06-15T07:08:33.964Z",
+   472→    "updatedAt": "2026-06-15T07:08:33.964Z",
+   473→    "group": {
+   474→      "id": "cmqevg269000bqahv1o801afm",
+   475→      "name": "بار-مینی بار",
+   476→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   477→      "order": 0,
+   478→      "createdAt": "2026-06-15T07:08:14.721Z",
+   479→      "updatedAt": "2026-06-15T07:08:14.721Z"
+   480→    },
+   481→    "links": []
+   482→  },
+   483→  {
+   484→    "id": "cmqevgh0x001rqahv4gfsbckg",
+   485→    "name": "پشمک دوسرپيچ کاپوچينو با روکش کاکائويي (4بسته 900گر مي )",
+   486→    "description": "کد کالا: 4111001286",
+   487→    "price": 4665071,
+   488→    "imageUrl": null,
+   489→    "groupId": "cmqevg269000bqahv1o801afm",
+   490→    "createdAt": "2026-06-15T07:08:33.969Z",
+   491→    "updatedAt": "2026-06-15T07:08:33.969Z",
+   492→    "group": {
+   493→      "id": "cmqevg269000bqahv1o801afm",
+   494→      "name": "بار-مینی بار",
+   495→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   496→      "order": 0,
+   497→      "createdAt": "2026-06-15T07:08:14.721Z",
+   498→      "updatedAt": "2026-06-15T07:08:14.721Z"
+   499→    },
+   500→    "links": []
+   501→  },
+   502→  {
+   503→    "id": "cmqevgh12001tqahva9itlilk",
+   504→    "name": "پشمک دوسرپيچ زعفراني با روکش زعفران(4بسته 900گرمي)",
+   505→    "description": "کد کالا: 4111001287",
+   506→    "price": 3588516,
+   507→    "imageUrl": null,
+   508→    "groupId": "cmqevg269000bqahv1o801afm",
+   509→    "createdAt": "2026-06-15T07:08:33.975Z",
+   510→    "updatedAt": "2026-06-15T07:08:33.975Z",
+   511→    "group": {
+   512→      "id": "cmqevg269000bqahv1o801afm",
+   513→      "name": "بار-مینی بار",
+   514→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   515→      "order": 0,
+   516→      "createdAt": "2026-06-15T07:08:14.721Z",
+   517→      "updatedAt": "2026-06-15T07:08:14.721Z"
+   518→    },
+   519→    "links": []
+   520→  },
+   521→  {
+   522→    "id": "cmqevgh18001vqahvlokss9yh",
+   523→    "name": "پشمک دو سر پيچ کاپوچينو با روکش کاکائو  ( 10 بسته 450 گرمي ) ( NEW )",
+   524→    "description": "کد کالا: 4111001288",
+   525→    "price": 1714514,
+   526→    "imageUrl": null,
+   527→    "groupId": "cmqevg269000bqahv1o801afm",
+   528→    "createdAt": "2026-06-15T07:08:33.980Z",
+   529→    "updatedAt": "2026-06-15T07:08:33.980Z",
+   530→    "group": {
+   531→      "id": "cmqevg269000bqahv1o801afm",
+   532→      "name": "بار-مینی بار",
+   533→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   534→      "order": 0,
+   535→      "createdAt": "2026-06-15T07:08:14.721Z",
+   536→      "updatedAt": "2026-06-15T07:08:14.721Z"
+   537→    },
+   538→    "links": []
+   539→  },
+   540→  {
+   541→    "id": "cmqevgh1e001xqahvhodpzlob",
+   542→    "name": "پشمک دوسرپيچ زعفراني با روکش زعفران(10بسته 450گرمي)",
+   543→    "description": "کد کالا: 4111001289",
+   544→    "price": 2352472,
+   545→    "imageUrl": null,
+   546→    "groupId": "cmqevg269000bqahv1o801afm",
+   547→    "createdAt": "2026-06-15T07:08:33.987Z",
+   548→    "updatedAt": "2026-06-15T07:08:33.987Z",
+   549→    "group": {
+   550→      "id": "cmqevg269000bqahv1o801afm",
+   551→      "name": "بار-مینی بار",
+   552→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   553→      "order": 0,
+   554→      "createdAt": "2026-06-15T07:08:14.721Z",
+   555→      "updatedAt": "2026-06-15T07:08:14.721Z"
+   556→    },
+   557→    "links": []
+   558→  },
+   559→  {
+   560→    "id": "cmqevgh1k001zqahv6crm6w8n",
+   561→    "name": "پشمک دوسرپيچ زعفراني با روکش زعفران(10بسته 450گرمي)",
+   562→    "description": "کد کالا: 4111001289",
+   563→    "price": 3030303,
+   564→    "imageUrl": null,
+   565→    "groupId": "cmqevg269000bqahv1o801afm",
+   566→    "createdAt": "2026-06-15T07:08:33.993Z",
+   567→    "updatedAt": "2026-06-15T07:08:33.993Z",
+   568→    "group": {
+   569→      "id": "cmqevg269000bqahv1o801afm",
+   570→      "name": "بار-مینی بار",
+   571→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   572→      "order": 0,
+   573→      "createdAt": "2026-06-15T07:08:14.721Z",
+   574→      "updatedAt": "2026-06-15T07:08:14.721Z"
+   575→    },
+   576→    "links": []
+   577→  },
+   578→  {
+   579→    "id": "cmqevgh1q0021qahvdba6sgen",
+   580→    "name": "آيلا شيري  (4بسته 1کيلويي)",
+   581→    "description": "کد کالا: 4111001317",
+   582→    "price": 10394737,
+   583→    "imageUrl": null,
+   584→    "groupId": "cmqevg26l000dqahv8uqinjav",
+   585→    "createdAt": "2026-06-15T07:08:33.999Z",
+   586→    "updatedAt": "2026-06-15T07:08:33.999Z",
+   587→    "group": {
+   588→      "id": "cmqevg26l000dqahv8uqinjav",
+   589→      "name": "تابلت-مینی تابلت",
+   590→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   591→      "order": 1,
+   592→      "createdAt": "2026-06-15T07:08:14.734Z",
+   593→      "updatedAt": "2026-06-15T07:08:14.734Z"
+   594→    },
+   595→    "links": []
+   596→  },
+   597→  {
+   598→    "id": "cmqevgh1w0023qahv7cshgtob",
+   599→    "name": "کره دار  58 درصد ( 6 بسته  300  گرمي  )",
+   600→    "description": "کد کالا: 4111001323",
+   601→    "price": 4465710,
+   602→    "imageUrl": null,
+   603→    "groupId": "cmqevg26l000dqahv8uqinjav",
+   604→    "createdAt": "2026-06-15T07:08:34.004Z",
+   605→    "updatedAt": "2026-06-15T07:08:34.004Z",
+   606→    "group": {
+   607→      "id": "cmqevg26l000dqahv8uqinjav",
+   608→      "name": "تابلت-مینی تابلت",
+   609→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   610→      "order": 1,
+   611→      "createdAt": "2026-06-15T07:08:14.734Z",
+   612→      "updatedAt": "2026-06-15T07:08:14.734Z"
+   613→    },
+   614→    "links": []
+   615→  },
+   616→  {
+   617→    "id": "cmqevgh220025qahvalv8l1xg",
+   618→    "name": "آيلا دارک ( 4 بسته 1 کيلويي )",
+   619→    "description": "کد کالا: 4111001327",
+   620→    "price": 11194179,
+   621→    "imageUrl": null,
+   622→    "groupId": "cmqevg26l000dqahv8uqinjav",
+   623→    "createdAt": "2026-06-15T07:08:34.010Z",
+   624→    "updatedAt": "2026-06-15T07:08:34.010Z",
+   625→    "group": {
+   626→      "id": "cmqevg26l000dqahv8uqinjav",
+   627→      "name": "تابلت-مینی تابلت",
+   628→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   629→      "order": 1,
+   630→      "createdAt": "2026-06-15T07:08:14.734Z",
+   631→      "updatedAt": "2026-06-15T07:08:14.734Z"
+   632→    },
+   633→    "links": []
+   634→  },
+   635→  {
+   636→    "id": "cmqevgh290027qahv2yvqrgfv",
+   637→    "name": "ميني نوترابار ( 6 بسته 500 گرمي )",
+   638→    "description": "کد کالا: 4111001332",
+   639→    "price": 1395534,
+   640→    "imageUrl": null,
+   641→    "groupId": "cmqevg269000bqahv1o801afm",
+   642→    "createdAt": "2026-06-15T07:08:34.017Z",
+   643→    "updatedAt": "2026-06-15T07:08:34.017Z",
+   644→    "group": {
+   645→      "id": "cmqevg269000bqahv1o801afm",
+   646→      "name": "بار-مینی بار",
+   647→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   648→      "order": 0,
+   649→      "createdAt": "2026-06-15T07:08:14.721Z",
+   650→      "updatedAt": "2026-06-15T07:08:14.721Z"
+   651→    },
+   652→    "links": []
+   653→  },
+   654→  {
+   655→    "id": "cmqevgh2e0029qahv637fddyo",
+   656→    "name": "ميني socorro ( 6 بسته 500 گرمي )",
+   657→    "description": "کد کالا: 4111001333",
+   658→    "price": 3987241,
+   659→    "imageUrl": null,
+   660→    "groupId": "cmqevg269000bqahv1o801afm",
+   661→    "createdAt": "2026-06-15T07:08:34.023Z",
+   662→    "updatedAt": "2026-06-15T07:08:34.023Z",
+   663→    "group": {
+   664→      "id": "cmqevg269000bqahv1o801afm",
+   665→      "name": "بار-مینی بار",
+   666→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   667→      "order": 0,
+   668→      "createdAt": "2026-06-15T07:08:14.721Z",
+   669→      "updatedAt": "2026-06-15T07:08:14.721Z"
+   670→    },
+   671→    "links": []
+   672→  },
+   673→  {
+   674→    "id": "cmqevgh2k002bqahvl9imrkro",
+   675→    "name": "ميني نوترابار ( 4 بسته 1 کيلويي )",
+   676→    "description": "کد کالا: 4111001334",
+   677→    "price": 4485646,
+   678→    "imageUrl": null,
+   679→    "groupId": "cmqevg269000bqahv1o801afm",
+   680→    "createdAt": "2026-06-15T07:08:34.029Z",
+   681→    "updatedAt": "2026-06-15T07:08:34.029Z",
+   682→    "group": {
+   683→      "id": "cmqevg269000bqahv1o801afm",
+   684→      "name": "بار-مینی بار",
+   685→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   686→      "order": 0,
+   687→      "createdAt": "2026-06-15T07:08:14.721Z",
+   688→      "updatedAt": "2026-06-15T07:08:14.721Z"
+   689→    },
+   690→    "links": []
+   691→  },
+   692→  {
+   693→    "id": "cmqevgh2q002dqahv9p1w8d3x",
+   694→    "name": "ميني socorro ( 4  بسته 1 کيلويي )",
+   695→    "description": "کد کالا: 4111001335",
+   696→    "price": 7575758,
+   697→    "imageUrl": null,
+   698→    "groupId": "cmqevg269000bqahv1o801afm",
+   699→    "createdAt": "2026-06-15T07:08:34.035Z",
+   700→    "updatedAt": "2026-06-15T07:08:34.035Z",
+   701→    "group": {
+   702→      "id": "cmqevg269000bqahv1o801afm",
+   703→      "name": "بار-مینی بار",
+   704→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   705→      "order": 0,
+   706→      "createdAt": "2026-06-15T07:08:14.721Z",
+   707→      "updatedAt": "2026-06-15T07:08:14.721Z"
+   708→    },
+   709→    "links": []
+   710→  },
+   711→  {
+   712→    "id": "cmqevgh2w002fqahvjxfwb5gj",
+   713→    "name": "ميني murt (6 بسته 500 گرمي)",
+   714→    "description": "کد کالا: 4111001336",
+   715→    "price": 3508772,
+   716→    "imageUrl": null,
+   717→    "groupId": "cmqevg269000bqahv1o801afm",
+   718→    "createdAt": "2026-06-15T07:08:34.040Z",
+   719→    "updatedAt": "2026-06-15T07:08:34.040Z",
+   720→    "group": {
+   721→      "id": "cmqevg269000bqahv1o801afm",
+   722→      "name": "بار-مینی بار",
+   723→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   724→      "order": 0,
+   725→      "createdAt": "2026-06-15T07:08:14.721Z",
+   726→      "updatedAt": "2026-06-15T07:08:14.721Z"
+   727→    },
+   728→    "links": []
+   729→  },
+   730→  {
+   731→    "id": "cmqevgh32002hqahva1vg6z7m",
+   732→    "name": "ميني murt ( 4 بسته 1 کيلويي )",
+   733→    "description": "کد کالا: 4111001337",
+   734→    "price": 7575758,
+   735→    "imageUrl": null,
+   736→    "groupId": "cmqevg269000bqahv1o801afm",
+   737→    "createdAt": "2026-06-15T07:08:34.046Z",
+   738→    "updatedAt": "2026-06-15T07:08:34.046Z",
+   739→    "group": {
+   740→      "id": "cmqevg269000bqahv1o801afm",
+   741→      "name": "بار-مینی بار",
+   742→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   743→      "order": 0,
+   744→      "createdAt": "2026-06-15T07:08:14.721Z",
+   745→      "updatedAt": "2026-06-15T07:08:14.721Z"
+   746→    },
+   747→    "links": []
+   748→  },
+   749→  {
+   750→    "id": "cmqevgh37002jqahv6lnt72fm",
+   751→    "name": "پرالوس ويفر دارک 12 گرمي( 4 بسته 1 کيلويي )",
+   752→    "description": "کد کالا: 4111001344",
+   753→    "price": 7751196,
+   754→    "imageUrl": null,
+   755→    "groupId": "cmqevg269000bqahv1o801afm",
+   756→    "createdAt": "2026-06-15T07:08:34.052Z",
+   757→    "updatedAt": "2026-06-15T07:08:34.052Z",
+   758→    "group": {
+   759→      "id": "cmqevg269000bqahv1o801afm",
+   760→      "name": "بار-مینی بار",
+   761→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   762→      "order": 0,
+   763→      "createdAt": "2026-06-15T07:08:14.721Z",
+   764→      "updatedAt": "2026-06-15T07:08:14.721Z"
+   765→    },
+   766→    "links": []
+   767→  },
+   768→  {
+   769→    "id": "cmqevgh3d002lqahv18kmc7eu",
+   770→    "name": "پرالوس ويفر دارک 12 گرمي( 4 بسته 1 کيلويي )",
+   771→    "description": "کد کالا: 4111001344",
+   772→    "price": 9170654,
+   773→    "imageUrl": null,
+   774→    "groupId": "cmqevg269000bqahv1o801afm",
+   775→    "createdAt": "2026-06-15T07:08:34.057Z",
+   776→    "updatedAt": "2026-06-15T07:08:34.057Z",
+   777→    "group": {
+   778→      "id": "cmqevg269000bqahv1o801afm",
+   779→      "name": "بار-مینی بار",
+   780→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   781→      "order": 0,
+   782→      "createdAt": "2026-06-15T07:08:14.721Z",
+   783→      "updatedAt": "2026-06-15T07:08:14.721Z"
+   784→    },
+   785→    "links": []
+   786→  },
+   787→  {
+   788→    "id": "cmqevgh3j002nqahvbp5hk052",
+   789→    "name": "پرالوس ويفر شيري 12 گرمي( 4 بسته 1 کيلويي )",
+   790→    "description": "کد کالا: 4111001345",
+   791→    "price": 7751196,
+   792→    "imageUrl": null,
+   793→    "groupId": "cmqevg269000bqahv1o801afm",
+   794→    "createdAt": "2026-06-15T07:08:34.064Z",
+   795→    "updatedAt": "2026-06-15T07:08:34.064Z",
+   796→    "group": {
+   797→      "id": "cmqevg269000bqahv1o801afm",
+   798→      "name": "بار-مینی بار",
+   799→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   800→      "order": 0,
+   801→      "createdAt": "2026-06-15T07:08:14.721Z",
+   802→      "updatedAt": "2026-06-15T07:08:14.721Z"
+   803→    },
+   804→    "links": []
+   805→  },
+   806→  {
+   807→    "id": "cmqevgh3p002pqahvpufjx71l",
+   808→    "name": "دلارز (6 بسته 190 گرم)",
+   809→    "description": "کد کالا: 4111001363",
+   810→    "price": 3827751,
+   811→    "imageUrl": null,
+   812→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+   813→    "createdAt": "2026-06-15T07:08:34.070Z",
+   814→    "updatedAt": "2026-06-15T07:08:34.070Z",
+   815→    "group": {
+   816→      "id": "cmqevg27n000jqahvqdlaa5pq",
+   817→      "name": "کادویی",
+   818→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   819→      "order": 4,
+   820→      "createdAt": "2026-06-15T07:08:14.771Z",
+   821→      "updatedAt": "2026-06-15T07:08:14.771Z"
+   822→    },
+   823→    "links": []
+   824→  },
+   825→  {
+   826→    "id": "cmqevgh3x002rqahvojs8xph5",
+   827→    "name": "دوسر پيچ دارک (10 بسته 400 گرمي)",
+   828→    "description": "کد کالا: 4111001379",
+   829→    "price": 2591707,
+   830→    "imageUrl": null,
+   831→    "groupId": "cmqevg26y000fqahvgn0p0663",
+   832→    "createdAt": "2026-06-15T07:08:34.078Z",
+   833→    "updatedAt": "2026-06-15T07:08:34.078Z",
+   834→    "group": {
+   835→      "id": "cmqevg26y000fqahvgn0p0663",
+   836→      "name": "دوسرپیچ",
+   837→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   838→      "order": 2,
+   839→      "createdAt": "2026-06-15T07:08:14.746Z",
+   840→      "updatedAt": "2026-06-15T07:08:14.746Z"
+   841→    },
+   842→    "links": []
+   843→  },
+   844→  {
+   845→    "id": "cmqevgh44002tqahv8xjxx0bv",
+   846→    "name": "دوسر پيچ شيري (10 بسته 400 گرمي)",
+   847→    "description": "کد کالا: 4111001380",
+   848→    "price": 2232855,
+   849→    "imageUrl": null,
+   850→    "groupId": "cmqevg26y000fqahvgn0p0663",
+   851→    "createdAt": "2026-06-15T07:08:34.085Z",
+   852→    "updatedAt": "2026-06-15T07:08:34.085Z",
+   853→    "group": {
+   854→      "id": "cmqevg26y000fqahvgn0p0663",
+   855→      "name": "دوسرپیچ",
+   856→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   857→      "order": 2,
+   858→      "createdAt": "2026-06-15T07:08:14.746Z",
+   859→      "updatedAt": "2026-06-15T07:08:14.746Z"
+   860→    },
+   861→    "links": []
+   862→  },
+   863→  {
+   864→    "id": "cmqevgh4b002vqahvymldx5gc",
+   865→    "name": "دوسرپيچ دارک (6بسته 900گرمي)",
+   866→    "description": "کد کالا: 4111001396",
+   867→    "price": 11562998,
+   868→    "imageUrl": null,
+   869→    "groupId": "cmqevg26y000fqahvgn0p0663",
+   870→    "createdAt": "2026-06-15T07:08:34.092Z",
+   871→    "updatedAt": "2026-06-15T07:08:34.092Z",
+   872→    "group": {
+   873→      "id": "cmqevg26y000fqahvgn0p0663",
+   874→      "name": "دوسرپیچ",
+   875→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   876→      "order": 2,
+   877→      "createdAt": "2026-06-15T07:08:14.746Z",
+   878→      "updatedAt": "2026-06-15T07:08:14.746Z"
+   879→    },
+   880→    "links": []
+   881→  },
+   882→  {
+   883→    "id": "cmqevgh4h002xqahvha6pmw7w",
+   884→    "name": "دوسرپيچ شيري(6بسته900گرمي)",
+   885→    "description": "کد کالا: 4111001397",
+   886→    "price": 10127952,
+   887→    "imageUrl": null,
+   888→    "groupId": "cmqevg26y000fqahvgn0p0663",
+   889→    "createdAt": "2026-06-15T07:08:34.098Z",
+   890→    "updatedAt": "2026-06-15T07:08:34.098Z",
+   891→    "group": {
+   892→      "id": "cmqevg26y000fqahvgn0p0663",
+   893→      "name": "دوسرپیچ",
+   894→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   895→      "order": 2,
+   896→      "createdAt": "2026-06-15T07:08:14.746Z",
+   897→      "updatedAt": "2026-06-15T07:08:14.746Z"
+   898→    },
+   899→    "links": []
+   900→  },
+   901→  {
+   902→    "id": "cmqevgh4o002zqahvn8lvl0vy",
+   903→    "name": "دوسرپيچ شيري (6بسته900+100گرمي)- فروش ويژه",
+   904→    "description": "کد کالا: 4111001399",
+   905→    "price": 6140351,
+   906→    "imageUrl": null,
+   907→    "groupId": "cmqevg26y000fqahvgn0p0663",
+   908→    "createdAt": "2026-06-15T07:08:34.104Z",
+   909→    "updatedAt": "2026-06-15T07:08:34.104Z",
+   910→    "group": {
+   911→      "id": "cmqevg26y000fqahvgn0p0663",
+   912→      "name": "دوسرپیچ",
+   913→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   914→      "order": 2,
+   915→      "createdAt": "2026-06-15T07:08:14.746Z",
+   916→      "updatedAt": "2026-06-15T07:08:14.746Z"
+   917→    },
+   918→    "links": []
+   919→  },
+   920→  {
+   921→    "id": "cmqevgh4u0031qahv9aorw0c3",
+   922→    "name": "دوسرپيچ دارک (12بسته 400گرمي)",
+   923→    "description": "کد کالا: 4111001402",
+   924→    "price": 5183413,
+   925→    "imageUrl": null,
+   926→    "groupId": "cmqevg26y000fqahvgn0p0663",
+   927→    "createdAt": "2026-06-15T07:08:34.110Z",
+   928→    "updatedAt": "2026-06-15T07:08:34.110Z",
+   929→    "group": {
+   930→      "id": "cmqevg26y000fqahvgn0p0663",
+   931→      "name": "دوسرپیچ",
+   932→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   933→      "order": 2,
+   934→      "createdAt": "2026-06-15T07:08:14.746Z",
+   935→      "updatedAt": "2026-06-15T07:08:14.746Z"
+   936→    },
+   937→    "links": []
+   938→  },
+   939→  {
+   940→    "id": "cmqevgh510033qahvufeq5dl1",
+   941→    "name": "دوسرپيچ دارک (3بسته 2 کيلويي +200گرم)-فروش ويژه",
+   942→    "description": "کد کالا: 4111001403",
+   943→    "price": 21052631,
+   944→    "imageUrl": null,
+   945→    "groupId": "cmqevg26y000fqahvgn0p0663",
+   946→    "createdAt": "2026-06-15T07:08:34.117Z",
+   947→    "updatedAt": "2026-06-15T07:08:34.117Z",
+   948→    "group": {
+   949→      "id": "cmqevg26y000fqahvgn0p0663",
+   950→      "name": "دوسرپیچ",
+   951→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   952→      "order": 2,
+   953→      "createdAt": "2026-06-15T07:08:14.746Z",
+   954→      "updatedAt": "2026-06-15T07:08:14.746Z"
+   955→    },
+   956→    "links": []
+   957→  },
+   958→  {
+   959→    "id": "cmqevgh570035qahvzhtp9u14",
+   960→    "name": "دوسرپيچ شيري (3بسته 2کيلويي +200گرم)- فروش ويژه",
+   961→    "description": "کد کالا: 4111001404",
+   962→    "price": 19188596,
+   963→    "imageUrl": null,
+   964→    "groupId": "cmqevg26y000fqahvgn0p0663",
+   965→    "createdAt": "2026-06-15T07:08:34.123Z",
+   966→    "updatedAt": "2026-06-15T07:08:34.123Z",
+   967→    "group": {
+   968→      "id": "cmqevg26y000fqahvgn0p0663",
+   969→      "name": "دوسرپیچ",
+   970→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   971→      "order": 2,
+   972→      "createdAt": "2026-06-15T07:08:14.746Z",
+   973→      "updatedAt": "2026-06-15T07:08:14.746Z"
+   974→    },
+   975→    "links": []
+   976→  },
+   977→  {
+   978→    "id": "cmqevgh5c0037qahvbb465dmi",
+   979→    "name": "دوسرپيچ شيري (12 بسته 400گرمي)",
+   980→    "description": "کد کالا: 4111001405",
+   981→    "price": 4545454,
+   982→    "imageUrl": null,
+   983→    "groupId": "cmqevg26y000fqahvgn0p0663",
+   984→    "createdAt": "2026-06-15T07:08:34.129Z",
+   985→    "updatedAt": "2026-06-15T07:08:34.129Z",
+   986→    "group": {
+   987→      "id": "cmqevg26y000fqahvgn0p0663",
+   988→      "name": "دوسرپیچ",
+   989→      "parentId": "cmqevg25d0009qahvrnkc129z",
+   990→      "order": 2,
+   991→      "createdAt": "2026-06-15T07:08:14.746Z",
+   992→      "updatedAt": "2026-06-15T07:08:14.746Z"
+   993→    },
+   994→    "links": []
+   995→  },
+   996→  {
+   997→    "id": "cmqevgh5k0039qahvmwkcxb8l",
+   998→    "name": "دوسرپيچ دارک (12 بسته 400+50گرمي) - فروش ويژه",
+   999→    "description": "کد کالا: 4111001406",
+  1000→    "price": 2591707,
+  1001→    "imageUrl": null,
+  1002→    "groupId": "cmqevg26y000fqahvgn0p0663",
+  1003→    "createdAt": "2026-06-15T07:08:34.137Z",
+  1004→    "updatedAt": "2026-06-15T07:08:34.137Z",
+  1005→    "group": {
+  1006→      "id": "cmqevg26y000fqahvgn0p0663",
+  1007→      "name": "دوسرپیچ",
+  1008→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1009→      "order": 2,
+  1010→      "createdAt": "2026-06-15T07:08:14.746Z",
+  1011→      "updatedAt": "2026-06-15T07:08:14.746Z"
+  1012→    },
+  1013→    "links": []
+  1014→  },
+  1015→  {
+  1016→    "id": "cmqevgh5q003bqahv8804ys6m",
+  1017→    "name": "دوسرپيچ شيري (12بسته400+50گرمي)- فروش ويژه",
+  1018→    "description": "کد کالا: 4111001407",
+  1019→    "price": 2232855,
+  1020→    "imageUrl": null,
+  1021→    "groupId": "cmqevg26y000fqahvgn0p0663",
+  1022→    "createdAt": "2026-06-15T07:08:34.143Z",
+  1023→    "updatedAt": "2026-06-15T07:08:34.143Z",
+  1024→    "group": {
+  1025→      "id": "cmqevg26y000fqahvgn0p0663",
+  1026→      "name": "دوسرپیچ",
+  1027→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1028→      "order": 2,
+  1029→      "createdAt": "2026-06-15T07:08:14.746Z",
+  1030→      "updatedAt": "2026-06-15T07:08:14.746Z"
+  1031→    },
+  1032→    "links": []
+  1033→  },
+  1034→  {
+  1035→    "id": "cmqevgh5w003dqahvb3xhfpa3",
+  1036→    "name": "کادوئي گرند ( 6 بسته 143 گرمي )",
+  1037→    "description": "کد کالا: 4111002103",
+  1038→    "price": 3827751,
+  1039→    "imageUrl": null,
+  1040→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1041→    "createdAt": "2026-06-15T07:08:34.148Z",
+  1042→    "updatedAt": "2026-06-15T07:08:34.148Z",
+  1043→    "group": {
+  1044→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1045→      "name": "کادویی",
+  1046→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1047→      "order": 4,
+  1048→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1049→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1050→    },
+  1051→    "links": []
+  1052→  },
+  1053→  {
+  1054→    "id": "cmqevgh62003fqahvy0nu49hn",
+  1055→    "name": "هندميد کنسول ( 4 بسته 300 گرمي )",
+  1056→    "description": "کد کالا: 4111002134",
+  1057→    "price": 21531100,
+  1058→    "imageUrl": null,
+  1059→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1060→    "createdAt": "2026-06-15T07:08:34.154Z",
+  1061→    "updatedAt": "2026-06-15T07:08:34.154Z",
+  1062→    "group": {
+  1063→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1064→      "name": "کادویی",
+  1065→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1066→      "order": 4,
+  1067→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1068→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1069→    },
+  1070→    "links": []
+  1071→  },
+  1072→  {
+  1073→    "id": "cmqevgh67003hqahv4kteisn5",
+  1074→    "name": "شکلات کادويي ارغوان",
+  1075→    "description": "کد کالا: 4111002164",
+  1076→    "price": 3110048,
+  1077→    "imageUrl": null,
+  1078→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1079→    "createdAt": "2026-06-15T07:08:34.159Z",
+  1080→    "updatedAt": "2026-06-15T07:08:34.159Z",
+  1081→    "group": {
+  1082→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1083→      "name": "کادویی",
+  1084→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1085→      "order": 4,
+  1086→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1087→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1088→    },
+  1089→    "links": []
+  1090→  },
+  1091→  {
+  1092→    "id": "cmqevgh6c003jqahv94evztmz",
+  1093→    "name": "شکلات کادويي بالون",
+  1094→    "description": "کد کالا: 4111002166",
+  1095→    "price": 5502392,
+  1096→    "imageUrl": null,
+  1097→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1098→    "createdAt": "2026-06-15T07:08:34.165Z",
+  1099→    "updatedAt": "2026-06-15T07:08:34.165Z",
+  1100→    "group": {
+  1101→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1102→      "name": "کادویی",
+  1103→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1104→      "order": 4,
+  1105→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1106→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1107→    },
+  1108→    "links": []
+  1109→  },
+  1110→  {
+  1111→    "id": "cmqevgh6i003lqahvhlzy86ct",
+  1112→    "name": "کادويي ماهور  ( 6 بسته 120 گرمي )",
+  1113→    "description": "کد کالا: 4111002168",
+  1114→    "price": 2791069,
+  1115→    "imageUrl": null,
+  1116→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1117→    "createdAt": "2026-06-15T07:08:34.170Z",
+  1118→    "updatedAt": "2026-06-15T07:08:34.170Z",
+  1119→    "group": {
+  1120→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1121→      "name": "کادویی",
+  1122→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1123→      "order": 4,
+  1124→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1125→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1126→    },
+  1127→    "links": []
+  1128→  },
+  1129→  {
+  1130→    "id": "cmqevgh6n003nqahvsgslab7m",
+  1131→    "name": "کادويي فان وي ( 6 بسته 168 گرمي )",
+  1132→    "description": "کد کالا: 4111002171",
+  1133→    "price": 3588517,
+  1134→    "imageUrl": null,
+  1135→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1136→    "createdAt": "2026-06-15T07:08:34.176Z",
+  1137→    "updatedAt": "2026-06-15T07:08:34.176Z",
+  1138→    "group": {
+  1139→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1140→      "name": "کادویی",
+  1141→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1142→      "order": 4,
+  1143→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1144→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1145→    },
+  1146→    "links": []
+  1147→  },
+  1148→  {
+  1149→    "id": "cmqevgh6t003pqahvam0087lh",
+  1150→    "name": "شکلات کادويي تيراژه   ( 6 بسته 140 گرمي )",
+  1151→    "description": "کد کالا: 4111002172",
+  1152→    "price": 5502392,
+  1153→    "imageUrl": null,
+  1154→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1155→    "createdAt": "2026-06-15T07:08:34.182Z",
+  1156→    "updatedAt": "2026-06-15T07:08:34.182Z",
+  1157→    "group": {
+  1158→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1159→      "name": "کادویی",
+  1160→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1161→      "order": 4,
+  1162→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1163→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1164→    },
+  1165→    "links": []
+  1166→  },
+  1167→  {
+  1168→    "id": "cmqevgh70003rqahvyt61mt12",
+  1169→    "name": "شکلات کادويي درخت آرزو  ( 6 بسته 140 گرمي )",
+  1170→    "description": "کد کالا: 4111002173",
+  1171→    "price": 5821372,
+  1172→    "imageUrl": null,
+  1173→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1174→    "createdAt": "2026-06-15T07:08:34.188Z",
+  1175→    "updatedAt": "2026-06-15T07:08:34.188Z",
+  1176→    "group": {
+  1177→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1178→      "name": "کادویی",
+  1179→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1180→      "order": 4,
+  1181→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1182→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1183→    },
+  1184→    "links": []
+  1185→  },
+  1186→  {
+  1187→    "id": "cmqevgh78003tqahvvjd7m7ag",
+  1188→    "name": "شکلات کادويي تانيا ( 6 بسته 120 گرمي )",
+  1189→    "description": "کد کالا: 4111002174",
+  1190→    "price": 1993620,
+  1191→    "imageUrl": null,
+  1192→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1193→    "createdAt": "2026-06-15T07:08:34.197Z",
+  1194→    "updatedAt": "2026-06-15T07:08:34.197Z",
+  1195→    "group": {
+  1196→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1197→      "name": "کادویی",
+  1198→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1199→      "order": 4,
+  1200→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1201→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1202→    },
+  1203→    "links": []
+  1204→  },
+  1205→  {
+  1206→    "id": "cmqevgh7e003vqahv5zsqogez",
+  1207→    "name": "گلستان ( 6 بسته 120 گرمي )",
+  1208→    "description": "کد کالا: 4111002175",
+  1209→    "price": 3110048,
+  1210→    "imageUrl": null,
+  1211→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1212→    "createdAt": "2026-06-15T07:08:34.202Z",
+  1213→    "updatedAt": "2026-06-15T07:08:34.202Z",
+  1214→    "group": {
+  1215→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1216→      "name": "کادویی",
+  1217→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1218→      "order": 4,
+  1219→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1220→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1221→    },
+  1222→    "links": []
+  1223→  },
+  1224→  {
+  1225→    "id": "cmqevgh7j003xqahvae4qrq8g",
+  1226→    "name": "برليان ( 6 بسته 210 گرمي )",
+  1227→    "description": "کد کالا: 4111002176",
+  1228→    "price": 7177033,
+  1229→    "imageUrl": null,
+  1230→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1231→    "createdAt": "2026-06-15T07:08:34.208Z",
+  1232→    "updatedAt": "2026-06-15T07:08:34.208Z",
+  1233→    "group": {
+  1234→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1235→      "name": "کادویی",
+  1236→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1237→      "order": 4,
+  1238→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1239→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1240→    },
+  1241→    "links": []
+  1242→  },
+  1243→  {
+  1244→    "id": "cmqevgh7p003zqahvos6w7o6r",
+  1245→    "name": "طناز ( 8 بسته 210 گرمي )",
+  1246→    "description": "کد کالا: 4111002177",
+  1247→    "price": 3429027,
+  1248→    "imageUrl": null,
+  1249→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1250→    "createdAt": "2026-06-15T07:08:34.213Z",
+  1251→    "updatedAt": "2026-06-15T07:08:34.213Z",
+  1252→    "group": {
+  1253→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1254→      "name": "کادویی",
+  1255→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1256→      "order": 4,
+  1257→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1258→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1259→    },
+  1260→    "links": []
+  1261→  },
+  1262→  {
+  1263→    "id": "cmqevgh7u0041qahvdjt9wkyx",
+  1264→    "name": "درخت عشق (6بسته 130گرمي)",
+  1265→    "description": "کد کالا: 4111002178",
+  1266→    "price": 5183413,
+  1267→    "imageUrl": null,
+  1268→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1269→    "createdAt": "2026-06-15T07:08:34.219Z",
+  1270→    "updatedAt": "2026-06-15T07:08:34.219Z",
+  1271→    "group": {
+  1272→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1273→      "name": "کادویی",
+  1274→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1275→      "order": 4,
+  1276→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1277→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1278→    },
+  1279→    "links": []
+  1280→  },
+  1281→  {
+  1282→    "id": "cmqevgh800043qahvow5tfdoq",
+  1283→    "name": "پرنسس ( 6 بسته 100 گرمي )",
+  1284→    "description": "کد کالا: 4111002180",
+  1285→    "price": 5183413,
+  1286→    "imageUrl": null,
+  1287→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1288→    "createdAt": "2026-06-15T07:08:34.224Z",
+  1289→    "updatedAt": "2026-06-15T07:08:34.224Z",
+  1290→    "group": {
+  1291→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1292→      "name": "کادویی",
+  1293→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1294→      "order": 4,
+  1295→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1296→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1297→    },
+  1298→    "links": []
+  1299→  },
+  1300→  {
+  1301→    "id": "cmqevgh850045qahvqmyea1xr",
+  1302→    "name": "لاو ( 6 بسته 180 گرمي )",
+  1303→    "description": "کد کالا: 4111002181",
+  1304→    "price": 5821372,
+  1305→    "imageUrl": null,
+  1306→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1307→    "createdAt": "2026-06-15T07:08:34.230Z",
+  1308→    "updatedAt": "2026-06-15T07:08:34.230Z",
+  1309→    "group": {
+  1310→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1311→      "name": "کادویی",
+  1312→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1313→      "order": 4,
+  1314→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1315→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1316→    },
+  1317→    "links": []
+  1318→  },
+  1319→  {
+  1320→    "id": "cmqevgh8b0047qahvrdeaa7sd",
+  1321→    "name": "لاجورد ( 6 بسته 170 گرمي )",
+  1322→    "description": "کد کالا: 4111002182",
+  1323→    "price": 5821372,
+  1324→    "imageUrl": null,
+  1325→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1326→    "createdAt": "2026-06-15T07:08:34.235Z",
+  1327→    "updatedAt": "2026-06-15T07:08:34.235Z",
+  1328→    "group": {
+  1329→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1330→      "name": "کادویی",
+  1331→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1332→      "order": 4,
+  1333→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1334→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1335→    },
+  1336→    "links": []
+  1337→  },
+  1338→  {
+  1339→    "id": "cmqevgh8g0049qahv2zmdtzre",
+  1340→    "name": "لايف ( 6 بسته 180 گرمي )",
+  1341→    "description": "کد کالا: 4111002183",
+  1342→    "price": 6299840,
+  1343→    "imageUrl": null,
+  1344→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1345→    "createdAt": "2026-06-15T07:08:34.241Z",
+  1346→    "updatedAt": "2026-06-15T07:08:34.241Z",
+  1347→    "group": {
+  1348→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1349→      "name": "کادویی",
+  1350→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1351→      "order": 4,
+  1352→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1353→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1354→    },
+  1355→    "links": []
+  1356→  },
+  1357→  {
+  1358→    "id": "cmqevgh8m004bqahvuqw8e7c2",
+  1359→    "name": "نيلو ( 6 بسته 144 گرم )",
+  1360→    "description": "کد کالا: 4111002185",
+  1361→    "price": 5821372,
+  1362→    "imageUrl": null,
+  1363→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1364→    "createdAt": "2026-06-15T07:08:34.246Z",
+  1365→    "updatedAt": "2026-06-15T07:08:34.246Z",
+  1366→    "group": {
+  1367→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1368→      "name": "کادویی",
+  1369→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1370→      "order": 4,
+  1371→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1372→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1373→    },
+  1374→    "links": []
+  1375→  },
+  1376→  {
+  1377→    "id": "cmqevgh8r004dqahvzkmw6enb",
+  1378→    "name": "دانه دار طلايي ( 6 بسته 225 گرمي )",
+  1379→    "description": "کد کالا: 4111002186",
+  1380→    "price": 5502393,
+  1381→    "imageUrl": null,
+  1382→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1383→    "createdAt": "2026-06-15T07:08:34.251Z",
+  1384→    "updatedAt": "2026-06-15T07:08:34.251Z",
+  1385→    "group": {
+  1386→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1387→      "name": "کادویی",
+  1388→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1389→      "order": 4,
+  1390→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1391→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1392→    },
+  1393→    "links": []
+  1394→  },
+  1395→  {
+  1396→    "id": "cmqevgh8x004fqahv825eohzj",
+  1397→    "name": "شمس ( 6 بسته 160 گرم )",
+  1398→    "description": "کد کالا: 4111002187",
+  1399→    "price": 5821372,
+  1400→    "imageUrl": null,
+  1401→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1402→    "createdAt": "2026-06-15T07:08:34.257Z",
+  1403→    "updatedAt": "2026-06-15T07:08:34.257Z",
+  1404→    "group": {
+  1405→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1406→      "name": "کادویی",
+  1407→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1408→      "order": 4,
+  1409→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1410→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1411→    },
+  1412→    "links": []
+  1413→  },
+  1414→  {
+  1415→    "id": "cmqevgh92004hqahv66spn5ah",
+  1416→    "name": "رزابلا ( 6 بسته 156 گرم )",
+  1417→    "description": "کد کالا: 4111002189",
+  1418→    "price": 5821372,
+  1419→    "imageUrl": null,
+  1420→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1421→    "createdAt": "2026-06-15T07:08:34.263Z",
+  1422→    "updatedAt": "2026-06-15T07:08:34.263Z",
+  1423→    "group": {
+  1424→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1425→      "name": "کادویی",
+  1426→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1427→      "order": 4,
+  1428→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1429→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1430→    },
+  1431→    "links": []
+  1432→  },
+  1433→  {
+  1434→    "id": "cmqevgh98004jqahvcj2akzdo",
+  1435→    "name": "پرستيژ ( 6 بسته 156 گرم )",
+  1436→    "description": "کد کالا: 4111002190",
+  1437→    "price": 4704945,
+  1438→    "imageUrl": null,
+  1439→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1440→    "createdAt": "2026-06-15T07:08:34.268Z",
+  1441→    "updatedAt": "2026-06-15T07:08:34.268Z",
+  1442→    "group": {
+  1443→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1444→      "name": "کادویی",
+  1445→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1446→      "order": 4,
+  1447→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1448→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1449→    },
+  1450→    "links": []
+  1451→  },
+  1452→  {
+  1453→    "id": "cmqevgh9e004lqahv7rla8pyo",
+  1454→    "name": "هليا ( 6 بسته 250 گرم)",
+  1455→    "description": "کد کالا: 4111002191",
+  1456→    "price": 2791068,
+  1457→    "imageUrl": null,
+  1458→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1459→    "createdAt": "2026-06-15T07:08:34.274Z",
+  1460→    "updatedAt": "2026-06-15T07:08:34.274Z",
+  1461→    "group": {
+  1462→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1463→      "name": "کادویی",
+  1464→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1465→      "order": 4,
+  1466→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1467→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1468→    },
+  1469→    "links": []
+  1470→  },
+  1471→  {
+  1472→    "id": "cmqevgh9j004nqahvaf4y0kpv",
+  1473→    "name": "شايلي ( 6 بسته 125 گرمي )",
+  1474→    "description": "کد کالا: 4111002193",
+  1475→    "price": 3588517,
+  1476→    "imageUrl": null,
+  1477→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1478→    "createdAt": "2026-06-15T07:08:34.280Z",
+  1479→    "updatedAt": "2026-06-15T07:08:34.280Z",
+  1480→    "group": {
+  1481→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1482→      "name": "کادویی",
+  1483→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1484→      "order": 4,
+  1485→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1486→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1487→    },
+  1488→    "links": []
+  1489→  },
+  1490→  {
+  1491→    "id": "cmqevgh9p004pqahv813jb7op",
+  1492→    "name": "الناز ( 8 بسته 210 گرم )",
+  1493→    "description": "کد کالا: 4111002196",
+  1494→    "price": 2791069,
+  1495→    "imageUrl": null,
+  1496→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1497→    "createdAt": "2026-06-15T07:08:34.285Z",
+  1498→    "updatedAt": "2026-06-15T07:08:34.285Z",
+  1499→    "group": {
+  1500→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1501→      "name": "کادویی",
+  1502→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1503→      "order": 4,
+  1504→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1505→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1506→    },
+  1507→    "links": []
+  1508→  },
+  1509→  {
+  1510→    "id": "cmqevgh9v004rqahvxcl7xllh",
+  1511→    "name": "کادويي رزابلا ( 6 بسته 120 گرمي)",
+  1512→    "description": "کد کالا: 4111002230",
+  1513→    "price": 3508772,
+  1514→    "imageUrl": null,
+  1515→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1516→    "createdAt": "2026-06-15T07:08:34.291Z",
+  1517→    "updatedAt": "2026-06-15T07:08:34.291Z",
+  1518→    "group": {
+  1519→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1520→      "name": "کادویی",
+  1521→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1522→      "order": 4,
+  1523→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1524→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1525→    },
+  1526→    "links": []
+  1527→  },
+  1528→  {
+  1529→    "id": "cmqevgha1004tqahvzr41trja",
+  1530→    "name": "کادويي پرستيژ(6 بسته 120 گرمي)",
+  1531→    "description": "کد کالا: 4111002231",
+  1532→    "price": 3508772,
+  1533→    "imageUrl": null,
+  1534→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1535→    "createdAt": "2026-06-15T07:08:34.297Z",
+  1536→    "updatedAt": "2026-06-15T07:08:34.297Z",
+  1537→    "group": {
+  1538→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1539→      "name": "کادویی",
+  1540→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1541→      "order": 4,
+  1542→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1543→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1544→    },
+  1545→    "links": []
+  1546→  },
+  1547→  {
+  1548→    "id": "cmqevgha7004vqahvgdii8e0i",
+  1549→    "name": "کادويي نيلو (6 بسته 170 گرمي)",
+  1550→    "description": "کد کالا: 4111002232",
+  1551→    "price": 4704945,
+  1552→    "imageUrl": null,
+  1553→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1554→    "createdAt": "2026-06-15T07:08:34.303Z",
+  1555→    "updatedAt": "2026-06-15T07:08:34.303Z",
+  1556→    "group": {
+  1557→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1558→      "name": "کادویی",
+  1559→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1560→      "order": 4,
+  1561→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1562→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1563→    },
+  1564→    "links": []
+  1565→  },
+  1566→  {
+  1567→    "id": "cmqevghac004xqahvmmzevnyk",
+  1568→    "name": "کادويي ويکتوريا (6 يسته 143گرمي )",
+  1569→    "description": "کد کالا: 4111002235",
+  1570→    "price": 3110048,
+  1571→    "imageUrl": null,
+  1572→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1573→    "createdAt": "2026-06-15T07:08:34.309Z",
+  1574→    "updatedAt": "2026-06-15T07:08:34.309Z",
+  1575→    "group": {
+  1576→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1577→      "name": "کادویی",
+  1578→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1579→      "order": 4,
+  1580→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1581→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1582→    },
+  1583→    "links": []
+  1584→  },
+  1585→  {
+  1586→    "id": "cmqevghai004zqahvmqt3eajj",
+  1587→    "name": "آرميش (8 بسته 210 گرمي)",
+  1588→    "description": "کد کالا: 4111002237",
+  1589→    "price": 3429027,
+  1590→    "imageUrl": null,
+  1591→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1592→    "createdAt": "2026-06-15T07:08:34.314Z",
+  1593→    "updatedAt": "2026-06-15T07:08:34.314Z",
+  1594→    "group": {
+  1595→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1596→      "name": "کادویی",
+  1597→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1598→      "order": 4,
+  1599→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1600→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1601→    },
+  1602→    "links": []
+  1603→  },
+  1604→  {
+  1605→    "id": "cmqevghao0051qahvgxs8lof9",
+  1606→    "name": "فان وي ( 6 بسته 140 گرمي )",
+  1607→    "description": "کد کالا: 4111002242",
+  1608→    "price": 3907496,
+  1609→    "imageUrl": null,
+  1610→    "groupId": "cmqevg27n000jqahvqdlaa5pq",
+  1611→    "createdAt": "2026-06-15T07:08:34.320Z",
+  1612→    "updatedAt": "2026-06-15T07:08:34.320Z",
+  1613→    "group": {
+  1614→      "id": "cmqevg27n000jqahvqdlaa5pq",
+  1615→      "name": "کادویی",
+  1616→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1617→      "order": 4,
+  1618→      "createdAt": "2026-06-15T07:08:14.771Z",
+  1619→      "updatedAt": "2026-06-15T07:08:14.771Z"
+  1620→    },
+  1621→    "links": []
+  1622→  },
+  1623→  {
+  1624→    "id": "cmqevghaw0053qahvohrrq76l",
+  1625→    "name": "دوسرپيچ دارک پذيرايي (20 بسته 200 گرمي)",
+  1626→    "description": "کد کالا: 4111003171",
+  1627→    "price": 2711324,
+  1628→    "imageUrl": null,
+  1629→    "groupId": "cmqevg26y000fqahvgn0p0663",
+  1630→    "createdAt": "2026-06-15T07:08:34.329Z",
+  1631→    "updatedAt": "2026-06-15T07:08:34.329Z",
+  1632→    "group": {
+  1633→      "id": "cmqevg26y000fqahvgn0p0663",
+  1634→      "name": "دوسرپیچ",
+  1635→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1636→      "order": 2,
+  1637→      "createdAt": "2026-06-15T07:08:14.746Z",
+  1638→      "updatedAt": "2026-06-15T07:08:14.746Z"
+  1639→    },
+  1640→    "links": []
+  1641→  },
+  1642→  {
+  1643→    "id": "cmqevghb10055qahvzmm9raja",
+  1644→    "name": "دو سر پيچ شيري پذيرايي ( 20 بسته 200 گرمي )",
+  1645→    "description": "کد کالا: 4111003172",
+  1646→    "price": 1108453,
+  1647→    "imageUrl": null,
+  1648→    "groupId": "cmqevg26y000fqahvgn0p0663",
+  1649→    "createdAt": "2026-06-15T07:08:34.334Z",
+  1650→    "updatedAt": "2026-06-15T07:08:34.334Z",
+  1651→    "group": {
+  1652→      "id": "cmqevg26y000fqahvgn0p0663",
+  1653→      "name": "دوسرپیچ",
+  1654→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1655→      "order": 2,
+  1656→      "createdAt": "2026-06-15T07:08:14.746Z",
+  1657→      "updatedAt": "2026-06-15T07:08:14.746Z"
+  1658→    },
+  1659→    "links": []
+  1660→  },
+  1661→  {
+  1662→    "id": "cmqevghb80057qahvef9b515e",
+  1663→    "name": "شکوبار طلايي جديد ( 8 بسته 350 گرمي )",
+  1664→    "description": "کد کالا: 4111003216",
+  1665→    "price": 2870813,
+  1666→    "imageUrl": null,
+  1667→    "groupId": "cmqevg269000bqahv1o801afm",
+  1668→    "createdAt": "2026-06-15T07:08:34.340Z",
+  1669→    "updatedAt": "2026-06-15T07:08:34.340Z",
+  1670→    "group": {
+  1671→      "id": "cmqevg269000bqahv1o801afm",
+  1672→      "name": "بار-مینی بار",
+  1673→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1674→      "order": 0,
+  1675→      "createdAt": "2026-06-15T07:08:14.721Z",
+  1676→      "updatedAt": "2026-06-15T07:08:14.721Z"
+  1677→    },
+  1678→    "links": []
+  1679→  },
+  1680→  {
+  1681→    "id": "cmqevghbe0059qahvxxb4uxhx",
+  1682→    "name": "آيلا دارک  باراکا ( 20 بسته 200 گرمي )",
+  1683→    "description": "کد کالا: 4111003236",
+  1684→    "price": 1116427,
+  1685→    "imageUrl": null,
+  1686→    "groupId": "cmqevg26l000dqahv8uqinjav",
+  1687→    "createdAt": "2026-06-15T07:08:34.346Z",
+  1688→    "updatedAt": "2026-06-15T07:08:34.346Z",
+  1689→    "group": {
+  1690→      "id": "cmqevg26l000dqahv8uqinjav",
+  1691→      "name": "تابلت-مینی تابلت",
+  1692→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1693→      "order": 1,
+  1694→      "createdAt": "2026-06-15T07:08:14.734Z",
+  1695→      "updatedAt": "2026-06-15T07:08:14.734Z"
+  1696→    },
+  1697→    "links": []
+  1698→  },
+  1699→  {
+  1700→    "id": "cmqevghbj005bqahvh1i061p0",
+  1701→    "name": "آيلا شيري (20 بسته 200 گرمي )",
+  1702→    "description": "کد کالا: 4111003237",
+  1703→    "price": 877193,
+  1704→    "imageUrl": null,
+  1705→    "groupId": "cmqevg26l000dqahv8uqinjav",
+  1706→    "createdAt": "2026-06-15T07:08:34.352Z",
+  1707→    "updatedAt": "2026-06-15T07:08:34.352Z",
+  1708→    "group": {
+  1709→      "id": "cmqevg26l000dqahv8uqinjav",
+  1710→      "name": "تابلت-مینی تابلت",
+  1711→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1712→      "order": 1,
+  1713→      "createdAt": "2026-06-15T07:08:14.734Z",
+  1714→      "updatedAt": "2026-06-15T07:08:14.734Z"
+  1715→    },
+  1716→    "links": []
+  1717→  },
+  1718→  {
+  1719→    "id": "cmqevghbp005dqahv8ex5lnpo",
+  1720→    "name": "ايران باستان ( 8 بسته 350 گرمي )",
+  1721→    "description": "کد کالا: 4111003243",
+  1722→    "price": 5183413,
+  1723→    "imageUrl": null,
+  1724→    "groupId": "cmqevg26y000fqahvgn0p0663",
+  1725→    "createdAt": "2026-06-15T07:08:34.357Z",
+  1726→    "updatedAt": "2026-06-15T07:08:34.357Z",
+  1727→    "group": {
+  1728→      "id": "cmqevg26y000fqahvgn0p0663",
+  1729→      "name": "دوسرپیچ",
+  1730→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1731→      "order": 2,
+  1732→      "createdAt": "2026-06-15T07:08:14.746Z",
+  1733→      "updatedAt": "2026-06-15T07:08:14.746Z"
+  1734→    },
+  1735→    "links": []
+  1736→  },
+  1737→  {
+  1738→    "id": "cmqevghbu005fqahv9v36luqg",
+  1739→    "name": "شيراز ( 8 بسته 350 گرمي )",
+  1740→    "description": "کد کالا: 4111003244",
+  1741→    "price": 3030303,
+  1742→    "imageUrl": null,
+  1743→    "groupId": "cmqevg26y000fqahvgn0p0663",
+  1744→    "createdAt": "2026-06-15T07:08:34.363Z",
+  1745→    "updatedAt": "2026-06-15T07:08:34.363Z",
+  1746→    "group": {
+  1747→      "id": "cmqevg26y000fqahvgn0p0663",
+  1748→      "name": "دوسرپیچ",
+  1749→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1750→      "order": 2,
+  1751→      "createdAt": "2026-06-15T07:08:14.746Z",
+  1752→      "updatedAt": "2026-06-15T07:08:14.746Z"
+  1753→    },
+  1754→    "links": []
+  1755→  },
+  1756→  {
+  1757→    "id": "cmqevghbz005hqahvao20rd8h",
+  1758→    "name": "دوسرپيچ طلايي ( 8 بسته 350 گرمي )",
+  1759→    "description": "کد کالا: 4111003245",
+  1760→    "price": 4545455,
+  1761→    "imageUrl": null,
+  1762→    "groupId": "cmqevg26y000fqahvgn0p0663",
+  1763→    "createdAt": "2026-06-15T07:08:34.368Z",
+  1764→    "updatedAt": "2026-06-15T07:08:34.368Z",
+  1765→    "group": {
+  1766→      "id": "cmqevg26y000fqahvgn0p0663",
+  1767→      "name": "دوسرپیچ",
+  1768→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1769→      "order": 2,
+  1770→      "createdAt": "2026-06-15T07:08:14.746Z",
+  1771→      "updatedAt": "2026-06-15T07:08:14.746Z"
+  1772→    },
+  1773→    "links": []
+  1774→  },
+  1775→  {
+  1776→    "id": "cmqevghc5005jqahvj9mvqp4r",
+  1777→    "name": "پرالوس ويفر دارک 12 گرمي(6 بسته 500 گرمي)",
+  1778→    "description": "کد کالا: 4111003250",
+  1779→    "price": 2073365,
+  1780→    "imageUrl": null,
+  1781→    "groupId": "cmqevg269000bqahv1o801afm",
+  1782→    "createdAt": "2026-06-15T07:08:34.373Z",
+  1783→    "updatedAt": "2026-06-15T07:08:34.373Z",
+  1784→    "group": {
+  1785→      "id": "cmqevg269000bqahv1o801afm",
+  1786→      "name": "بار-مینی بار",
+  1787→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1788→      "order": 0,
+  1789→      "createdAt": "2026-06-15T07:08:14.721Z",
+  1790→      "updatedAt": "2026-06-15T07:08:14.721Z"
+  1791→    },
+  1792→    "links": []
+  1793→  },
+  1794→  {
+  1795→    "id": "cmqevghca005lqahvfwoh18b4",
+  1796→    "name": "پرالوس ويفر شيري 12 گرمي(6 بسته 500 گرمي)",
+  1797→    "description": "کد کالا: 4111003251",
+  1798→    "price": 2631579,
+  1799→    "imageUrl": null,
+  1800→    "groupId": "cmqevg269000bqahv1o801afm",
+  1801→    "createdAt": "2026-06-15T07:08:34.379Z",
+  1802→    "updatedAt": "2026-06-15T07:08:34.379Z",
+  1803→    "group": {
+  1804→      "id": "cmqevg269000bqahv1o801afm",
+  1805→      "name": "بار-مینی بار",
+  1806→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1807→      "order": 0,
+  1808→      "createdAt": "2026-06-15T07:08:14.721Z",
+  1809→      "updatedAt": "2026-06-15T07:08:14.721Z"
+  1810→    },
+  1811→    "links": []
+  1812→  },
+  1813→  {
+  1814→    "id": "cmqevghcg005nqahvtb91hlho",
+  1815→    "name": "پشمک دو سرپيچ وانيل  با روکش کاکائو ( 8 پت 350 گرم )",
+  1816→    "description": "کد کالا: 4111003254",
+  1817→    "price": 1315789,
+  1818→    "imageUrl": null,
+  1819→    "groupId": "cmqevg269000bqahv1o801afm",
+  1820→    "createdAt": "2026-06-15T07:08:34.384Z",
+  1821→    "updatedAt": "2026-06-15T07:08:34.384Z",
+  1822→    "group": {
+  1823→      "id": "cmqevg269000bqahv1o801afm",
+  1824→      "name": "بار-مینی بار",
+  1825→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1826→      "order": 0,
+  1827→      "createdAt": "2026-06-15T07:08:14.721Z",
+  1828→      "updatedAt": "2026-06-15T07:08:14.721Z"
+  1829→    },
+  1830→    "links": []
+  1831→  },
+  1832→  {
+  1833→    "id": "cmqevghcm005pqahvvv1atf05",
+  1834→    "name": "پشمک دو سرپيچ وانيل  با روکش سفيد ( 8 پت 350 گرم )",
+  1835→    "description": "کد کالا: 4111003255",
+  1836→    "price": 1315789,
+  1837→    "imageUrl": null,
+  1838→    "groupId": "cmqevg269000bqahv1o801afm",
+  1839→    "createdAt": "2026-06-15T07:08:34.390Z",
+  1840→    "updatedAt": "2026-06-15T07:08:34.390Z",
+  1841→    "group": {
+  1842→      "id": "cmqevg269000bqahv1o801afm",
+  1843→      "name": "بار-مینی بار",
+  1844→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1845→      "order": 0,
+  1846→      "createdAt": "2026-06-15T07:08:14.721Z",
+  1847→      "updatedAt": "2026-06-15T07:08:14.721Z"
+  1848→    },
+  1849→    "links": []
+  1850→  },
+  1851→  {
+  1852→    "id": "cmqevghcr005rqahvqm0jpo7e",
+  1853→    "name": "پشمک دو سرپيچ مخلوط ( 8 پت 350  گرمي )",
+  1854→    "description": "کد کالا: 4111003256",
+  1855→    "price": 2631579,
+  1856→    "imageUrl": null,
+  1857→    "groupId": "cmqevg269000bqahv1o801afm",
+  1858→    "createdAt": "2026-06-15T07:08:34.396Z",
+  1859→    "updatedAt": "2026-06-15T07:08:34.396Z",
+  1860→    "group": {
+  1861→      "id": "cmqevg269000bqahv1o801afm",
+  1862→      "name": "بار-مینی بار",
+  1863→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1864→      "order": 0,
+  1865→      "createdAt": "2026-06-15T07:08:14.721Z",
+  1866→      "updatedAt": "2026-06-15T07:08:14.721Z"
+  1867→    },
+  1868→    "links": []
+  1869→  },
+  1870→  {
+  1871→    "id": "cmqevghcx005tqahvm36yzo6c",
+  1872→    "name": "شکو کراکر دارک (8 بسته 220 گرمي)",
+  1873→    "description": "کد کالا: 4111003276",
+  1874→    "price": 3349282,
+  1875→    "imageUrl": null,
+  1876→    "groupId": "cmqevg27b000hqahv60i9xtih",
+  1877→    "createdAt": "2026-06-15T07:08:34.402Z",
+  1878→    "updatedAt": "2026-06-15T07:08:34.402Z",
+  1879→    "group": {
+  1880→      "id": "cmqevg27b000hqahv60i9xtih",
+  1881→      "name": "شکو کراکر",
+  1882→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1883→      "order": 3,
+  1884→      "createdAt": "2026-06-15T07:08:14.759Z",
+  1885→      "updatedAt": "2026-06-15T07:08:14.759Z"
+  1886→    },
+  1887→    "links": []
+  1888→  },
+  1889→  {
+  1890→    "id": "cmqevghd3005vqahv8wtej4d2",
+  1891→    "name": "شکو کراکر شيري (8 بسته 220 گرمي)",
+  1892→    "description": "کد کالا: 4111003277",
+  1893→    "price": 3110048,
+  1894→    "imageUrl": null,
+  1895→    "groupId": "cmqevg27b000hqahv60i9xtih",
+  1896→    "createdAt": "2026-06-15T07:08:34.407Z",
+  1897→    "updatedAt": "2026-06-15T07:08:34.407Z",
+  1898→    "group": {
+  1899→      "id": "cmqevg27b000hqahv60i9xtih",
+  1900→      "name": "شکو کراکر",
+  1901→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1902→      "order": 3,
+  1903→      "createdAt": "2026-06-15T07:08:14.759Z",
+  1904→      "updatedAt": "2026-06-15T07:08:14.759Z"
+  1905→    },
+  1906→    "links": []
+  1907→  },
+  1908→  {
+  1909→    "id": "cmqevghd9005xqahvne3h4xqj",
+  1910→    "name": "شوکو کراکر با روکش شکلات دارک + 5 عدد شوکو کراکر شيري هديه (8 پت 245 گرمي )",
+  1911→    "description": "کد کالا: 4111003298",
+  1912→    "price": 2312600,
+  1913→    "imageUrl": null,
+  1914→    "groupId": "cmqevg27b000hqahv60i9xtih",
+  1915→    "createdAt": "2026-06-15T07:08:34.413Z",
+  1916→    "updatedAt": "2026-06-15T07:08:34.413Z",
+  1917→    "group": {
+  1918→      "id": "cmqevg27b000hqahv60i9xtih",
+  1919→      "name": "شکو کراکر",
+  1920→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1921→      "order": 3,
+  1922→      "createdAt": "2026-06-15T07:08:14.759Z",
+  1923→      "updatedAt": "2026-06-15T07:08:14.759Z"
+  1924→    },
+  1925→    "links": []
+  1926→  },
+  1927→  {
+  1928→    "id": "cmqevghde005zqahvbiuulbwg",
+  1929→    "name": "شوکو کراکر با روکش شيري + 5 عدد شوکو کراکر دارک هديه (8 پت 245 گرمي)",
+  1930→    "description": "کد کالا: 4111003299",
+  1931→    "price": 2153110,
+  1932→    "imageUrl": null,
+  1933→    "groupId": "cmqevg27b000hqahv60i9xtih",
+  1934→    "createdAt": "2026-06-15T07:08:34.419Z",
+  1935→    "updatedAt": "2026-06-15T07:08:34.419Z",
+  1936→    "group": {
+  1937→      "id": "cmqevg27b000hqahv60i9xtih",
+  1938→      "name": "شکو کراکر",
+  1939→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1940→      "order": 3,
+  1941→      "createdAt": "2026-06-15T07:08:14.759Z",
+  1942→      "updatedAt": "2026-06-15T07:08:14.759Z"
+  1943→    },
+  1944→    "links": []
+  1945→  },
+  1946→  {
+  1947→    "id": "cmqevghdk0061qahvyx2ebytq",
+  1948→    "name": "شکلات صبحانه فندقي 180 گرمي 6 عددي",
+  1949→    "description": "کد کالا: 4111004145",
+  1950→    "price": 1403509,
+  1951→    "imageUrl": null,
+  1952→    "groupId": "cmqevg27z000lqahvzubq9pjx",
+  1953→    "createdAt": "2026-06-15T07:08:34.425Z",
+  1954→    "updatedAt": "2026-06-15T07:08:34.425Z",
+  1955→    "group": {
+  1956→      "id": "cmqevg27z000lqahvzubq9pjx",
+  1957→      "name": "کرم کاکائو",
+  1958→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1959→      "order": 5,
+  1960→      "createdAt": "2026-06-15T07:08:14.783Z",
+  1961→      "updatedAt": "2026-06-15T07:08:14.783Z"
+  1962→    },
+  1963→    "links": []
+  1964→  },
+  1965→  {
+  1966→    "id": "cmqevghdq0063qahvy4cnqyl0",
+  1967→    "name": "شکلات صبحانه فندقي 180 گرمي 6 عددي",
+  1968→    "description": "کد کالا: 4111004145",
+  1969→    "price": 2073365,
+  1970→    "imageUrl": null,
+  1971→    "groupId": "cmqevg27z000lqahvzubq9pjx",
+  1972→    "createdAt": "2026-06-15T07:08:34.430Z",
+  1973→    "updatedAt": "2026-06-15T07:08:34.430Z",
+  1974→    "group": {
+  1975→      "id": "cmqevg27z000lqahvzubq9pjx",
+  1976→      "name": "کرم کاکائو",
+  1977→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1978→      "order": 5,
+  1979→      "createdAt": "2026-06-15T07:08:14.783Z",
+  1980→      "updatedAt": "2026-06-15T07:08:14.783Z"
+  1981→    },
+  1982→    "links": []
+  1983→  },
+  1984→  {
+  1985→    "id": "cmqevghdw0065qahvk1q4yfmc",
+  1986→    "name": "شکلات صبحانه شيري فندقي 180 گرمي 6 عددي",
+  1987→    "description": "کد کالا: 4111004146",
+  1988→    "price": 1874003,
+  1989→    "imageUrl": null,
+  1990→    "groupId": "cmqevg27z000lqahvzubq9pjx",
+  1991→    "createdAt": "2026-06-15T07:08:34.436Z",
+  1992→    "updatedAt": "2026-06-15T07:08:34.436Z",
+  1993→    "group": {
+  1994→      "id": "cmqevg27z000lqahvzubq9pjx",
+  1995→      "name": "کرم کاکائو",
+  1996→      "parentId": "cmqevg25d0009qahvrnkc129z",
+  1997→      "order": 5,
+  1998→      "createdAt": "2026-06-15T07:08:14.783Z",
+  1999→      "updatedAt": "2026-06-15T07:08:14.783Z"
+  2000→    },
+
+[showing lines 1-2000 of 2656; use offset=2001 with limit to continue reading]
