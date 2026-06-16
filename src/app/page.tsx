@@ -115,6 +115,15 @@ interface CompetitorProduct {
   priceHistory?: CompetitorPriceHistory[];
 }
 
+interface ProductImage {
+  id: string;
+  url: string;
+  alt: string | null;
+  order: number;
+  productId: string;
+  createdAt: string;
+}
+
 interface ProductGroupParent {
   id: string;
   name: string;
@@ -147,6 +156,7 @@ interface Product {
   createdAt: string;
   updatedAt: string;
   competitorProducts?: CompetitorProduct[];
+  images?: ProductImage[];
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────
@@ -233,6 +243,10 @@ export default function CatalogPage() {
   const [barakaDialogOpen, setBarakaDialogOpen] = useState(false);
   const [barakaProducts, setBarakaProducts] = useState<{ name: string; imageUrl: string; fullImageUrl?: string; productUrl: string }[]>([]);
   const [barakaLoading, setBarakaLoading] = useState(false);
+
+  // Image upload state
+  const [uploadingImage, setUploadingImage] = useState<string | null>(null); // productId being uploaded to
+  const [deletingImage, setDeletingImage] = useState<string | null>(null); // imageId being deleted
 
   // Form states
   const [productForm, setProductForm] = useState({
@@ -351,6 +365,67 @@ export default function CatalogPage() {
       if (!(await fetch(`/api/products/${id}`, { method: "DELETE" })).ok) throw new Error();
       toast({ title: "محصول حذف شد" }); fetchProducts();
     } catch { toast({ title: "خطا", description: "حذف ناموفق بود", variant: "destructive" }); }
+  };
+
+  // ─── Image Upload ──────────────────────────────────────────────
+  const handleUploadImage = async (productId: string, file: File) => {
+    setUploadingImage(productId);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('productId', productId);
+      const res = await fetch('/api/products/images', { method: 'POST', body: formData });
+      if (!res.ok) throw new Error();
+      const newImage = await res.json();
+      toast({ title: 'تصویر اضافه شد' });
+      // Update local products state
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === productId
+            ? { ...p, images: [...(p.images || []), newImage], imageUrl: p.imageUrl || newImage.url }
+            : p
+        )
+      );
+      // Update detail product if it's the same
+      if (detailProduct?.id === productId) {
+        setDetailProduct((prev) =>
+          prev ? { ...prev, images: [...(prev.images || []), newImage], imageUrl: prev.imageUrl || newImage.url } : prev
+        );
+      }
+    } catch {
+      toast({ title: 'خطا', description: 'آپلود تصویر ناموفق بود', variant: 'destructive' });
+    } finally {
+      setUploadingImage(null);
+    }
+  };
+
+  const handleDeleteImage = async (imageId: string) => {
+    setDeletingImage(imageId);
+    try {
+      const res = await fetch(`/api/products/images/${imageId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error();
+      toast({ title: 'تصویر حذف شد' });
+      // Update local state
+      setProducts((prev) =>
+        prev.map((p) => {
+          const newImages = (p.images || []).filter((img) => img.id !== imageId);
+          const newImageUrl = newImages.length > 0 ? newImages[0].url : null;
+          return { ...p, images: newImages, imageUrl: newImageUrl };
+        })
+      );
+      if (detailProduct) {
+        setDetailProduct((prev) => {
+          if (!prev) return prev;
+          const newImages = (prev.images || []).filter((img) => img.id !== imageId);
+          const newImageUrl = newImages.length > 0 ? newImages[0].url : null;
+          return { ...prev, images: newImages, imageUrl: newImageUrl };
+        });
+      }
+    } catch {
+      toast({ title: 'خطا', description: 'حذف تصویر ناموفق بود', variant: 'destructive' });
+    } finally {
+      setDeletingImage(null);
+    }
   };
 
   // ─── Baraka Images ────────────────────────────────────────────────
@@ -855,7 +930,15 @@ export default function CatalogPage() {
                           )}
                           <div className="min-w-0">
                             <p className="font-medium text-sm line-clamp-1" title={product.name}>{product.name}</p>
-                            {product.description && <p className="text-xs text-muted-foreground line-clamp-1">{product.description}</p>}
+                            <div className="flex items-center gap-2">
+                              {product.description && <p className="text-xs text-muted-foreground line-clamp-1">{product.description}</p>}
+                              {(product.images || []).length > 0 && (
+                                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0 gap-0.5">
+                                  <Upload className="w-2.5 h-2.5" />
+                                  {(product.images || []).length}
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </TableCell>
@@ -930,6 +1013,13 @@ export default function CatalogPage() {
                         <div className="relative h-48 overflow-hidden bg-muted">
                           <img src={product.imageUrl} alt={product.name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                           {groupName && <Badge className="absolute top-3 right-3 bg-white/90 dark:bg-slate-800/90 text-foreground backdrop-blur-sm"><FolderTree className="w-3 h-3 ml-1" />{groupName}</Badge>}
+                          {(product.images || []).length > 1 && (
+                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                              {(product.images || []).map((_, idx) => (
+                                <div key={idx} className={`w-1.5 h-1.5 rounded-full ${idx === 0 ? 'bg-white' : 'bg-white/50'}`} />
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
                       <CardHeader className="pb-2">
@@ -1002,18 +1092,85 @@ export default function CatalogPage() {
               </DialogHeader>
               <div className="space-y-5 mt-4">
                 {/* Product Info */}
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
-                  {detailProduct.imageUrl && <img src={detailProduct.imageUrl} alt={detailProduct.name} className="w-20 h-20 rounded-lg object-contain shrink-0 bg-muted" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-muted-foreground">قیمت شما:</p>
-                    <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatPrice(detailProduct.price, currencyUnit)}</p>
-                    {detailProduct.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{detailProduct.description}</p>}
-                    {(() => { const gn = getGroupName(detailProduct); return gn ? <Badge className="mt-2" variant="secondary"><FolderTree className="w-3 h-3 ml-1" />{gn}</Badge> : null; })()}
+                <div className="space-y-3 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+                  <div className="flex items-start gap-4">
+                    {/* Main image */}
+                    {(detailProduct.images || []).length > 0 ? (
+                      <div className="shrink-0">
+                        <img
+                          src={(detailProduct.images || [])[0]?.url || detailProduct.imageUrl || ''}
+                          alt={detailProduct.name}
+                          className="w-24 h-24 rounded-lg object-contain bg-white dark:bg-slate-800 border"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                        />
+                      </div>
+                    ) : detailProduct.imageUrl ? (
+                      <img src={detailProduct.imageUrl} alt={detailProduct.name} className="w-24 h-24 rounded-lg object-contain shrink-0 bg-white dark:bg-slate-800 border" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                    ) : null}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-muted-foreground">قیمت شما:</p>
+                      <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatPrice(detailProduct.price, currencyUnit)}</p>
+                      {detailProduct.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{detailProduct.description}</p>}
+                      {(() => { const gn = getGroupName(detailProduct); return gn ? <Badge className="mt-2" variant="secondary"><FolderTree className="w-3 h-3 ml-1" />{gn}</Badge> : null; })()}
+                    </div>
+                    {(detailProduct.margin !== null && detailProduct.margin !== undefined) && (
+                      <div className="shrink-0 text-center p-2 rounded-lg bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 min-w-[70px]">
+                        <p className="text-xs text-rose-600 dark:text-rose-400 font-medium">مارجین</p>
+                        <p className="text-xl font-bold text-rose-700 dark:text-rose-300">{detailProduct.margin}٪</p>
+                      </div>
+                    )}
+                    {detailProduct.promotionDescription && (
+                      <div className="shrink-0 text-center p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 min-w-[70px]">
+                        <p className="text-xs text-purple-600 dark:text-purple-400 font-medium">پروموشن</p>
+                        <p className="text-sm font-bold text-purple-700 dark:text-purple-300 line-clamp-2">{detailProduct.promotionDescription}</p>
+                      </div>
+                    )}
                   </div>
-                  {(detailProduct.margin !== null && detailProduct.margin !== undefined) && (
-                    <div className="shrink-0 text-center p-2 rounded-lg bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 min-w-[70px]">
-                      <p className="text-xs text-rose-600 dark:text-rose-400 font-medium">مارجین</p>
-                      <p className="text-xl font-bold text-rose-700 dark:text-rose-300">{detailProduct.margin}٪</p>
+                  {/* Image Gallery - show all images */}
+                  {(detailProduct.images || []).length > 1 && (
+                    <div className="flex gap-2 overflow-x-auto pb-1">
+                      {(detailProduct.images || []).map((img, idx) => (
+                        <div key={img.id} className="relative group shrink-0">
+                          <img
+                            src={img.url}
+                            alt={img.alt || `${detailProduct.name} - تصویر ${idx + 1}`}
+                            className="w-16 h-16 rounded-lg object-contain bg-white dark:bg-slate-800 border cursor-pointer hover:border-emerald-400 transition-colors"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                          />
+                          {isAdmin && (
+                            <button
+                              className="absolute -top-1 -left-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                              onClick={() => handleDeleteImage(img.id)}
+                              disabled={deletingImage === img.id}
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {/* Upload image button for admin */}
+                  {isAdmin && (
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                        disabled={uploadingImage === detailProduct.id}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleUploadImage(detailProduct.id, file);
+                          e.target.value = '';
+                        }}
+                      />
+                      <Button variant="outline" size="sm" className="w-full gap-2" type="button" disabled={uploadingImage === detailProduct.id}>
+                        {uploadingImage === detailProduct.id ? (
+                          <><Loader2 className="w-3 h-3 animate-spin" /> در حال آپلود...</>
+                        ) : (
+                          <><Upload className="w-3 h-3" /> افزودن تصویر</>
+                        )}
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -1358,7 +1515,63 @@ export default function CatalogPage() {
             <div className="space-y-2"><Label>نام محصول *</Label><Input value={productForm.name} onChange={(e) => setProductForm((f) => ({ ...f, name: e.target.value }))} placeholder="مثلاً: گوشی موبایل سامسونگ" /></div>
             <div className="space-y-2"><Label>قیمت ({currencyUnit}) *</Label><Input type="number" value={productForm.price} onChange={(e) => setProductForm((f) => ({ ...f, price: e.target.value }))} placeholder="مثلاً: 25000000" /></div>
             <div className="space-y-2"><Label>توضیحات</Label><Textarea value={productForm.description} onChange={(e) => setProductForm((f) => ({ ...f, description: e.target.value }))} placeholder="توضیحات محصول..." rows={2} /></div>
-            <div className="space-y-2"><Label>آدرس تصویر</Label><Input value={productForm.imageUrl} onChange={(e) => setProductForm((f) => ({ ...f, imageUrl: e.target.value }))} placeholder="https://example.com/image.jpg" dir="ltr" /></div>
+            {/* تصاویر محصول */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Upload className="w-4 h-4 text-emerald-500" />
+                تصاویر محصول
+              </Label>
+              {editingProduct && (
+                <div className="space-y-2">
+                  {/* Existing images */}
+                  {(editingProduct.images || []).length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {(editingProduct.images || []).map((img) => (
+                        <div key={img.id} className="relative group w-20 h-20 rounded-lg border overflow-hidden bg-muted">
+                          <img src={img.url} alt={img.alt || ''} className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                          <button
+                            type="button"
+                            className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                            onClick={() => handleDeleteImage(img.id)}
+                            disabled={deletingImage === img.id}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {/* Upload new image */}
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      disabled={uploadingImage === editingProduct.id}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleUploadImage(editingProduct.id, file);
+                        e.target.value = '';
+                      }}
+                    />
+                    <Button variant="outline" className="w-full gap-2" type="button" disabled={uploadingImage === editingProduct.id}>
+                      {uploadingImage === editingProduct.id ? (
+                        <><Loader2 className="w-4 h-4 animate-spin" /> در حال آپلود...</>
+                      ) : (
+                        <><Upload className="w-4 h-4" /> افزودن تصویر</>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+              {!editingProduct && (
+                <p className="text-xs text-muted-foreground">ابتدا محصول را ایجاد کنید، سپس تصاویر را اضافه کنید.</p>
+              )}
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">یا وارد کردن آدرس تصویر:</Label>
+                <Input value={productForm.imageUrl} onChange={(e) => setProductForm((f) => ({ ...f, imageUrl: e.target.value }))} placeholder="https://example.com/image.jpg" dir="ltr" />
+              </div>
+            </div>
             <Separator />
             <div className="space-y-2"><Label className="flex items-center gap-2"><Globe className="w-4 h-4 text-blue-500" /> بازار هدف</Label><Textarea value={productForm.targetMarket} onChange={(e) => setProductForm((f) => ({ ...f, targetMarket: e.target.value }))} placeholder="مثلاً: بازار مصرف‌کننده نهایی، بازار سازمانی..." rows={2} /></div>
             <div className="space-y-2"><Label className="flex items-center gap-2"><Tag className="w-4 h-4 text-amber-500" /> مزیت رقابتی</Label><Textarea value={productForm.competitiveAdvantage} onChange={(e) => setProductForm((f) => ({ ...f, competitiveAdvantage: e.target.value }))} placeholder="مثلاً: قیمت مناسب‌تر، کیفیت بالاتر..." rows={2} /></div>

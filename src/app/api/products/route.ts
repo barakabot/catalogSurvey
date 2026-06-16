@@ -9,6 +9,9 @@ export async function GET() {
         competitorProducts: {
           orderBy: { fetchedAt: 'desc' },
         },
+        images: {
+          orderBy: { order: 'asc' },
+        },
         group: {
           include: {
             parent: true,
@@ -49,6 +52,7 @@ export async function POST(request: Request) {
       },
       include: {
         competitorProducts: true,
+        images: { orderBy: { order: 'asc' } },
         group: { include: { parent: true } },
       },
     });

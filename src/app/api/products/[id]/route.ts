@@ -20,6 +20,9 @@ export async function GET(
             },
           },
         },
+        images: {
+          orderBy: { order: 'asc' },
+        },
         group: {
           include: { parent: true },
         },
@@ -62,6 +65,7 @@ export async function PUT(
       },
       include: {
         competitorProducts: true,
+        images: { orderBy: { order: 'asc' } },
         group: { include: { parent: true } },
       },
     });

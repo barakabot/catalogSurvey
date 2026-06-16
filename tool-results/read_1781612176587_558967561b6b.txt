@@ -1,0 +1,402 @@
+  1000→  1000→                  <span className="line-clamp-2">{detailProduct.name}</span>
+  1001→  1001→                </DialogTitle>
+  1002→  1002→              </DialogHeader>
+  1003→  1003→              <div className="space-y-5 mt-4">
+  1004→  1004→                {/* Product Info */}
+  1005→  1005→                <div className="flex items-start gap-4 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+  1006→  1006→                  {detailProduct.imageUrl && <img src={detailProduct.imageUrl} alt={detailProduct.name} className="w-20 h-20 rounded-lg object-contain shrink-0 bg-muted" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />}
+  1007→  1007→                  <div className="flex-1 min-w-0">
+  1008→  1008→                    <p className="text-sm text-muted-foreground">قیمت شما:</p>
+  1009→  1009→                    <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatPrice(detailProduct.price, currencyUnit)}</p>
+  1010→  1010→                    {detailProduct.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{detailProduct.description}</p>}
+  1011→  1011→                    {(() => { const gn = getGroupName(detailProduct); return gn ? <Badge className="mt-2" variant="secondary"><FolderTree className="w-3 h-3 ml-1" />{gn}</Badge> : null; })()}
+  1012→  1012→                  </div>
+  1013→  1013→                  {(detailProduct.margin !== null && detailProduct.margin !== undefined) && (
+  1014→  1014→                    <div className="shrink-0 text-center p-2 rounded-lg bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 min-w-[70px]">
+  1015→  1015→                      <p className="text-xs text-rose-600 dark:text-rose-400 font-medium">مارجین</p>
+  1016→  1016→                      <p className="text-xl font-bold text-rose-700 dark:text-rose-300">{detailProduct.margin}٪</p>
+  1017→  1017→                    </div>
+  1018→  1018→                  )}
+  1019→  1019→                </div>
+  1020→  1020→
+  1021→  1021→                {/* New Info Fields */}
+  1022→  1022→                {(detailProduct.targetMarket || detailProduct.competitiveAdvantage || detailProduct.promotionDescription) && (
+  1023→  1023→                  <div className="space-y-3">
+  1024→  1024→                    {detailProduct.targetMarket && (
+  1025→  1025→                      <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
+  1026→  1026→                        <Globe className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+  1027→  1027→                        <div>
+  1028→  1028→                          <p className="text-xs font-medium text-blue-700 dark:text-blue-400">بازار هدف</p>
+  1029→  1029→                          <p className="text-sm text-blue-900 dark:text-blue-200 mt-0.5">{detailProduct.targetMarket}</p>
+  1030→  1030→                        </div>
+  1031→  1031→                      </div>
+  1032→  1032→                    )}
+  1033→  1033→                    {detailProduct.competitiveAdvantage && (
+  1034→  1034→                      <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">
+  1035→  1035→                        <Tag className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+  1036→  1036→                        <div>
+  1037→  1037→                          <p className="text-xs font-medium text-amber-700 dark:text-amber-400">مزیت رقابتی</p>
+  1038→  1038→                          <p className="text-sm text-amber-900 dark:text-amber-200 mt-0.5">{detailProduct.competitiveAdvantage}</p>
+  1039→  1039→                        </div>
+  1040→  1040→                      </div>
+  1041→  1041→                    )}
+  1042→  1042→                    {detailProduct.promotionDescription && (
+  1043→  1043→                      <div className="flex items-start gap-3 p-3 rounded-lg bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800">
+  1044→  1044→                        <Package className="w-5 h-5 text-purple-500 shrink-0 mt-0.5" />
+  1045→  1045→                        <div>
+  1046→  1046→                          <p className="text-xs font-medium text-purple-700 dark:text-purple-400">توضیحات پروموشن</p>
+  1047→  1047→                          <p className="text-sm text-purple-900 dark:text-purple-200 mt-0.5">{detailProduct.promotionDescription}</p>
+  1048→  1048→                        </div>
+  1049→  1049→                      </div>
+  1050→  1050→                    )}
+  1051→  1051→                  </div>
+  1052→  1052→                )}
+  1053→  1053→
+  1054→  1054→                {/* Competitor Products */}
+  1055→  1055→                <div>
+  1056→  1056→                  <div className="flex items-center justify-between mb-3">
+  1057→  1057→                    <h3 className="font-semibold flex items-center gap-2"><Link2 className="w-4 h-4" /> قیمت رقبا</h3>
+  1058→  1058→                    <div className="flex gap-2">
+  1059→  1059→                      {detailCompetitors.length > 0 && (
+  1060→  1060→                        <Button variant="outline" size="sm" className="gap-1" onClick={handleRefreshAllCompetitors} disabled={refreshingCompetitor === "all"}>
+  1061→  1061→                          {refreshingCompetitor === "all" ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+  1062→  1062→                          بروزرسانی همه
+  1063→  1063→                        </Button>
+  1064→  1064→                      )}
+  1065→  1065→                      {isAdmin && (
+  1066→  1066→                        <Button variant="default" size="sm" className="gap-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white" onClick={() => { setCompetitorLinkProductId(detailProduct.id); setAddCompetitorDialogOpen(true); }}>
+  1067→  1067→                          <Plus className="w-3 h-3" /> افزودن رقیب
+  1068→  1068→                        </Button>
+  1069→  1069→                      )}
+  1070→  1070→                    </div>
+  1071→  1071→                  </div>
+  1072→  1072→
+  1073→  1073→                  {loadingDetail ? (
+  1074→  1074→                    <div className="flex items-center justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /><span className="mr-2 text-muted-foreground">در حال بارگذاری...</span></div>
+  1075→  1075→                  ) : detailCompetitors.length === 0 ? (
+  1076→  1076→                    <div className="text-center py-8 text-muted-foreground">
+  1077→  1077→                      <Globe className="w-10 h-10 mx-auto mb-3 opacity-30" />
+  1078→  1078→                      <p className="text-sm">هنوز رقیبی برای این محصول ثبت نشده</p>
+  1079→  1079→                      {isAdmin && <p className="text-xs mt-1">از دکمه «افزودن رقیب» محصولی از دیجیکالا یا اسنپ‌شاپ اضافه کنید</p>}
+  1080→  1080→                    </div>
+  1081→  1081→                  ) : (
+  1082→  1082→                    <div className="space-y-3 max-h-96 overflow-y-auto">
+  1083→  1083→                      {detailCompetitors.map((comp) => {
+  1084→  1084→                        const adjustedPrice = Math.round(comp.price * (comp.coefficient || 1));
+  1085→  1085→                        const isCheaper = adjustedPrice > 0 && adjustedPrice < detailProduct.price;
+  1086→  1086→                        const isMoreExpensive = adjustedPrice > 0 && adjustedPrice > detailProduct.price;
+  1087→  1087→                        const hasCoefficient = comp.coefficient !== undefined && comp.coefficient !== null && comp.coefficient !== 1;
+  1088→  1088→                        return (
+  1089→  1089→                          <div key={comp.id} className={`flex items-center justify-between p-4 rounded-xl border transition-colors ${isCheaper ? "bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800" : isMoreExpensive ? "bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800" : "bg-muted/50 border-border"}`}>
+  1090→  1090→                            <div className="flex items-center gap-3 min-w-0 flex-1">
+  1091→  1091→                              <div className="relative shrink-0">
+  1092→  1092→                                {comp.imageUrl ? (
+  1093→  1093→                                  <img src={comp.imageUrl} alt={comp.name} className="w-12 h-12 rounded-lg object-contain bg-muted" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+  1094→  1094→                                ) : (
+  1095→  1095→                                  <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center text-lg">
+  1096→  1096→                                    {getSourceIcon(comp.source)}
+  1097→  1097→                                  </div>
+  1098→  1098→                                )}
+  1099→  1099→                              </div>
+  1100→  1100→                              <div className="min-w-0">
+  1101→  1101→                                <div className="flex items-center gap-2">
+  1102→  1102→                                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{getSourceLabel(comp.source)}</Badge>
+  1103→  1103→                                  {comp.brand && <span className="text-[10px] text-muted-foreground">{comp.brand}</span>}
+  1104→  1104→                                </div>
+  1105→  1105→                                <p className="font-medium line-clamp-1 text-sm">{comp.name}</p>
+  1106→  1106→                                <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+  1107→  1107→                                  {(comp.weight || comp.volume) && <span>{comp.weight || comp.volume}</span>}
+  1108→  1108→                                  <a href={getSourceUrl(comp.source, comp.sourceId)} target="_blank" rel="noopener noreferrer" className="hover:text-primary inline-flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+  1109→  1109→                                    مشاهده <ExternalLink className="w-2.5 h-2.5" />
+  1110→  1110→                                  </a>
+  1111→  1111→                                </div>
+  1112→  1112→                              </div>
+  1113→  1113→                            </div>
+  1114→  1114→                            <div className="flex items-center gap-2 shrink-0">
+  1115→  1115→                              <div className="text-left">
+  1116→  1116→                                {comp.price > 0 ? (
+  1117→  1117→                                  <>
+  1118→  1118→                                    {hasCoefficient ? (
+  1119→  1119→                                      <>
+  1120→  1120→                                        <p className="text-xs text-muted-foreground line-through">{formatPrice(comp.price, currencyUnit)}</p>
+  1121→  1121→                                        <p className="font-bold text-base text-amber-700 dark:text-amber-400">{formatPrice(adjustedPrice, currencyUnit)}</p>
+  1122→  1122→                                        <Badge variant="outline" className="text-[9px] px-1 py-0 text-amber-600 border-amber-300 dark:text-amber-400 dark:border-amber-700 gap-0.5">
+  1123→  1123→                                          <Calculator className="w-2.5 h-2.5" />
+  1124→  1124→                                          ×{comp.coefficient}
+  1125→  1125→                                        </Badge>
+  1126→  1126→                                      </>
+  1127→  1127→                                    ) : (
+  1128→  1128→                                      <p className="font-bold text-base">{formatPrice(comp.price, currencyUnit)}</p>
+  1129→  1129→                                    )}
+  1130→  1130→                                    {comp.discountPercent > 0 && comp.originalPrice && (
+  1131→  1131→                                      <div className="flex items-center gap-1">
+  1132→  1132→                                        <Badge variant="destructive" className="text-[10px] px-1 py-0">
+  1133→  1133→                                          <Tag className="w-2.5 h-2.5 ml-0.5" />
+  1134→  1134→                                          {comp.discountPercent}%
+  1135→  1135→                                        </Badge>
+  1136→  1136→                                        <span className="text-[10px] text-muted-foreground line-through">{formatPrice(comp.originalPrice, currencyUnit)}</span>
+  1137→  1137→                                      </div>
+  1138→  1138→                                    )}
+  1139→  1139→                                    {isCheaper && <Badge variant="destructive" className="text-[10px] mt-1">رقیب ارزان‌تر</Badge>}
+  1140→  1140→                                    {isMoreExpensive && <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] mt-1">شما ارزان‌تر!</Badge>}
+  1141→  1141→                                    <p className="text-[10px] text-muted-foreground mt-0.5">{new Date(comp.fetchedAt).toLocaleDateString("fa-IR")}</p>
+  1142→  1142→                                  </>
+  1143→  1143→                                ) : (
+  1144→  1144→                                  <p className="text-xs text-muted-foreground">ناموجود</p>
+  1145→  1145→                                )}
+  1146→  1146→                              </div>
+  1147→  1147→                              {isAdmin && (
+  1148→  1148→                                <div className="flex flex-col gap-1" onClick={(e) => e.stopPropagation()}>
+  1149→  1149→                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRefreshCompetitor(comp.id)} disabled={refreshingCompetitor === comp.id}>
+  1150→  1150→                                    {refreshingCompetitor === comp.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+  1151→  1151→                                  </Button>
+  1152→  1152→                                  <Button variant="ghost" size="icon" className="h-7 w-7" title="ویرایش ضریب" onClick={() => {
+  1153→  1153→                                    const val = prompt(`ضریب مقایسه برای "${comp.name}" (فعلی: ${comp.coefficient || 1})`, String(comp.coefficient || 1));
+  1154→  1154→                                    if (val !== null) {
+  1155→  1155→                                      const num = parseFloat(val);
+  1156→  1156→                                      if (!isNaN(num) && num >= 0) handleUpdateCoefficient(comp.id, num);
+  1157→  1157→                                    }
+  1158→  1158→                                  }}>
+  1159→  1159→                                    <Calculator className="w-3 h-3" />
+  1160→  1160→                                  </Button>
+  1161→  1161→                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleUnlinkCompetitor(comp.id)}>
+  1162→  1162→                                    <Unlink className="w-3 h-3" />
+  1163→  1163→                                  </Button>
+  1164→  1164→                                </div>
+  1165→  1165→                              )}
+  1166→  1166→                            </div>
+  1167→  1167→                          </div>
+  1168→  1168→                        );
+  1169→  1169→                      })}
+  1170→  1170→                    </div>
+  1171→  1171→                  )}
+  1172→  1172→                </div>
+  1173→  1173→              </div>
+  1174→  1174→            </>
+  1175→  1175→          )}
+  1176→  1176→        </DialogContent>
+  1177→  1177→      </Dialog>
+  1178→  1178→
+  1179→  1179→      {/* ═══ Add Competitor Dialog ═══ */}
+  1180→  1180→      <Dialog open={addCompetitorDialogOpen} onOpenChange={(open) => { setAddCompetitorDialogOpen(open); if (!open) { setCompetitorSource(""); setCompetitorSourceId(""); setCompetitorLinkProductId(""); } }}>
+  1181→  1181→        <DialogContent className="sm:max-w-md" dir="rtl">
+  1182→  1182→          <DialogHeader><DialogTitle className="flex items-center gap-2"><ShoppingCart className="w-5 h-5 text-emerald-600" /> افزودن محصول رقیب از فروشگاه آنلاین</DialogTitle></DialogHeader>
+  1183→  1183→          <div className="space-y-4 mt-4">
+  1184→  1184→            <div className="space-y-2">
+  1185→  1185→              <Label>فروشگاه منبع *</Label>
+  1186→  1186→              <Select value={competitorSource} onValueChange={setCompetitorSource}>
+  1187→  1187→                <SelectTrigger><SelectValue placeholder="فروشگاه را انتخاب کنید" /></SelectTrigger>
+  1188→  1188→                <SelectContent>
+  1189→  1189→                  <SelectItem value="DIGIKALA">🟡 دیجیکالا</SelectItem>
+  1190→  1190→                  <SelectItem value="SNAPPSHOP">🟣 اسنپ‌شاپ</SelectItem>
+  1191→  1191→                </SelectContent>
+  1192→  1192→              </Select>
+  1193→  1193→            </div>
+  1194→  1194→            <div className="space-y-2">
+  1195→  1195→              <Label>شناسه محصول *</Label>
+  1196→  1196→              <Input value={competitorSourceId} onChange={(e) => setCompetitorSourceId(e.target.value)} placeholder={competitorSource === "DIGIKALA" ? "مثلاً: 16349888" : competitorSource === "SNAPPSHOP" ? "مثلاً: 717225954" : "شناسه محصول در فروشگاه"} dir="ltr" />
+  1197→  1197→              {competitorSource && (
+  1198→  1198→                <p className="text-xs text-muted-foreground">
+  1199→  1199→                  {competitorSource === "DIGIKALA" ? "شناسه عددی محصول در دیجیکالا (قسمت dkp- از URL)" : "شناسه عددی محصول در اسنپ‌شاپ"}
+  1200→  1200→                </p>
+  1201→  1201→              )}
+  1202→  1202→            </div>
+  1203→  1203→            {!competitorLinkProductId && (
+  1204→  1204→              <div className="space-y-2">
+  1205→  1205→                <Label>اتصال به محصول کاتالوگ (اختیاری)</Label>
+  1206→  1206→                <Select value={competitorLinkProductId} onValueChange={setCompetitorLinkProductId}>
+  1207→  1207→                  <SelectTrigger><SelectValue placeholder="محصول کاتالوگ را انتخاب کنید" /></SelectTrigger>
+  1208→  1208→                  <SelectContent className="max-h-48">
+  1209→  1209→                    {products.map((p) => <SelectItem key={p.id} value={p.id}><span className="line-clamp-1">{p.name}</span></SelectItem>)}
+  1210→  1210→                  </SelectContent>
+  1211→  1211→                </Select>
+  1212→  1212→              </div>
+  1213→  1213→            )}
+  1214→  1214→            {competitorLinkProductId && (
+  1215→  1215→              <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+  1216→  1216→                <p className="text-xs text-emerald-700 dark:text-emerald-400">اتصال به: {products.find((p) => p.id === competitorLinkProductId)?.name}</p>
+  1217→  1217→              </div>
+  1218→  1218→            )}
+  1219→  1219→            <Button onClick={handleScrapeAndAdd} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white" disabled={!competitorSource || !competitorSourceId || scrapeLoading}>
+  1220→  1220→              {scrapeLoading ? <><Loader2 className="w-4 h-4 ml-2 animate-spin" /> در حال اسکرپ...</> : <><Globe className="w-4 h-4 ml-2" /> اسکرپ و ذخیره</>}
+  1221→  1221→            </Button>
+  1222→  1222→          </div>
+  1223→  1223→        </DialogContent>
+  1224→  1224→      </Dialog>
+  1225→  1225→
+  1226→  1226→      {/* ═══ Link Competitor Dialog ═══ */}
+  1227→  1227→      <Dialog open={linkDialogOpen} onOpenChange={(open) => { setLinkDialogOpen(open); if (!open) { setLinkingCompetitor(null); setLinkProductId(""); } }}>
+  1228→  1228→        <DialogContent className="sm:max-w-md" dir="rtl">
+  1229→  1229→          <DialogHeader><DialogTitle className="flex items-center gap-2"><ArrowRightLeft className="w-5 h-5" /> اتصال محصول رقیب به کاتالوگ</DialogTitle></DialogHeader>
+  1230→  1230→          <div className="space-y-4 mt-4">
+  1231→  1231→            {linkingCompetitor && (
+  1232→  1232→              <div className="p-3 rounded-lg bg-muted">
+  1233→  1233→                <p className="text-sm font-medium">{linkingCompetitor.name}</p>
+  1234→  1234→                <p className="text-xs text-muted-foreground">{getSourceLabel(linkingCompetitor.source)} — {linkingCompetitor.sourceId}</p>
+  1235→  1235→              </div>
+  1236→  1236→            )}
+  1237→  1237→            <div className="space-y-2">
+  1238→  1238→              <Label>محصول کاتالوگ *</Label>
+  1239→  1239→              <Select value={linkProductId} onValueChange={setLinkProductId}>
+  1240→  1240→                <SelectTrigger><SelectValue placeholder="محصول کاتالوگ را انتخاب کنید" /></SelectTrigger>
+  1241→  1241→                <SelectContent className="max-h-48">
+  1242→  1242→                  {products.map((p) => <SelectItem key={p.id} value={p.id}><span className="line-clamp-1">{p.name}</span></SelectItem>)}
+  1243→  1243→                </SelectContent>
+  1244→  1244→              </Select>
+  1245→  1245→            </div>
+  1246→  1246→            <Button onClick={handleLinkCompetitor} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white" disabled={!linkProductId}>
+  1247→  1247→              <Link2 className="w-4 h-4 ml-2" /> اتصال
+  1248→  1248→            </Button>
+  1249→  1249→          </div>
+  1250→  1250→        </DialogContent>
+  1251→  1251→      </Dialog>
+  1252→  1252→
+  1253→  1253→      {/* ═══ Competitor Management Dialog ═══ */}
+  1254→  1254→      <Dialog open={competitorManageOpen} onOpenChange={setCompetitorManageOpen}>
+  1255→  1255→        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto" dir="rtl">
+  1256→  1256→          <DialogHeader>
+  1257→  1257→            <DialogTitle className="flex items-center gap-2"><ShoppingCart className="w-5 h-5" /> مدیریت محصولات رقیب اسکرپ شده</DialogTitle>
+  1258→  1258→          </DialogHeader>
+  1259→  1259→          <div className="space-y-4 mt-4">
+  1260→  1260→            <div className="flex items-center gap-2">
+  1261→  1261→              <Select value={competitorFilter} onValueChange={(v) => { setCompetitorFilter(v); }}>
+  1262→  1262→                <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+  1263→  1263→                <SelectContent>
+  1264→  1264→                  <SelectItem value="all">همه</SelectItem>
+  1265→  1265→                  <SelectItem value="unlinked">بدون اتصال</SelectItem>
+  1266→  1266→                  <SelectItem value="DIGIKALA">دیجیکالا</SelectItem>
+  1267→  1267→                  <SelectItem value="SNAPPSHOP">اسنپ‌شاپ</SelectItem>
+  1268→  1268→                </SelectContent>
+  1269→  1269→              </Select>
+  1270→  1270→              <Button variant="outline" size="sm" onClick={fetchAllCompetitors}><RefreshCw className="w-3 h-3" /></Button>
+  1271→  1271→              <Button variant="default" size="sm" className="gap-1 mr-auto bg-gradient-to-r from-emerald-500 to-teal-600 text-white" onClick={() => { setCompetitorLinkProductId(""); setAddCompetitorDialogOpen(true); }}>
+  1272→  1272→                <Plus className="w-3 h-3" /> افزودن
+  1273→  1273→              </Button>
+  1274→  1274→            </div>
+  1275→  1275→
+  1276→  1276→            {allCompetitors.length === 0 ? (
+  1277→  1277→              <div className="text-center py-8 text-muted-foreground">
+  1278→  1278→                <ShoppingCart className="w-10 h-10 mx-auto mb-3 opacity-30" />
+  1279→  1279→                <p className="text-sm">هنوز محصول رقیبی اسکرپ نشده</p>
+  1280→  1280→              </div>
+  1281→  1281→            ) : (
+  1282→  1282→              <div className="space-y-2 max-h-96 overflow-y-auto">
+  1283→  1283→                {allCompetitors.map((comp) => {
+  1284→  1284→                  const adjustedPrice = Math.round(comp.price * (comp.coefficient || 1));
+  1285→  1285→                  const hasCoefficient = comp.coefficient !== undefined && comp.coefficient !== null && comp.coefficient !== 1;
+  1286→  1286→                  return (
+  1287→  1287→                  <div key={comp.id} className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
+  1288→  1288→                    {comp.imageUrl ? (
+  1289→  1289→                      <img src={comp.imageUrl} alt="" className="w-10 h-10 rounded object-contain shrink-0 bg-muted" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+  1290→  1290→                    ) : (
+  1291→  1291→                      <div className="w-10 h-10 rounded bg-muted flex items-center justify-center text-sm shrink-0">{getSourceIcon(comp.source)}</div>
+  1292→  1292→                    )}
+  1293→  1293→                    <div className="flex-1 min-w-0">
+  1294→  1294→                      <p className="text-sm font-medium line-clamp-1">{comp.name}</p>
+  1295→  1295→                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+  1296→  1296→                        <Badge variant="secondary" className="text-[9px] px-1 py-0">{getSourceLabel(comp.source)}</Badge>
+  1297→  1297→                        {comp.brand && <span>{comp.brand}</span>}
+  1298→  1298→                        {comp.catalogProductId && <span className="text-emerald-600">✓ متصل</span>}
+  1299→  1299→                      </div>
+  1300→  1300→                    </div>
+  1301→  1301→                    <div className="text-left shrink-0">
+  1302→  1302→                      {hasCoefficient ? (
+  1303→  1303→                        <>
+  1304→  1304→                          <p className="text-[10px] text-muted-foreground line-through">{formatPrice(comp.price, currencyUnit)}</p>
+  1305→  1305→                          <p className="text-sm font-bold text-amber-700 dark:text-amber-400">{formatPrice(adjustedPrice, currencyUnit)}</p>
+  1306→  1306→                          <Badge variant="outline" className="text-[8px] px-1 py-0 text-amber-600 border-amber-300 dark:text-amber-400 dark:border-amber-700 gap-0.5">
+  1307→  1307→                            <Calculator className="w-2 h-2" />×{comp.coefficient}
+  1308→  1308→                          </Badge>
+  1309→  1309→                        </>
+  1310→  1310→                      ) : (
+  1311→  1311→                        <p className="text-sm font-bold">{comp.price > 0 ? formatPrice(comp.price, currencyUnit) : "—"}</p>
+  1312→  1312→                      )}
+  1313→  1313→                    </div>
+  1314→  1314→                    <div className="flex gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+  1315→  1315→                      {!comp.catalogProductId && (
+  1316→  1316→                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setLinkingCompetitor(comp); setLinkProductId(""); setLinkDialogOpen(true); }}>
+  1317→  1317→                          <Link2 className="w-3 h-3" />
+  1318→  1318→                        </Button>
+  1319→  1319→                      )}
+  1320→  1320→                      <Button variant="ghost" size="icon" className="h-7 w-7" title="ویرایش ضریب" onClick={() => {
+  1321→  1321→                        const val = prompt(`ضریب مقایسه (فعلی: ${comp.coefficient || 1})`, String(comp.coefficient || 1));
+  1322→  1322→                        if (val !== null) {
+  1323→  1323→                          const num = parseFloat(val);
+  1324→  1324→                          if (!isNaN(num) && num >= 0) handleUpdateCoefficient(comp.id, num);
+  1325→  1325→                        }
+  1326→  1326→                      }}>
+  1327→  1327→                        <Calculator className="w-3 h-3" />
+  1328→  1328→                      </Button>
+  1329→  1329→                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ type: "competitor", id: comp.id, name: comp.name })}>
+  1330→  1330→                        <Trash2 className="w-3 h-3" />
+  1331→  1331→                      </Button>
+  1332→  1332→                    </div>
+  1333→  1333→                  </div>
+  1334→  1334→                  );
+  1335→  1335→                })}
+  1336→  1336→              </div>
+  1337→  1337→            )}
+  1338→  1338→          </div>
+  1339→  1339→        </DialogContent>
+  1340→  1340→      </Dialog>
+  1341→  1341→
+  1342→  1342→      {/* Login Dialog */}
+  1343→  1343→      <Dialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen}>
+  1344→  1344→        <DialogContent className="sm:max-w-sm" dir="rtl">
+  1345→  1345→          <DialogHeader><DialogTitle className="flex items-center gap-2"><Shield className="w-5 h-5 text-emerald-600" /> ورود مدیر سیستم</DialogTitle></DialogHeader>
+  1346→  1346→          <div className="space-y-4 mt-4">
+  1347→  1347→            <div className="space-y-2"><Label htmlFor="password">رمز عبور</Label><Input id="password" type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} placeholder="رمز عبور مدیر را وارد کنید" onKeyDown={(e) => e.key === "Enter" && handleLogin()} /><p className="text-xs text-muted-foreground">رمز عبور پیش‌فرض: admin123</p></div>
+  1348→  1348→            <Button onClick={handleLogin} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white" disabled={!loginPassword}>ورود</Button>
+  1349→  1349→          </div>
+  1350→  1350→        </DialogContent>
+  1351→  1351→      </Dialog>
+  1352→  1352→
+  1353→  1353→      {/* Product Dialog */}
+  1354→  1354→      <Dialog open={productDialogOpen} onOpenChange={(open) => { setProductDialogOpen(open); if (!open) { setEditingProduct(null); resetProductForm(); } }}>
+  1355→  1355→        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto" dir="rtl">
+  1356→  1356→          <DialogHeader><DialogTitle>{editingProduct ? "ویرایش محصول" : "افزودن محصول جدید"}</DialogTitle></DialogHeader>
+  1357→  1357→          <div className="space-y-4 mt-4">
+  1358→  1358→            <div className="space-y-2"><Label>نام محصول *</Label><Input value={productForm.name} onChange={(e) => setProductForm((f) => ({ ...f, name: e.target.value }))} placeholder="مثلاً: گوشی موبایل سامسونگ" /></div>
+  1359→  1359→            <div className="space-y-2"><Label>قیمت ({currencyUnit}) *</Label><Input type="number" value={productForm.price} onChange={(e) => setProductForm((f) => ({ ...f, price: e.target.value }))} placeholder="مثلاً: 25000000" /></div>
+  1360→  1360→            <div className="space-y-2"><Label>توضیحات</Label><Textarea value={productForm.description} onChange={(e) => setProductForm((f) => ({ ...f, description: e.target.value }))} placeholder="توضیحات محصول..." rows={2} /></div>
+  1361→  1361→            <div className="space-y-2"><Label>آدرس تصویر</Label><Input value={productForm.imageUrl} onChange={(e) => setProductForm((f) => ({ ...f, imageUrl: e.target.value }))} placeholder="https://example.com/image.jpg" dir="ltr" /></div>
+  1362→  1362→            <Separator />
+  1363→  1363→            <div className="space-y-2"><Label className="flex items-center gap-2"><Globe className="w-4 h-4 text-blue-500" /> بازار هدف</Label><Textarea value={productForm.targetMarket} onChange={(e) => setProductForm((f) => ({ ...f, targetMarket: e.target.value }))} placeholder="مثلاً: بازار مصرف‌کننده نهایی، بازار سازمانی..." rows={2} /></div>
+  1364→  1364→            <div className="space-y-2"><Label className="flex items-center gap-2"><Tag className="w-4 h-4 text-amber-500" /> مزیت رقابتی</Label><Textarea value={productForm.competitiveAdvantage} onChange={(e) => setProductForm((f) => ({ ...f, competitiveAdvantage: e.target.value }))} placeholder="مثلاً: قیمت مناسب‌تر، کیفیت بالاتر..." rows={2} /></div>
+  1365→  1365→            <div className="space-y-2"><Label className="flex items-center gap-2"><Package className="w-4 h-4 text-purple-500" /> توضیحات پروموشن</Label><Textarea value={productForm.promotionDescription} onChange={(e) => setProductForm((f) => ({ ...f, promotionDescription: e.target.value }))} placeholder="مثلاً: تخفیف ویژه تابستانه، هدیه رایگان..." rows={2} /></div>
+  1366→  1366→            <div className="space-y-2"><Label className="flex items-center gap-2"><Tag className="w-4 h-4 text-rose-500" /> مارجین (٪)</Label><Input type="number" step="0.1" value={productForm.margin} onChange={(e) => setProductForm((f) => ({ ...f, margin: e.target.value }))} placeholder="مثلاً: 25" dir="ltr" /><p className="text-xs text-muted-foreground">درصد حاشیه سود (اختیاری)</p></div>
+  1367→  1367→            <Separator />
+  1368→  1368→            <div className="space-y-2"><Label>گروه / دسته‌بندی</Label><Select value={productForm.groupId || "__none__"} onValueChange={(v) => setProductForm((f) => ({ ...f, groupId: v === "__none__" ? "" : v }))}><SelectTrigger><SelectValue placeholder="بدون گروه" /></SelectTrigger><SelectContent><SelectItem value="__none__">بدون گروه</SelectItem>{groups.map((g) => <React.Fragment key={g.id}><SelectItem value={g.id}><span className="font-medium">{g.name}</span></SelectItem>{g.children.map((sub) => <SelectItem key={sub.id} value={sub.id}><span className="text-muted-foreground">└ {sub.name}</span></SelectItem>)}</React.Fragment>)}</SelectContent></Select></div>
+  1369→  1369→            <Button onClick={handleSaveProduct} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white" disabled={!productForm.name || !productForm.price}>{editingProduct ? "بروزرسانی" : "افزودن محصول"}</Button>
+  1370→  1370→          </div>
+  1371→  1371→        </DialogContent>
+  1372→  1372→      </Dialog>
+  1373→  1373→
+  1374→  1374→      {/* Group Dialog */}
+  1375→  1375→      <Dialog open={groupDialogOpen} onOpenChange={(open) => { setGroupDialogOpen(open); if (!open) { setEditingGroup(null); setGroupForm({ name: "", parentId: "" }); } }}>
+  1376→  1376→        <DialogContent className="sm:max-w-md" dir="rtl">
+  1377→  1377→          <DialogHeader><DialogTitle className="flex items-center gap-2"><FolderTree className="w-5 h-5" /> {editingGroup ? "ویرایش گروه" : "مدیریت گروه‌ها"}</DialogTitle></DialogHeader>
+  1378→  1378→          <div className="space-y-4 mt-4">
+  1379→  1379→            {!editingGroup && (
+  1380→  1380→              <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+  1381→  1381→                <p className="text-sm font-medium">افزودن گروه جدید</p>
+  1382→  1382→                <div className="space-y-2"><Label>نام گروه *</Label><Input value={groupForm.name} onChange={(e) => setGroupForm((f) => ({ ...f, name: e.target.value }))} placeholder="مثلاً: موبایل، لپ‌تاپ" /></div>
+  1383→  1383→                <div className="space-y-2"><Label>گروه والد (برای زیرگروه)</Label><Select value={groupForm.parentId || "__none__"} onValueChange={(v) => setGroupForm((f) => ({ ...f, parentId: v === "__none__" ? "" : v }))}><SelectTrigger><SelectValue placeholder="گروه اصلی (بدون والد)" /></SelectTrigger><SelectContent><SelectItem value="__none__">گروه اصلی (بدون والد)</SelectItem>{groups.map((g) => <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>)}</SelectContent></Select></div>
+  1384→  1384→                <Button onClick={handleSaveGroup} className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white" disabled={!groupForm.name}><FolderPlus className="w-4 h-4 ml-2" /> افزودن {groupForm.parentId ? "زیرگروه" : "گروه اصلی"}</Button>
+  1385→  1385→              </div>
+  1386→  1386→            )}
+  1387→  1387→            {editingGroup && (
+  1388→  1388→              <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+  1389→  1389→                <p className="text-sm font-medium">ویرایش: {editingGroup.name}</p>
+  1390→  1390→                <Input value={groupForm.name} onChange={(e) => setGroupForm((f) => ({ ...f, name: e.target.value }))} placeholder="نام گروه" />
+  1391→  1391→                <div className="flex gap-2"><Button onClick={handleSaveGroup} className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white" disabled={!groupForm.name}>بروزرسانی</Button><Button variant="outline" onClick={() => { setEditingGroup(null); setGroupForm({ name: "", parentId: "" }); }}>انصراف</Button></div>
+  1392→  1392→              </div>
+  1393→  1393→            )}
+  1394→  1394→            <div className="space-y-2">
+  1395→  1395→              <p className="text-sm font-medium text-muted-foreground">گروه‌های موجود</p>
+  1396→  1396→              {groups.length === 0 ? <p className="text-sm text-muted-foreground text-center py-4">هنوز گروهی ایجاد نشده</p> : (
+  1397→  1397→                <Accordion type="multiple" className="w-full">
+  1398→  1398→                  {groups.map((group) => (
+  1399→  1399→                    <AccordionItem key={group.id} value={group.id}>
+
+[showing lines 1000-1399 of 1627; use offset=1400 with limit to continue reading]

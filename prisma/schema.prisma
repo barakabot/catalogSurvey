@@ -37,6 +37,17 @@ model Product {
   updatedAt             DateTime             @updatedAt
   group                 ProductGroup?        @relation(fields: [groupId], references: [id], onDelete: SetNull)
   competitorProducts    CompetitorProduct[]
+  images                ProductImage[]
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  url       String   // مسیر تصویر (آپلودی یا لینک خارجی)
+  alt       String?  // متن جایگزین
+  order     Int      @default(0) // ترتیب نمایش
+  productId String
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model CompetitorProduct {
