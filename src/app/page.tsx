@@ -916,18 +916,21 @@ export default function CatalogPage() {
                     >
                       <TableCell>
                         <div className="flex items-center gap-3 py-1">
-                          {product.imageUrl ? (
-                            <img
-                              src={product.imageUrl}
-                              alt={product.name}
-                              className="w-10 h-10 rounded-lg object-contain shrink-0 bg-muted"
-                              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                            />
-                          ) : (
-                            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                              <Package className="w-5 h-5 text-muted-foreground" />
-                            </div>
-                          )}
+                          {(() => {
+                            const thumbSrc = (product.images && product.images.length > 0) ? product.images[0].url : product.imageUrl;
+                            return thumbSrc ? (
+                              <img
+                                src={thumbSrc}
+                                alt={product.name}
+                                className="w-10 h-10 rounded-lg object-contain shrink-0 bg-muted"
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                                <Package className="w-5 h-5 text-muted-foreground" />
+                              </div>
+                            );
+                          })()}
                           <div className="min-w-0">
                             <p className="font-medium text-sm line-clamp-1" title={product.name}>{product.name}</p>
                             <div className="flex items-center gap-2">
@@ -1009,25 +1012,33 @@ export default function CatalogPage() {
                 return (
                   <motion.div key={product.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
                     <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-border/50 group cursor-pointer" onClick={() => openProductDetail(product)}>
-                      {product.imageUrl && (
-                        <div className="relative h-48 overflow-hidden bg-muted">
-                          <img src={product.imageUrl} alt={product.name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                          {groupName && <Badge className="absolute top-3 right-3 bg-white/90 dark:bg-slate-800/90 text-foreground backdrop-blur-sm"><FolderTree className="w-3 h-3 ml-1" />{groupName}</Badge>}
-                          {(product.images || []).length > 1 && (
-                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-                              {(product.images || []).map((_, idx) => (
-                                <div key={idx} className={`w-1.5 h-1.5 rounded-full ${idx === 0 ? 'bg-white' : 'bg-white/50'}`} />
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
+                      {(() => {
+                        const mainImage = (product.images && product.images.length > 0) ? product.images[0].url : product.imageUrl;
+                        return mainImage ? (
+                          <div className="relative h-48 overflow-hidden bg-muted">
+                            <img src={mainImage} alt={product.name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                            {groupName && <Badge className="absolute top-3 right-3 bg-white/90 dark:bg-slate-800/90 text-foreground backdrop-blur-sm"><FolderTree className="w-3 h-3 ml-1" />{groupName}</Badge>}
+                            {(product.images || []).length > 1 && (
+                              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                                {(product.images || []).map((_, idx) => (
+                                  <div key={idx} className={`w-1.5 h-1.5 rounded-full ${idx === 0 ? 'bg-white' : 'bg-white/50'}`} />
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="relative h-32 overflow-hidden bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
+                            <Package className="w-12 h-12 text-muted-foreground/40" />
+                            {groupName && <Badge className="absolute top-3 right-3 bg-white/90 dark:bg-slate-800/90 text-foreground backdrop-blur-sm"><FolderTree className="w-3 h-3 ml-1" />{groupName}</Badge>}
+                          </div>
+                        );
+                      })()}
                       <CardHeader className="pb-2">
                         <div className="flex items-start justify-between">
                           <div className="flex-1 min-w-0">
                             <h3 className="font-bold text-base leading-snug text-foreground line-clamp-2" title={product.name}>{product.name}</h3>
                             {product.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{product.description}</p>}
-                            {!product.imageUrl && groupName && <Badge className="mt-2" variant="secondary"><FolderTree className="w-3 h-3 ml-1" />{groupName}</Badge>}
+                            {!((product.images && product.images.length > 0) ? product.images[0].url : product.imageUrl) && groupName && <Badge className="mt-2" variant="secondary"><FolderTree className="w-3 h-3 ml-1" />{groupName}</Badge>}
                           </div>
                           {isAdmin && (
                             <div className="flex gap-1 mr-2" onClick={(e) => e.stopPropagation()}>
