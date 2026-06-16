@@ -34,6 +34,7 @@ import {
   List,
   Percent,
   Gift,
+  Calculator,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -108,6 +109,7 @@ interface CompetitorProduct {
   originalPrice: number | null;
   discountPercent: number;
   brand: string | null;
+  coefficient: number;
   fetchedAt: string;
   catalogProductId: string | null;
   priceHistory?: CompetitorPriceHistory[];
@@ -608,6 +610,29 @@ export default function CatalogPage() {
     }
   };
 
+  const handleUpdateCoefficient = async (competitorId: string, coefficient: number) => {
+    try {
+      const res = await fetch(`/api/competitors/${competitorId}/coefficient`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ coefficient }),
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      toast({ title: "ضریب بروزرسانی شد", description: `قیمت تعدیل‌شده: ${formatPrice(data.adjustedPrice, currencyUnit)}` });
+      // Update local state
+      setDetailCompetitors((prev) =>
+        prev.map((c) => c.id === competitorId ? { ...c, coefficient } : c)
+      );
+      setAllCompetitors((prev) =>
+        prev.map((c) => c.id === competitorId ? { ...c, coefficient } : c)
+      );
+      fetchProducts();
+    } catch {
+      toast({ title: "خطا", description: "بروزرسانی ضریب ناموفق بود", variant: "destructive" });
+    }
+  };
+
   const fetchAllCompetitors = async () => {
     try {
       const filterParam = competitorFilter === "unlinked" ? "&unlinked=true" : competitorFilter !== "all" ? `&source=${competitorFilter}` : "";
@@ -666,7 +691,7 @@ export default function CatalogPage() {
   // ─── Computed ──────────────────────────────────────────────────
   const getBestCompetitorPrice = (product: Product) => {
     // This needs competitor data loaded
-    const prices = (product.competitorProducts || []).filter((c) => c.price > 0).map((c) => c.price);
+    const prices = (product.competitorProducts || []).filter((c) => c.price > 0).map((c) => Math.round(c.price * (c.coefficient || 1)));
     return prices.length ? Math.min(...prices) : null;
   };
 
@@ -1055,8 +1080,10 @@ export default function CatalogPage() {
                   ) : (
                     <div className="space-y-3 max-h-96 overflow-y-auto">
                       {detailCompetitors.map((comp) => {
-                        const isCheaper = comp.price > 0 && comp.price < detailProduct.price;
-                        const isMoreExpensive = comp.price > 0 && comp.price > detailProduct.price;
+                        const adjustedPrice = Math.round(comp.price * (comp.coefficient || 1));
+                        const isCheaper = adjustedPrice > 0 && adjustedPrice < detailProduct.price;
+                        const isMoreExpensive = adjustedPrice > 0 && adjustedPrice > detailProduct.price;
+                        const hasCoefficient = comp.coefficient !== undefined && comp.coefficient !== null && comp.coefficient !== 1;
                         return (
                           <div key={comp.id} className={`flex items-center justify-between p-4 rounded-xl border transition-colors ${isCheaper ? "bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800" : isMoreExpensive ? "bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800" : "bg-muted/50 border-border"}`}>
                             <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -1087,7 +1114,18 @@ export default function CatalogPage() {
                               <div className="text-left">
                                 {comp.price > 0 ? (
                                   <>
-                                    <p className="font-bold text-base">{formatPrice(comp.price, currencyUnit)}</p>
+                                    {hasCoefficient ? (
+                                      <>
+                                        <p className="text-xs text-muted-foreground line-through">{formatPrice(comp.price, currencyUnit)}</p>
+                                        <p className="font-bold text-base text-amber-700 dark:text-amber-400">{formatPrice(adjustedPrice, currencyUnit)}</p>
+                                        <Badge variant="outline" className="text-[9px] px-1 py-0 text-amber-600 border-amber-300 dark:text-amber-400 dark:border-amber-700 gap-0.5">
+                                          <Calculator className="w-2.5 h-2.5" />
+                                          ×{comp.coefficient}
+                                        </Badge>
+                                      </>
+                                    ) : (
+                                      <p className="font-bold text-base">{formatPrice(comp.price, currencyUnit)}</p>
+                                    )}
                                     {comp.discountPercent > 0 && comp.originalPrice && (
                                       <div className="flex items-center gap-1">
                                         <Badge variant="destructive" className="text-[10px] px-1 py-0">
@@ -1109,6 +1147,15 @@ export default function CatalogPage() {
                                 <div className="flex flex-col gap-1" onClick={(e) => e.stopPropagation()}>
                                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRefreshCompetitor(comp.id)} disabled={refreshingCompetitor === comp.id}>
                                     {refreshingCompetitor === comp.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" title="ویرایش ضریب" onClick={() => {
+                                    const val = prompt(`ضریب مقایسه برای "${comp.name}" (فعلی: ${comp.coefficient || 1})`, String(comp.coefficient || 1));
+                                    if (val !== null) {
+                                      const num = parseFloat(val);
+                                      if (!isNaN(num) && num >= 0) handleUpdateCoefficient(comp.id, num);
+                                    }
+                                  }}>
+                                    <Calculator className="w-3 h-3" />
                                   </Button>
                                   <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleUnlinkCompetitor(comp.id)}>
                                     <Unlink className="w-3 h-3" />
@@ -1232,7 +1279,10 @@ export default function CatalogPage() {
               </div>
             ) : (
               <div className="space-y-2 max-h-96 overflow-y-auto">
-                {allCompetitors.map((comp) => (
+                {allCompetitors.map((comp) => {
+                  const adjustedPrice = Math.round(comp.price * (comp.coefficient || 1));
+                  const hasCoefficient = comp.coefficient !== undefined && comp.coefficient !== null && comp.coefficient !== 1;
+                  return (
                   <div key={comp.id} className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
                     {comp.imageUrl ? (
                       <img src={comp.imageUrl} alt="" className="w-10 h-10 rounded object-contain shrink-0 bg-muted" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
@@ -1248,7 +1298,17 @@ export default function CatalogPage() {
                       </div>
                     </div>
                     <div className="text-left shrink-0">
-                      <p className="text-sm font-bold">{comp.price > 0 ? formatPrice(comp.price, currencyUnit) : "—"}</p>
+                      {hasCoefficient ? (
+                        <>
+                          <p className="text-[10px] text-muted-foreground line-through">{formatPrice(comp.price, currencyUnit)}</p>
+                          <p className="text-sm font-bold text-amber-700 dark:text-amber-400">{formatPrice(adjustedPrice, currencyUnit)}</p>
+                          <Badge variant="outline" className="text-[8px] px-1 py-0 text-amber-600 border-amber-300 dark:text-amber-400 dark:border-amber-700 gap-0.5">
+                            <Calculator className="w-2 h-2" />×{comp.coefficient}
+                          </Badge>
+                        </>
+                      ) : (
+                        <p className="text-sm font-bold">{comp.price > 0 ? formatPrice(comp.price, currencyUnit) : "—"}</p>
+                      )}
                     </div>
                     <div className="flex gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                       {!comp.catalogProductId && (
@@ -1256,12 +1316,22 @@ export default function CatalogPage() {
                           <Link2 className="w-3 h-3" />
                         </Button>
                       )}
+                      <Button variant="ghost" size="icon" className="h-7 w-7" title="ویرایش ضریب" onClick={() => {
+                        const val = prompt(`ضریب مقایسه (فعلی: ${comp.coefficient || 1})`, String(comp.coefficient || 1));
+                        if (val !== null) {
+                          const num = parseFloat(val);
+                          if (!isNaN(num) && num >= 0) handleUpdateCoefficient(comp.id, num);
+                        }
+                      }}>
+                        <Calculator className="w-3 h-3" />
+                      </Button>
                       <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ type: "competitor", id: comp.id, name: comp.name })}>
                         <Trash2 className="w-3 h-3" />
                       </Button>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

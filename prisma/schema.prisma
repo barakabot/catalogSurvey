@@ -51,6 +51,7 @@ model CompetitorProduct {
   originalPrice    Float?                  // Price before discount
   discountPercent  Float                   @default(0)
   brand            String?                 // Brand name
+  coefficient      Float                   @default(1) // ضریب مقایسه (قیمت × ضریب)
   fetchedAt        DateTime                @default(now()) // Date of last price fetch
   catalogProductId String?                 // Link to catalog product
   createdAt        DateTime                @default(now())
