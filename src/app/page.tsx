@@ -231,7 +231,7 @@ export default function CatalogPage() {
 
   // Baraka images
   const [barakaDialogOpen, setBarakaDialogOpen] = useState(false);
-  const [barakaProducts, setBarakaProducts] = useState<{ name: string; imageUrl: string; productUrl: string }[]>([]);
+  const [barakaProducts, setBarakaProducts] = useState<{ name: string; imageUrl: string; fullImageUrl?: string; productUrl: string }[]>([]);
   const [barakaLoading, setBarakaLoading] = useState(false);
 
   // Form states
@@ -368,8 +368,9 @@ export default function CatalogPage() {
     }
   };
 
-  const applyBarakaImage = async (barakaName: string, imageUrl: string) => {
-    // Try to find a product whose name matches the baraka product name
+  const applyBarakaImage = async (barakaName: string, imageUrl: string, fullImageUrl?: string) => {
+    // Use full-size image if available, otherwise use thumbnail
+    const imgToUse = fullImageUrl || imageUrl;
     const matched = products.find((p) => {
       const pName = p.name.toLowerCase().replace(/\s+/g, "");
       const bName = barakaName.toLowerCase().replace(/\s+/g, "");
@@ -381,7 +382,7 @@ export default function CatalogPage() {
         const res = await fetch(`/api/products/${matched.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ imageUrl }),
+          body: JSON.stringify({ imageUrl: imgToUse }),
         });
         if (!res.ok) throw new Error();
         toast({ title: `عکس "${barakaName}" به "${matched.name}" اختصاص یافت` });
@@ -1451,11 +1452,11 @@ export default function CatalogPage() {
                     <div
                       key={i}
                       className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer group"
-                      onClick={() => applyBarakaImage(bp.name, bp.imageUrl)}
+                      onClick={() => applyBarakaImage(bp.name, bp.imageUrl, bp.fullImageUrl)}
                     >
                       <div className="aspect-square bg-muted overflow-hidden">
                         <img
-                          src={bp.imageUrl}
+                          src={bp.fullImageUrl || bp.imageUrl}
                           alt={bp.name}
                           className="w-full h-full object-contain group-hover:scale-105 transition-transform"
                           onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
